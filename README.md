@@ -1,0 +1,254 @@
+# WebP Converter v2.2
+
+## Version Information
+
+This project has **TWO builds**:
+
+- **🟢 STABLE v2.2** (`webp-converter-web-STABLE.html`) - Production-ready, fully tested
+- **🟠 EXPERIMENTAL** (`webp-converter-web-EXPERIMENTAL.html`) - Testing bleeding-edge features
+
+**Use STABLE for important work.** Use EXPERIMENTAL if you want to test new features early.
+
+See `CHANGELOG.md` for detailed version history.
+
+---
+
+## Overview
+WebP Converter is a powerful client-side image conversion tool with advanced features for batch processing, custom presets, professional-grade resampling, and adaptive anti-aliasing.
+
+## What's New in v2.2
+
+### 🖥️ Dynamic Canvas Sizing
+Responsive canvas that adapts to your screen:
+- **Automatic Scaling**: Canvas fills available screen space
+- **4K Ready**: Perfect for high-resolution displays and ultra-wide monitors
+- **Window Resize**: Adjusts dynamically when you resize the browser
+- **Minimum Size**: Maintains usable dimensions on smaller displays
+- **More Space**: Up to 50% more working area on large screens
+
+### 🎯 Intelligent Cursor Feedback
+Context-aware cursors improve usability:
+- **Directional Arrows**: Shows which way handles can be resized (↕, ↔, diagonals)
+- **Move Cursor**: Inside crop area to reposition
+- **Grab/Grabbing**: Pan the canvas when zoomed in
+- **Instant Feedback**: Know exactly what each action will do
+
+### 👤 Author Attribution
+Proper credit throughout the project:
+- Visible attribution in all HTML files
+- Links to GitHub, social media, and support channels
+- Professional project presentation
+
+## What's New in v2.1
+
+### 🎯 Adaptive Anti-Aliasing
+Professional-grade image quality improvements for downsampling:
+- **Automatic Quality Control**: Intelligent pre-filtering prevents oversharpening artifacts
+- **Gaussian Pre-Filter**: Applies optimal blur before resampling based on downsampling ratio
+- **No Configuration Needed**: Works automatically - you'll see "Applying anti-aliasing..." when active
+- **Smart Detection**: Only applies for significant downsampling (< 67% scale)
+- **Better Results**: Eliminates ringing, halos, and moiré patterns that occur with bicubic/Lanczos
+
+**Technical Details:**
+- Prevents oversharpening that naturally occurs with bicubic and Lanczos interpolation
+- Uses Nyquist frequency-based blur radius calculation
+- Two-pass separable Gaussian blur for efficiency
+- Formula: `blurRadius = (1.0 / scale - 1.0) * 0.5`
+- Examples:
+  - 4K → 1080p (4x downsample): radius ≈ 1.5
+  - 1080p → 720p (1.5x downsample): radius ≈ 0.25
+
+**When It Works:**
+- Applies to: Bicubic, Lanczos, and Bilinear resampling methods
+- Skipped for: Nearest Neighbor and Browser Default methods
+- Only active when downsampling significantly (reducing by more than 33%)
+
+## What's New in v2.0
+
+### 🎉 Image Queue System
+- **Batch Processing**: Load and process multiple images at once
+- **Multi-file Selection**: Select multiple files or drag & drop entire folders
+- **Visual Queue Panel**: See all queued images with status indicators
+- **Progress Tracking**: Track which images have been processed (✓)
+- **Auto-advance**: Automatically move to next image after conversion
+- **Remove After Convert**: Option to auto-remove images from queue after processing
+- **Navigation**: Previous/Next buttons and click-to-load functionality
+
+### 🎨 Advanced Resampling Methods
+Choose the best resampling algorithm for your needs when resizing images:
+- **Lanczos**: Highest quality, best for downscaling (slower)
+- **Bicubic**: Recommended default, excellent quality/speed balance
+- **Bilinear**: Fast with smooth results
+- **Nearest Neighbor**: Fastest, preserves hard edges (ideal for pixel art)
+- **Browser Default**: Native browser resampling
+
+### ⚡ Smart Auto-Features
+- **Auto Zoom to Fit**: Images automatically fit the canvas on load
+- **Auto-load Presets**: Automatically loads `presets.json` if present in the same folder
+- **Smart Preset Selection**: Auto-selects appropriate preset based on image dimensions (Square/Landscape/Portrait)
+
+### 🎯 Custom Preset System
+- Load custom presets from JSON files
+- Switch between built-in and custom presets at any time
+- Automatic application of preset-specific settings
+- Platform-specific presets (BlueSky, Twitter, Discord, etc.)
+
+### Preset-Specific Settings
+When using custom presets, the following settings are automatically applied:
+- **Max Width/Height**: Automatically constrains output dimensions
+- **Target File Size**: Automatically enables web optimization with specified target size
+- **Crop Ratio**: Sets the aspect ratio for cropping
+- **Default Selection**: Auto-selects preset based on image orientation
+
+## How to Use
+
+### Quick Start
+1. Open `index.html` and choose STABLE or EXPERIMENTAL
+2. Load an image (or multiple images for batch processing)
+3. Select a crop preset or use freestyle
+4. Adjust quality settings and resampling method
+5. Click "Convert & Download"
+
+### Using the Image Queue System
+**Loading Multiple Images:**
+- **Method 1**: Click "Select Image(s)" and hold Ctrl/Cmd to select multiple files
+- **Method 2**: Drag and drop multiple images onto the canvas
+
+**Queue Controls:**
+- **Previous/Next**: Navigate between queued images
+- **Click Image**: Jump to any image in the queue
+- **Remove (✕)**: Remove individual images from queue
+- **Clear All**: Clear entire queue
+- **Remove After Convert**: Enable to auto-remove images after processing
+
+**Status Indicators:**
+- **▶** = Currently active image (amber background)
+- **✓** = Already processed/converted (green checkmark)
+
+### Choosing a Resampling Method
+When resizing images (using Max Width/Height), select the appropriate resampling method:
+
+- **Lanczos** - Best for photographs and high-quality downscaling (with anti-aliasing)
+- **Bicubic** - Good all-around choice, recommended default (with anti-aliasing)
+- **Bilinear** - Faster processing with acceptable quality (with anti-aliasing)
+- **Nearest Neighbor** - Use for pixel art or when you want sharp edges (no anti-aliasing)
+- **Browser Default** - Let the browser handle resampling (no anti-aliasing)
+
+*Note: Resampling only applies when the output dimensions differ from the crop dimensions. Anti-aliasing is automatically applied for Lanczos, Bicubic, and Bilinear when significantly downsampling.*
+
+### Loading Custom Presets
+1. Click the **"Load Custom Presets"** button in the "Preset Source" section
+2. Select your JSON preset file (e.g., `presets.json`)
+3. The app will load all presets from the file
+
+### Switching Between Presets
+- Once loaded, custom presets appear in the **"Crop Preset"** dropdown
+- An info panel shows preset-specific settings (if any) for the selected preset
+- Click **"Use Built-in"** to switch back to built-in presets
+- Click **"Load Different"** to load a different custom preset file
+
+### Preset Information
+When a custom preset is selected, you'll see an amber-colored info panel showing:
+- Max width constraint (if specified)
+- Max height constraint (if specified)
+- Target file size (if specified)
+
+## JSON Format
+
+Your JSON preset file should follow this format:
+
+```json
+{
+  "Preset Name": {
+    "max-width": 1000,
+    "max-height": 2000,
+    "max-filesize": 1,
+    "max-filesize-unit": "MB",
+    "crop-ratio": 0.5,
+    "default-selection": "Landscape"
+  }
+}
+```
+
+### Available Properties
+- `max-width`: Maximum width in pixels (optional)
+- `max-height`: Maximum height in pixels (optional)
+- `max-filesize`: Target file size value (optional)
+- `max-filesize-unit`: Unit for file size - "KB", "MB", or "GB" (default: "MB")
+- `crop-ratio`: Aspect ratio (width/height) for cropping (optional, null = freestyle)
+- `default-selection`: Auto-select trigger - "Square", "Landscape", or "Portrait" (optional)
+
+### Example Presets
+The included `presets.json` file contains presets for:
+- **BlueSky** (various image layouts)
+- **Twitter/X** (various image layouts)
+- **Discord** (image layouts)
+- **Eorzea Collection** (specific dimensions)
+- Generic aspect ratios (Square, 16:9, 9:16, etc.)
+
+## Built-in Presets
+The app includes these built-in presets:
+- Freestyle
+- Square (1:1)
+- 16:9 Landscape
+- 9:16 Portrait
+- 4:3 Landscape
+- 3:4 Portrait
+- 21:9 Ultrawide
+- Twitter Post
+- Twitter Header
+- Instagram Square/Portrait/Landscape
+- Facebook Post
+- YouTube Thumbnail
+- Discord Avatar
+- Pinterest Pin
+
+## Tips & Best Practices
+
+### Image Quality (NEW in v2.1)
+- **Anti-aliasing works automatically** - no configuration needed
+- For high-quality downsampling: Use **Lanczos** or **Bicubic** with anti-aliasing (default)
+- Downsampling 4K to 1080p? Anti-aliasing prevents oversharpening and ringing artifacts
+- Want pixel-perfect sharp edges? Use **Nearest Neighbor** (skips anti-aliasing)
+
+### Performance
+- For batch processing large images, use "Auto Zoom to Fit" and "Remove After Convert" for faster workflow
+- Lanczos resampling is slower but produces the best quality for downscaling
+- Use Nearest Neighbor for pixel art to preserve sharp edges
+- Anti-aliasing adds minimal overhead (only applies when needed)
+
+### Presets
+- Place `presets.json` in the same folder as the converter for automatic loading
+- Use `default-selection` to auto-select presets based on image orientation
+- Custom presets override manual settings for max dimensions and target file size
+- You can still manually adjust quality and lossless settings after preset selection
+- The crop can be adjusted manually on the canvas even with presets
+
+### Workflow
+- Process similar images in batch using the queue system with the same settings
+- Use "Optimize for Web" to hit specific file size targets
+- Combine resampling methods with quality settings for optimal results
+- Navigate queue with Previous/Next buttons or click images directly
+- Watch for "Applying anti-aliasing..." status message during significant downsampling
+
+### File Management
+- Converted files are named with date, resolution, and quality: `image-2025-10-26-1920x1080px-q95.webp`
+- Lossless files are marked with `qLL` in the filename
+- No data leaves your computer - all processing is client-side
+
+---
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Author
+
+Created by **Flash Galatine**
+
+- GitHub: [FlashGalatine](https://github.com/FlashGalatine)
+- X/Twitter: [@AsheJunius](https://x.com/AsheJunius)
+- Twitch: [flashgalatine](https://www.twitch.tv/flashgalatine)
+- BlueSky: [@flashgalatine.bsky.social](https://bsky.app/profile/flashgalatine.bsky.social)
+- Patreon: [Project Galatine](https://www.patreon.com/ProjectGalatine)
+- Blog: [blog.projectgalatine.com](https://blog.projectgalatine.com/)

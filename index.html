@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<!--
+    WebP Image Converter - Launcher
+    Created by Flash Galatine
+    GitHub: https://github.com/FlashGalatine
+    X/Twitter: https://x.com/AsheJunius
+    Twitch: https://www.twitch.tv/flashgalatine
+    BlueSky: https://bsky.app/profile/flashgalatine.bsky.social
+    Patreon: https://www.patreon.com/ProjectGalatine
+    Blog: https://blog.projectgalatine.com/
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="Flash Galatine">
+    <title>WebP Converter - Choose Version</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100">
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="max-w-4xl w-full">
+            <div class="text-center mb-12">
+                <h1 class="text-5xl font-bold text-amber-400 mb-4">WebP Converter</h1>
+                <p class="text-xl text-gray-300">Choose your version</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8">
+                <!-- STABLE Version -->
+                <div class="bg-gray-800 rounded-lg p-8 border-2 border-green-600 hover:border-green-500 transition-colors">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-3xl font-bold text-white">STABLE</h2>
+                        <span class="bg-green-600 text-white text-sm font-bold px-3 py-1 rounded">
+                            ✓ RECOMMENDED
+                        </span>
+                    </div>
+                    
+                    <p class="text-gray-300 mb-6">
+                        Production-ready build with all features fully tested and verified. 
+                        Best choice for important work and reliable performance.
+                    </p>
+                    
+                    <div class="mb-6 space-y-2 text-sm">
+                        <div class="flex items-start">
+                            <span class="text-green-400 mr-2">✓</span>
+                            <span class="text-gray-300">Fully tested and reliable</span>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-green-400 mr-2">✓</span>
+                            <span class="text-gray-300">All features working</span>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-green-400 mr-2">✓</span>
+                            <span class="text-gray-300">Custom preset support</span>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-green-400 mr-2">✓</span>
+                            <span class="text-gray-300">No known issues</span>
+                        </div>
+                    </div>
+                    
+                    <a 
+                        href="webp-converter-web-STABLE.html" 
+                        class="block w-full bg-green-600 hover:bg-green-700 text-white text-center py-4 px-6 rounded-lg font-bold text-lg transition-colors"
+                    >
+                        Launch STABLE
+                    </a>
+                </div>
+                
+                <!-- EXPERIMENTAL Version -->
+                <div class="bg-gray-800 rounded-lg p-8 border-2 border-orange-500 hover:border-orange-400 transition-colors">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-3xl font-bold text-white">EXPERIMENTAL</h2>
+                        <span class="bg-orange-500 text-white text-sm font-bold px-3 py-1 rounded">
+                            ⚠️ TESTING
+                        </span>
+                    </div>
+                    
+                    <p class="text-gray-300 mb-6">
+                        Development build for testing new features and enhancements. 
+                        May contain bugs or unstable functionality.
+                    </p>
+                    
+                    <div class="mb-6 space-y-2 text-sm">
+                        <div class="flex items-start">
+                            <span class="text-orange-400 mr-2">✓</span>
+                            <span class="text-gray-300">Currently synced with STABLE v2.2</span>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-orange-400 mr-2">⚠</span>
+                            <span class="text-gray-300">New features tested here first</span>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-orange-400 mr-2">⚠</span>
+                            <span class="text-gray-300">May have experimental bugs</span>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-orange-400 mr-2">⚠</span>
+                            <span class="text-gray-300">Frequent updates</span>
+                        </div>
+                        <div class="flex items-start">
+                            <span class="text-orange-400 mr-2">💡</span>
+                            <span class="text-gray-300">Help test bleeding-edge features!</span>
+                        </div>
+                    </div>
+                    
+                    <a 
+                        href="webp-converter-web-EXPERIMENTAL.html" 
+                        class="block w-full bg-orange-500 hover:bg-orange-600 text-white text-center py-4 px-6 rounded-lg font-bold text-lg transition-colors"
+                    >
+                        Launch EXPERIMENTAL
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Documentation Links -->
+            <div class="mt-12 text-center space-y-3">
+                <div class="text-gray-400">
+                    <a href="README.md" class="text-amber-400 hover:text-amber-300 underline" target="_blank">
+                        📖 Read Documentation
+                    </a>
+                    <span class="mx-3">•</span>
+                    <a href="QUEUE_SYSTEM_GUIDE.md" class="text-amber-400 hover:text-amber-300 underline" target="_blank">
+                        🎉 Queue System Guide
+                    </a>
+                    <span class="mx-3">•</span>
+                    <a href="CHANGELOG.md" class="text-amber-400 hover:text-amber-300 underline" target="_blank">
+                        📋 Changelog
+                    </a>
+                    <span class="mx-3">•</span>
+                    <a href="presets.json" class="text-amber-400 hover:text-amber-300 underline" target="_blank">
+                        🎨 Sample Presets
+                    </a>
+                </div>
+                <p class="text-sm text-gray-500">
+                    Convert images to WebP format with custom presets and optimization
+                </p>
+            </div>
+
+            <!-- Attribution -->
+            <div class="mt-12 pt-8 border-t border-gray-700 text-center">
+                <p class="text-xs text-gray-500 mb-2">Created by <span class="text-gray-400 font-semibold">Flash Galatine</span></p>
+                <div class="flex flex-wrap justify-center gap-3 text-xs">
+                    <a href="https://github.com/FlashGalatine" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">GitHub</a>
+                    <span class="text-gray-600">•</span>
+                    <a href="https://x.com/AsheJunius" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">X/Twitter</a>
+                    <span class="text-gray-600">•</span>
+                    <a href="https://www.twitch.tv/flashgalatine" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">Twitch</a>
+                    <span class="text-gray-600">•</span>
+                    <a href="https://bsky.app/profile/flashgalatine.bsky.social" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">BlueSky</a>
+                    <span class="text-gray-600">•</span>
+                    <a href="https://www.patreon.com/ProjectGalatine" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">Patreon</a>
+                    <span class="text-gray-600">•</span>
+                    <a href="https://blog.projectgalatine.com/" target="_blank" rel="noopener noreferrer" class="text-blue-400 hover:text-blue-300">Blog</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

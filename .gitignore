@@ -1,0 +1,72 @@
+# Operating System Files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# IDE and Editor Files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Node modules (if any)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build outputs
+dist/
+build/
+*.log
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Deprecated code
+PYTHON/
+
+# Project-specific ignores
+CLAUDE.md
+Feedback.md
+
+# User data and mount points
+mnt/
+
+# Backup files
+*.bak
+*.backup
+*-backup.*
+
+# Test images and outputs (optional - uncomment if needed)
+# test-images/
+# output/
+# *.webp
+
+# Environment files (if any secrets are added later)
+.env
+.env.local
+.env.*.local
+
+# Package manager files
+package-lock.json
+yarn.lock
+
+# Coverage reports
+coverage/
+*.coverage
+
+# Debug files
+*.map
