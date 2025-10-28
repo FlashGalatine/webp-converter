@@ -3,23 +3,24 @@
 ## 📁 File Structure
 
 ```
-├── index.html                              [Launcher - choose your version]
-├── webp-converter-web-STABLE.html         [🟢 Production version]
+├── index.html                              [🟢 STABLE - Default version]
+├── launcher.html                           [Version selector]
 ├── webp-converter-web-EXPERIMENTAL.html   [🟠 Testing version]
 ├── presets.json                           [Sample custom presets]
 ├── README.md                              [Feature documentation]
-├── VERSION_INFO.md                        [Version history & details]
+├── CHANGELOG.md                           [Version history & details]
 └── PROJECT_SUMMARY.md                     [This file]
 ```
 
 ## 🚀 Quick Start
 
-1. **Open `index.html`** to choose between STABLE or EXPERIMENTAL
-2. **Load an image** using "Select Image" or drag & drop
-3. **Choose a preset** from built-in options
-4. **Or load custom presets** from a JSON file
-5. **Adjust settings** (quality, dimensions, optimization)
-6. **Convert & Download** your WebP image!
+1. **Open `index.html`** to start using the converter (STABLE version)
+2. **Or open `launcher.html`** to choose between STABLE or EXPERIMENTAL
+3. **Load an image** using "Select Image" or drag & drop
+4. **Choose a preset** from built-in options
+5. **Or load custom presets** from a JSON file
+6. **Adjust settings** (quality, dimensions, optimization)
+7. **Convert & Download** your WebP image!
 
 ## 📌 Version Strategy
 

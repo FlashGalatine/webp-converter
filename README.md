@@ -1,13 +1,17 @@
 # WebP Converter v2.2
 
+## Quick Start
+
+Simply open `index.html` in your browser to start using the converter!
+
 ## Version Information
 
 This project has **TWO builds**:
 
-- **🟢 STABLE v2.2** (`webp-converter-web-STABLE.html`) - Production-ready, fully tested
+- **🟢 STABLE v2.2** (`index.html`) - Production-ready, fully tested - **Default version**
 - **🟠 EXPERIMENTAL** (`webp-converter-web-EXPERIMENTAL.html`) - Testing bleeding-edge features
 
-**Use STABLE for important work.** Use EXPERIMENTAL if you want to test new features early.
+**The default `index.html` is the STABLE version.** Use EXPERIMENTAL if you want to test new features early.
 
 See `CHANGELOG.md` for detailed version history.
 

@@ -3,7 +3,7 @@
 ## Current Releases
 
 ### STABLE Build v2.2
-**File:** `webp-converter-web-STABLE.html`
+**File:** `index.html` (default)
 **Status:** Production Ready ✅
 **Date:** October 28, 2025
 
@@ -91,6 +91,11 @@
 - Better workflow on high-resolution displays
 - More intuitive interaction with crop handles
 - Professional project presentation
+
+**File Structure Changes:**
+- `index.html` is now the STABLE version (default file for web servers)
+- Previous launcher moved to `launcher.html`
+- Better organization for web hosting and GitHub Pages
 
 ### v2.1-STABLE (October 26, 2025)
 **Image Quality Enhancement Update**
