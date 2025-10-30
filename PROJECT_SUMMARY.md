@@ -172,7 +172,7 @@ Uses React, Tailwind CSS, and modern web standards.
 - GitHub: [FlashGalatine](https://github.com/FlashGalatine)
 - X/Twitter: [@AsheJunius](https://x.com/AsheJunius)
 - Twitch: [flashgalatine](https://www.twitch.tv/flashgalatine)
-- BlueSky: [@flashgalatine.bsky.social](https://bsky.app/profile/flashgalatine.bsky.social)
+- BlueSky: [@projectgalatine.com](https://bsky.app/profile/projectgalatine.com)
 - Patreon: [Project Galatine](https://www.patreon.com/ProjectGalatine)
 - Blog: [blog.projectgalatine.com](https://blog.projectgalatine.com/)
 
