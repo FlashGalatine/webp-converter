@@ -1,4 +1,4 @@
-# WebP Converter v2.2.1
+# WebP Converter v2.3.0
 
 ## Quick Start
 
@@ -8,7 +8,7 @@ Simply open `index.html` in your browser to start using the converter!
 
 This project has **TWO builds**:
 
-- **🟢 STABLE v2.2.1** (`index.html`) - Production-ready, fully tested - **Default version**
+- **🟢 STABLE v2.3.0** (`index.html`) - Production-ready, fully tested - **Default version**
 - **🟠 EXPERIMENTAL** (`webp-converter-web-EXPERIMENTAL.html`) - Testing bleeding-edge features
 
 **The default `index.html` is the STABLE version.** Use EXPERIMENTAL if you want to test new features early.
@@ -19,6 +19,16 @@ See `CHANGELOG.md` for detailed version history.
 
 ## Overview
 WebP Converter is a powerful client-side image conversion tool with advanced features for batch processing, custom presets, professional-grade resampling, and adaptive anti-aliasing.
+
+## What's New in v2.3.0
+
+### 🎨 Freestyle Toggle Switch
+**Independent Freestyle Mode Control** - Disable aspect ratio constraints without changing presets
+- **Flexible Toggle**: Enable Freestyle Mode as an independent option while keeping your preset selection
+- **Preserve Current Crop**: Toggling Freestyle on/off maintains your current crop area and settings
+- **Easy Access**: Simple checkbox control positioned right below the Crop Preset selector
+- **Works with All Presets**: Compatible with both built-in and custom presets
+- **Export Respects Limits**: Max-width/max-height settings still apply during export
 
 ## What's New in v2.2.1
 

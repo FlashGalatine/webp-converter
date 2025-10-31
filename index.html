@@ -70,7 +70,8 @@
             const [cropWidth, setCropWidth] = useState(0);
             const [cropHeight, setCropHeight] = useState(0);
             const [aspectRatio, setAspectRatio] = useState(null);
-            
+            const [isFreestyleMode, setIsFreestyleMode] = useState(false);
+
             // Settings state
             const [selectedPreset, setSelectedPreset] = useState("16:9 Landscape");
             const [quality, setQuality] = useState(95);
@@ -497,7 +498,7 @@
                         ctx.strokeRect(handle.x - handleSize / 2, handle.y - handleSize / 2, handleSize, handleSize);
                     });
                 }
-            }, [image, zoomLevel, panX, panY, cropX, cropY, cropWidth, cropHeight, aspectRatio, canvasWidth, canvasHeight]);
+            }, [image, zoomLevel, panX, panY, cropX, cropY, cropWidth, cropHeight, aspectRatio, isFreestyleMode, canvasWidth, canvasHeight]);
             
             // Get cursor position relative to canvas
             const getCursorPos = (e) => {
@@ -705,8 +706,8 @@
                         newHeight = dragStartCropHeight + dyImg;
                     }
                     
-                    // Maintain aspect ratio if set
-                    if (aspectRatio) {
+                    // Maintain aspect ratio if set (and Freestyle mode is disabled)
+                    if (aspectRatio && !isFreestyleMode) {
                         if (direction.includes('e') || direction.includes('w')) {
                             newHeight = newWidth / aspectRatio;
                             if (direction.includes('n')) {
@@ -1698,7 +1699,21 @@
                                 </div>
                             )}
                         </div>
-                        
+
+                        {/* Freestyle Toggle */}
+                        <div className="mb-6">
+                            <label className="flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={isFreestyleMode}
+                                    onChange={(e) => setIsFreestyleMode(e.target.checked)}
+                                    className="mr-3 w-4 h-4"
+                                />
+                                <span className="text-sm font-semibold text-gray-300">🎨 Freestyle Mode</span>
+                            </label>
+                            <p className="text-xs text-gray-400 mt-1 ml-7">Disable aspect ratio constraints for free cropping</p>
+                        </div>
+
                         {/* WebP Options */}
                         <div className="mb-6">
                             <h2 className="text-sm font-semibold mb-3 text-gray-300">WebP Options</h2>

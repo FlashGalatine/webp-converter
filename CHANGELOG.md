@@ -2,7 +2,7 @@
 
 ## Current Releases
 
-### STABLE Build v2.2.1
+### STABLE Build v2.3.0
 **File:** `index.html` (default)
 **Status:** Production Ready ✅
 **Date:** October 31, 2025
@@ -42,6 +42,11 @@
 - ✅ **Intelligent Cursor Feedback** - Directional cursors show which way handles can be resized
 - ✅ **Author Attribution** - Proper credit and links throughout all files
 
+**New in v2.3.0:**
+- ✅ **Freestyle Toggle Switch** - Independent control to disable aspect ratio constraints
+- ✅ **Flexible Cropping** - Use Freestyle Mode with any preset without changing the selection
+- ✅ **Settings Preservation** - Toggling Freestyle on/off maintains current crop and settings
+
 #### Known Issues:
 - None reported
 
@@ -51,10 +56,10 @@
 **File:** `webp-converter-web-EXPERIMENTAL.html`
 **Status:** Testing & Development ⚠️
 **Date:** October 31, 2025
-**Version:** 2.2.1-EXPERIMENTAL
+**Version:** 2.3.0-EXPERIMENTAL
 
 #### Current State:
-- Contains all STABLE v2.2.1 features
+- Contains all STABLE v2.3.0 features
 - Currently synchronized with STABLE (no experimental features in testing)
 
 #### Known Issues:
@@ -63,6 +68,26 @@
 ---
 
 ## Version History
+
+### v2.3.0-STABLE (October 31, 2025)
+**Freestyle Control Enhancement**
+
+**New Features:**
+- **Freestyle Toggle Switch** - Independent control to disable aspect ratio constraints
+  - Simple checkbox control positioned below Crop Preset selector
+  - Works independently without changing preset selection
+  - Preserves current crop area and settings when toggling
+  - Compatible with both built-in and custom presets
+
+**Improvements:**
+- Enhanced cropping flexibility for users who need free-form cropping with preset settings
+- Better workflow for users who want to switch between constrained and unconstrained cropping
+- Export settings (max-width/max-height) still apply regardless of Freestyle mode
+
+**Implementation Details:**
+- New state variable: `isFreestyleMode`
+- Modified aspect ratio constraint logic to check `if (aspectRatio && !isFreestyleMode)`
+- UI toggle with visual indicator (🎨 emoji and descriptive text)
 
 ### v2.2.1-STABLE (October 31, 2025)
 **Bug Fix Release**
