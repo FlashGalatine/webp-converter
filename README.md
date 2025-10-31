@@ -114,7 +114,7 @@ When using custom presets, the following settings are automatically applied:
 ## How to Use
 
 ### Quick Start
-1. Open `index.html` and choose STABLE or EXPERIMENTAL
+1. Open `index.html` (STABLE) or `webp-converter-web-EXPERIMENTAL.html` (EXPERIMENTAL)
 2. Load an image (or multiple images for batch processing)
 3. Select a crop preset or use freestyle
 4. Adjust quality settings and resampling method
