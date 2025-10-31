@@ -187,7 +187,6 @@ The included `presets.json` file contains presets for:
 - **BlueSky** (various image layouts)
 - **Twitter/X** (various image layouts)
 - **Discord** (image layouts)
-- **Eorzea Collection** (specific dimensions)
 - Generic aspect ratios (Square, 16:9, 9:16, etc.)
 
 ## Built-in Presets
