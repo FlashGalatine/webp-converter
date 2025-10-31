@@ -427,8 +427,8 @@
                 // Draw image
                 ctx.drawImage(image, imgX, imgY, displayWidth, displayHeight);
                 
-                // Draw crop overlay if aspect ratio is set
-                if (aspectRatio !== null) {
+                // Draw crop overlay if image is loaded and crop area has been initialized
+                if (cropWidth > 0 && cropHeight > 0) {
                     // Calculate crop coordinates in display space
                     const cropDisplayX = imgX + cropX * zoomLevel;
                     const cropDisplayY = imgY + cropY * zoomLevel;
@@ -525,7 +525,7 @@
             
             // Detect which handle is being hovered/clicked
             const detectHandle = (canvasX, canvasY) => {
-                if (!image || aspectRatio === null) return null;
+                if (!image || cropWidth <= 0 || cropHeight <= 0) return null;
                 
                 const canvas = canvasRef.current;
                 const displayWidth = image.width * zoomLevel;
@@ -564,7 +564,7 @@
             
             // Check if cursor is inside crop rectangle
             const isInsideCrop = (canvasX, canvasY) => {
-                if (!image || aspectRatio === null) return false;
+                if (!image) return false;
                 
                 const canvas = canvasRef.current;
                 const displayWidth = image.width * zoomLevel;

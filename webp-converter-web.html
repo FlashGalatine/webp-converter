@@ -388,7 +388,7 @@
             
             // Check if cursor is inside crop rectangle
             const isInsideCrop = (canvasX, canvasY) => {
-                if (!image || aspectRatio === null) return false;
+                if (!image) return false;
                 
                 const canvas = canvasRef.current;
                 const displayWidth = image.width * zoomLevel;

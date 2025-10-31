@@ -2,10 +2,10 @@
 
 ## Current Releases
 
-### STABLE Build v2.2
+### STABLE Build v2.2.1
 **File:** `index.html` (default)
 **Status:** Production Ready ✅
-**Date:** October 28, 2025
+**Date:** October 31, 2025
 
 #### All Features:
 **Core Functionality:**
@@ -50,11 +50,11 @@
 ### EXPERIMENTAL Build
 **File:** `webp-converter-web-EXPERIMENTAL.html`
 **Status:** Testing & Development ⚠️
-**Date:** October 28, 2025
-**Version:** 2.2-EXPERIMENTAL
+**Date:** October 31, 2025
+**Version:** 2.2.1-EXPERIMENTAL
 
 #### Current State:
-- Contains all STABLE v2.2 features
+- Contains all STABLE v2.2.1 features
 - Currently synchronized with STABLE (no experimental features in testing)
 
 #### Known Issues:
@@ -63,6 +63,18 @@
 ---
 
 ## Version History
+
+### v2.2.1-STABLE (October 31, 2025)
+**Bug Fix Release**
+
+**Bug Fixes:**
+- **Fixed Freestyle Cropping Drag** - Crop area can now be dragged in Freestyle mode
+  - Previously, dragging inside the crop rectangle would pan the image instead of moving the crop area
+  - Issue was caused by `aspectRatio === null` check in `isInsideCrop()` function rejecting all Freestyle mode interactions
+  - Now correctly detects cursor position inside crop area regardless of aspect ratio setting
+
+**Improvements:**
+- Better interaction detection for crop manipulation in all modes
 
 ### v2.2-STABLE (October 28, 2025)
 **User Experience & Display Update**
