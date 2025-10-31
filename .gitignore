@@ -39,7 +39,6 @@ build/
 PYTHON/
 
 # Project-specific ignores
-CLAUDE.md
 Feedback.md
 
 # User data and mount points
