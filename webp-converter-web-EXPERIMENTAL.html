@@ -183,6 +183,9 @@
                         for (const [name, config] of Object.entries(jsonData)) {
                             if (config['crop-ratio']) {
                                 converted[name] = config['crop-ratio'];
+                            } else if (config['max-width'] && config['max-height']) {
+                                // Calculate crop-ratio from max dimensions if crop-ratio not defined
+                                converted[name] = config['max-width'] / config['max-height'];
                             } else {
                                 converted[name] = null; // Freestyle
                             }
@@ -1460,6 +1463,9 @@
                             for (const [name, config] of Object.entries(jsonData)) {
                                 if (config['crop-ratio']) {
                                     converted[name] = config['crop-ratio'];
+                                } else if (config['max-width'] && config['max-height']) {
+                                    // Calculate crop-ratio from max dimensions if crop-ratio not defined
+                                    converted[name] = config['max-width'] / config['max-height'];
                                 } else {
                                     converted[name] = null; // Freestyle
                                 }

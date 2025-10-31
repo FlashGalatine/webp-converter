@@ -5,7 +5,6 @@
     "max-height": 570,
     "max-filesize": 1,
     "max-filesize-unit": "MB",
-    "crop-ratio": 0.5964912280,
    	"default-selection": "Portrait"
   },
   "Eorzea Collection 690 Slideshow": {
@@ -13,34 +12,31 @@
     "max-height": 570,
     "max-filesize": 1,
     "max-filesize-unit": "MB",
-    "crop-ratio": 1.2105263157
+   	"default-selection": "Landscape"
   },
   "Eorzea Collection 1040 Slideshow": {
     "max-width": 1040,
     "max-height": 570,
     "max-filesize": 1,
-    "max-filesize-unit": "MB",
-    "crop-ratio": 1.8245614035
+    "max-filesize-unit": "MB"
   },
   "Eorzea Collection Corner Detail": {
     "max-width": 515,
     "max-height": 280,
     "max-filesize": 1,
-    "max-filesize-unit": "MB",
-    "crop-ratio": 1.8392857142
+    "max-filesize-unit": "MB"
   },
   "Eorzea Collection Wide Detail": {
     "max-width": 690,
     "max-height": 280,
     "max-filesize": 1,
-    "max-filesize-unit": "MB",
-    "crop-ratio": 2.4642857142
+    "max-filesize-unit": "MB"
   },
   "Eorzea Collection Box Detail": {
     "max-width": 340,
     "max-height": 280,
     "max-filesize": 1,
     "max-filesize-unit": "MB",
-    "crop-ratio": 1.2142857142
+   	"default-selection": "Square"
   }
 }

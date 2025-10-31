@@ -28,29 +28,25 @@
     "crop-ratio": 1.5
   },
   "BlueSky 1-Image Portrait": {
-    "max-width": 1000,
     "max-height": 2000,
     "max-filesize": 1,
-    "max-filesize-unit": "MB",
-    "crop-ratio": 0.5
+    "max-filesize-unit": "MB"
   },
   "BlueSky 2-Image Left x1": {
     "max-width": 2000,
     "max-height": 2000,
     "max-filesize": 1,
-    "max-filesize-unit": "MB",
-    "crop-ratio": 1
+    "max-filesize-unit": "MB"
   },
   "BlueSky 2-Image Right x2": {
     "max-width": 2000,
-    "max-height": 2000,
+    "max-height": 1000,
     "max-filesize": 1,
-    "max-filesize-unit": "MB",
-    "crop-ratio": 2
+    "max-filesize-unit": "MB"
   },
   "BlueSky 4-Image 2x2": {
     "max-width": 2000,
-    "max-height": 2000,
+    "max-height": 1333,
     "max-filesize": 1,
     "max-filesize-unit": "MB",
     "crop-ratio": 1.5
@@ -63,35 +59,27 @@
     "crop-ratio": 0.75
   },
   "Twitter 2-Image or 3-Image Left": {
+    "max-width": 1260,
     "max-height": 1440,
     "max-filesize": 1,
-    "max-filesize-unit": "MB",
-    "crop-ratio": 0.8854435831
+    "max-filesize-unit": "MB"
   },
   "Twitter 3-Image Right x2": {
+    "max-width": 2520,
     "max-height": 1440,
     "max-filesize": 1,
-    "max-filesize-unit": "MB",
-    "crop-ratio": 1.7828026164
+    "max-filesize-unit": "MB"
   },
   "Twitter 4-Image": {
+    "max-width": 2880,
     "max-height": 1440,
     "max-filesize": 1,
-    "max-filesize-unit": "MB",
-    "crop-ratio": 2
+    "max-filesize-unit": "MB"
   },
-  "Discord 2-Image or 3-Image": {
+  "Discord Square": {
     "max-width": 1440,
     "max-height": 1440,
     "max-filesize": 1,
-    "max-filesize-unit": "MB",
-    "crop-ratio": 1
-  },
-  "Discord 4-Image": {
-    "max-width": 1440,
-    "max-height": 1440,
-    "max-filesize": 1,
-    "max-filesize-unit": "MB",
-    "crop-ratio": 1.5780346820
+    "max-filesize-unit": "MB"
   }
 }
