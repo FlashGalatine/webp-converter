@@ -40,6 +40,7 @@ PYTHON/
 
 # Project-specific ignores
 Feedback.md
+CLAUDE.md
 
 # User data and mount points
 mnt/
