@@ -1,4 +1,4 @@
-# WebP Converter v2.3.0
+# WebP Converter v2.4.0
 
 ## Quick Start
 
@@ -8,8 +8,8 @@ Simply open `index.html` in your browser to start using the converter!
 
 This project has **TWO builds**:
 
-- **🟢 STABLE v2.3.0** (`index.html`) - Production-ready, fully tested - **Default version**
-- **🟠 EXPERIMENTAL** (`webp-converter-web-EXPERIMENTAL.html`) - Testing bleeding-edge features
+- **🟢 STABLE v2.4.0** (`index.html`) - Production-ready, fully tested - **Default version**
+- **🟠 EXPERIMENTAL** (`webp-conv-experimental.html`) - Testing bleeding-edge features
 
 **The default `index.html` is the STABLE version.** Use EXPERIMENTAL if you want to test new features early.
 
@@ -18,7 +18,27 @@ See `CHANGELOG.md` for detailed version history.
 ---
 
 ## Overview
-WebP Converter is a powerful client-side image conversion tool with advanced features for batch processing, custom presets, professional-grade resampling, and adaptive anti-aliasing.
+WebP Converter is a powerful client-side image conversion tool with advanced features for batch processing, custom presets, professional-grade resampling, adaptive anti-aliasing, and intelligent dimension linking.
+
+## What's New in v2.4.0
+
+### 🔗 Fixed Ratio Feature
+**Intelligent Dimension Linking** - Auto-maintain aspect ratio when setting max width/height
+- **Link Toggle Button**: Click the 🔗 icon between max width/height fields to toggle linking mode
+- **Linked Mode (Default)**: Adjust width → height auto-calculates, and vice versa
+- **Unlinked Mode**: Set width and height independently without automatic adjustments
+- **Smart Calculations**: Uses your current crop's aspect ratio for accurate dimension scaling
+- **Freestyle Compatible**: Automatically disables when using Freestyle Mode, re-enables when switching back
+- **Visual Feedback**: Blue ring border around inputs when linked, shows exact status with emoji (🔗 = linked, ⛓️‍💥 = unlinked)
+
+### 🔍 Enhanced SEO & Discoverability
+**Professional Search Engine Optimization** - Better visibility and social media sharing
+- **Search Engine Keywords**: Optimized for "webp converter", "image converter", "batch convert", and more
+- **Rich Meta Tags**: Improved title and description for better search results
+- **Social Media Ready**: Open Graph and Twitter Card tags for beautiful previews when sharing
+- **Structured Data**: JSON-LD schema markup for search engines to understand the app
+- **Creator Attribution**: Links to all social profiles (GitHub, Twitter, Twitch, BlueSky, Patreon)
+- **Favicon Support**: Professional SVG emoji favicon (🖼️) for browser tabs and bookmarks
 
 ## What's New in v2.3.0
 
@@ -124,11 +144,12 @@ When using custom presets, the following settings are automatically applied:
 ## How to Use
 
 ### Quick Start
-1. Open `index.html` (STABLE) or `webp-converter-web-EXPERIMENTAL.html` (EXPERIMENTAL)
+1. Open `index.html` (STABLE) or `webp-conv-experimental.html` (EXPERIMENTAL)
 2. Load an image (or multiple images for batch processing)
 3. Select a crop preset or use freestyle
-4. Adjust quality settings and resampling method
-5. Click "Convert & Download"
+4. Optionally set max width/height (use the 🔗 button to link dimensions)
+5. Adjust quality settings and resampling method
+6. Click "Convert & Download"
 
 ### Using the Image Queue System
 **Loading Multiple Images:**
@@ -156,6 +177,31 @@ When resizing images (using Max Width/Height), select the appropriate resampling
 - **Browser Default** - Let the browser handle resampling (no anti-aliasing)
 
 *Note: Resampling only applies when the output dimensions differ from the crop dimensions. Anti-aliasing is automatically applied for Lanczos, Bicubic, and Bilinear when significantly downsampling.*
+
+### Using the Fixed Ratio Feature (NEW in v2.4.0)
+**Intelligent Dimension Linking** - Automatically maintain aspect ratio when setting constraints:
+
+**Linked Mode (Default):**
+1. Look for the 🔗 icon next to "Max Dimensions" heading
+2. Enter a value in **Max Width** → **Max Height** auto-calculates based on your crop's aspect ratio
+3. Or enter a value in **Max Height** → **Max Width** auto-calculates automatically
+4. Inputs have a blue ring border to indicate linked mode
+
+**Unlinked Mode:**
+1. Click the 🔗 icon to toggle to ⛓️‍💥 (unlinked) mode
+2. Now you can set width and height independently
+3. Useful when you need specific dimensions that don't match your crop ratio
+4. Inputs lose the blue ring border in unlinked mode
+
+**Smart Behavior:**
+- Uses your **current crop's aspect ratio** for calculations (not the preset's ratio)
+- Automatically disables when **Freestyle Mode** is active (button shows ⛓️ grayed out)
+- Re-enables when you switch back to a preset mode
+- **Linked by default** for intuitive workflow - you can toggle any time
+
+**When to Use Each Mode:**
+- **Linked Mode**: When you want to maintain aspect ratio while setting just one dimension
+- **Unlinked Mode**: When you need specific width AND height (e.g., exact 1200x800 for a banner)
 
 ### Loading Custom Presets
 1. Click the **"Load Custom Presets"** button in the "Preset Source" section

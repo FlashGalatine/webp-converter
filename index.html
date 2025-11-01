@@ -11,10 +11,79 @@
 -->
 <html lang="en">
 <head>
+    <!-- Character Encoding and Viewport -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO Meta Tags -->
+    <title>WebP Image Converter - Free Online Batch Image Conversion Tool</title>
+    <meta name="description" content="Convert images to WebP format with advanced cropping, batch processing, custom presets, and quality optimization. Client-side processing with no file uploads.">
+    <meta name="keywords" content="webp converter, image converter, batch convert, crop images, image optimization, webp compression, online converter, free tool, image processing, aspect ratio presets">
     <meta name="author" content="Flash Galatine">
-    <title>WebP Image Converter - Web Edition</title>
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="revisit-after" content="7 days">
+    <meta name="language" content="English">
+
+    <!-- Open Graph (Social Media Sharing) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="WebP Image Converter - Free Online Batch Image Conversion">
+    <meta property="og:description" content="Convert and optimize your images to WebP format with advanced cropping, presets, and batch processing. 100% client-side, no file uploads.">
+    <meta property="og:url" content="https://webp-converter.projectgalatine.com">
+    <meta property="og:image" content="https://webp-converter.projectgalatine.com/og-image.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="WebP Converter">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="WebP Image Converter - Free Batch Image Conversion Tool">
+    <meta name="twitter:description" content="Convert and optimize images to WebP with cropping, presets, and batch processing. Client-side processing, no uploads.">
+    <meta name="twitter:image" content="https://webp-converter.projectgalatine.com/og-image.png">
+    <meta name="twitter:creator" content="@AsheJunius">
+    <meta name="twitter:site" content="@AsheJunius">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://webp-converter.projectgalatine.com">
+
+    <!-- Theme and Branding -->
+    <meta name="theme-color" content="#1f2937">
+    <meta name="color-scheme" content="dark light">
+
+    <!-- Icons -->
+    <link rel="icon" type="image/x-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' font-family='Arial'>🖼️</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%231f2937' width='180' height='180'/><text y='135' x='50' font-size='90' font-family='Arial'>🖼️</text></svg>">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "WebP Image Converter",
+        "description": "Convert and optimize images to WebP format with advanced cropping, batch processing, and custom presets.",
+        "url": "https://webp-converter.projectgalatine.com",
+        "applicationCategory": "Multimedia",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "creator": {
+            "@type": "Person",
+            "name": "Flash Galatine",
+            "url": "https://github.com/FlashGalatine",
+            "sameAs": [
+                "https://x.com/AsheJunius",
+                "https://github.com/FlashGalatine",
+                "https://www.twitch.tv/flashgalatine",
+                "https://bsky.app/profile/projectgalatine.com",
+                "https://www.patreon.com/ProjectGalatine"
+            ]
+        }
+    }
+    </script>
+
+    <!-- CDN Dependencies -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -78,6 +147,7 @@
             const [lossless, setLossless] = useState(false);
             const [maxWidth, setMaxWidth] = useState('');
             const [maxHeight, setMaxHeight] = useState('');
+            const [linkDimensions, setLinkDimensions] = useState(true);
             const [webOptimize, setWebOptimize] = useState(false);
             const [targetSize, setTargetSize] = useState('10');
             const [resamplingMethod, setResamplingMethod] = useState('bicubic');
@@ -1781,16 +1851,42 @@
                         
                         {/* Max Dimensions */}
                         <div className="mb-6">
-                            <h2 className="text-sm font-semibold mb-2 text-gray-300">Max Dimensions (optional)</h2>
+                            <div className="flex items-center justify-between mb-2">
+                                <h2 className="text-sm font-semibold text-gray-300">Max Dimensions (optional)</h2>
+                                <button
+                                    onClick={() => setLinkDimensions(!linkDimensions)}
+                                    disabled={isFreestyleMode}
+                                    title={isFreestyleMode ? "Link disabled in Freestyle Mode" : linkDimensions ? "Click to unlink dimensions" : "Click to link dimensions"}
+                                    className={`text-lg transition-all ${
+                                        isFreestyleMode
+                                            ? 'opacity-50 cursor-not-allowed text-gray-500'
+                                            : linkDimensions
+                                                ? 'text-blue-400 hover:text-blue-300'
+                                                : 'text-gray-400 hover:text-gray-300'
+                                    }`}
+                                >
+                                    {isFreestyleMode ? '⛓️' : linkDimensions ? '🔗' : '⛓️‍💥'}
+                                </button>
+                            </div>
                             <div className="space-y-2">
                                 <div className="flex items-center gap-2">
                                     <label className="text-sm w-20">Max Width:</label>
                                     <input
                                         type="number"
                                         value={maxWidth}
-                                        onChange={(e) => setMaxWidth(e.target.value)}
+                                        onChange={(e) => {
+                                            const newWidth = e.target.value;
+                                            setMaxWidth(newWidth);
+
+                                            // Auto-calculate height if linked and crop has dimensions
+                                            if (linkDimensions && !isFreestyleMode && newWidth && cropWidth > 0 && cropHeight > 0) {
+                                                const cropAspectRatio = cropWidth / cropHeight;
+                                                const newHeight = Math.round(parseInt(newWidth) / cropAspectRatio);
+                                                setMaxHeight(newHeight.toString());
+                                            }
+                                        }}
                                         placeholder="pixels"
-                                        className="flex-1 bg-gray-700 text-white py-1 px-2 rounded"
+                                        className={`flex-1 bg-gray-700 text-white py-1 px-2 rounded ${linkDimensions && !isFreestyleMode ? 'ring-1 ring-blue-400' : ''}`}
                                     />
                                 </div>
                                 <div className="flex items-center gap-2">
@@ -1798,9 +1894,19 @@
                                     <input
                                         type="number"
                                         value={maxHeight}
-                                        onChange={(e) => setMaxHeight(e.target.value)}
+                                        onChange={(e) => {
+                                            const newHeight = e.target.value;
+                                            setMaxHeight(newHeight);
+
+                                            // Auto-calculate width if linked and crop has dimensions
+                                            if (linkDimensions && !isFreestyleMode && newHeight && cropWidth > 0 && cropHeight > 0) {
+                                                const cropAspectRatio = cropWidth / cropHeight;
+                                                const newWidth = Math.round(parseInt(newHeight) * cropAspectRatio);
+                                                setMaxWidth(newWidth.toString());
+                                            }
+                                        }}
                                         placeholder="pixels"
-                                        className="flex-1 bg-gray-700 text-white py-1 px-2 rounded"
+                                        className={`flex-1 bg-gray-700 text-white py-1 px-2 rounded ${linkDimensions && !isFreestyleMode ? 'ring-1 ring-blue-400' : ''}`}
                                     />
                                 </div>
                             </div>

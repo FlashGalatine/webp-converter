@@ -6,8 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 WebP Converter is a client-side web application for converting images to WebP format with advanced cropping, presets, and batch processing capabilities. The project uses a dual-build strategy:
 
-- **STABLE** (`index.html`) - Production-ready build (v2.2.1)
-- **EXPERIMENTAL** (`webp-converter-web-EXPERIMENTAL.html`) - Testing build for new features
+- **STABLE** (`index.html`) - Production-ready build (v2.3.0)
+- **EXPERIMENTAL** (`webp-conv-experimental.html`) - Testing build for new features
 
 All builds are **standalone single-file HTML applications** with no external dependencies beyond CDN-loaded libraries.
 
@@ -19,6 +19,22 @@ All builds are **standalone single-file HTML applications** with no external dep
 - Native Canvas API for image manipulation
 - Native File API for file handling
 
+## Development Quick Start
+
+**No build process or server required.** Since this is a client-side application:
+
+1. **Edit the HTML file** - All code is inline in a single HTML file
+2. **Open in browser** - Simply open `index.html` or `webp-conv-experimental.html` directly (no file:// issues)
+3. **Refresh to see changes** - Browser refresh applies edits immediately
+4. **Use browser DevTools** - Open DevTools (F12) for debugging and console access
+5. **No npm/build tools** - Everything works client-side with CDN libraries
+
+### Key Commands
+
+- **Testing**: No npm commands. Open the HTML file in a browser and test manually
+- **Debugging**: Use browser DevTools Console (F12 → Console tab)
+- **Git workflow**: Use `git commit`, `git push`, etc. for version control
+
 ## Architecture
 
 ### Single-File Application Structure
@@ -28,63 +44,127 @@ Both STABLE and EXPERIMENTAL builds follow this structure:
 <!DOCTYPE html>
 <html>
   <head>
-    <!-- CDN dependencies -->
+    <!-- CDN dependencies: React, ReactDOM, Babel, Tailwind CSS -->
   </head>
   <body>
     <div id="root"></div>
     <script type="text/babel">
-      // All React code inline
+      // All React code inline in a single script tag
+      const BUILT_IN_PRESETS = { /* 16 presets */ };
+
       function WebPConverter() {
         // State management with React hooks
-        // Component logic
-        // Event handlers
-        // Rendering
+        // Canvas rendering and interaction
+        // Image processing logic
+        // Conversion pipeline
       }
+
       ReactDOM.render(<WebPConverter />, document.getElementById('root'));
     </script>
   </body>
 </html>
 ```
 
+### File Organization
+
+- `index.html` - **STABLE v2.3.0** build (production)
+- `webp-conv-experimental.html` - **EXPERIMENTAL** build (testing)
+- `presets.json` - Example custom presets for various platforms
+- `CHANGELOG.md` - Version history and release notes
+- `README.md` - User-facing feature documentation
+- `PROJECT_SUMMARY.md` - Project overview
+- `LICENSE` - MIT License
+
 ### State Management
 
-The application uses React hooks for all state management. Key state categories:
+The application uses React hooks for all state. Key state categories:
 
 1. **Image State**: `image`, `imageData`
 2. **Queue State**: `imageQueue`, `currentImageIndex`, `processedImages`, `removeAfterConvert`
 3. **Canvas State**: `zoomLevel`, `panX`, `panY`, `canvasWidth`, `canvasHeight`
-4. **Crop State**: `cropX`, `cropY`, `cropWidth`, `cropHeight`, `aspectRatio`
+4. **Crop State**: `cropX`, `cropY`, `cropWidth`, `cropHeight`, `aspectRatio`, `isFreestyleMode`
 5. **Settings State**: `quality`, `lossless`, `maxWidth`, `maxHeight`, `webOptimize`, `targetSize`, `resamplingMethod`
-6. **Preset State**: `useCustomPresets`, `customPresets`, `customPresetsRaw`, `customPresetsFileName`, `selectedPreset`
-7. **Interaction State**: `isDragging`, `dragType`, drag positions, `cursorStyle`
+6. **Preset State**: `useCustomPresets`, `customPresets`, `customPresetsRaw`, `selectedPreset`
+7. **Interaction State**: `isDragging`, `dragType`, drag position tracking
 8. **Optimization State**: `isOptimizing`, `optimizingProgress`, `optimizingStatus`
 
 ### Key Functions
 
-- **Image Loading**: `loadImage()`, `addImagesToQueue()`, `loadImageFromQueue()`
-- **Queue Management**: `loadNextImage()`, `loadPreviousImage()`, `markImageAsProcessed()`, `removeImageFromQueue()`, `clearQueue()`
-- **Canvas Interaction**: `handleMouseDown()`, `handleMouseMove()`, `handleMouseUp()`, `handleMouseLeave()`, `handleWheel()`
-- **Conversion**: `handleConvert()` - Main conversion logic with quality optimization
-- **Preset Management**: `handlePresetFileSelect()`, `loadCustomPresets()`, `applyPresetSettings()`
-- **Resampling**: `resampleImage()`, `resampleBicubic()`, `resampleLanczos()`, `resampleBilinear()`, `resampleNearestNeighbor()`, `applyGaussianBlur()`
+**Image Loading & Queue:**
+- `loadImage()` - Load single image from file input
+- `addImagesToQueue()` - Add one or more images to queue
+- `loadImageFromQueue()` - Load specific image from queue
+- `loadNextImage()` / `loadPreviousImage()` - Navigate queue
+- `markImageAsProcessed()` - Mark image as converted
+- `removeImageFromQueue()` - Remove image from queue
+- `clearQueue()` - Clear entire queue
+
+**Canvas Interaction:**
+- `handleMouseDown()` - Detect drag type (pan, move crop, resize handles)
+- `handleMouseMove()` - Apply transformations during drag
+- `handleMouseUp()` / `handleMouseLeave()` - Cleanup after drag
+- `handleWheel()` - Zoom in/out with mouse wheel
+- `detectHandle()` - Identify which crop handle is being dragged
+- `isInsideCrop()` - Check if click is on crop area
+
+**Conversion & Processing:**
+- `handleConvert()` - Main conversion pipeline with quality optimization
+- `resampleImage()` - Apply resampling with anti-aliasing
+- `resample[Method]()` - Individual resampling methods (Bicubic, Lanczos, Bilinear, NearestNeighbor)
+- `applyGaussianBlur()` - Anti-aliasing pre-filter for downsampling
+
+**Preset Management:**
+- `handlePresetFileSelect()` - Load custom presets from JSON
+- `loadCustomPresets()` - Parse and process custom preset JSON
+- `applyPresetSettings()` - Apply preset dimensions and constraints
+- `BUILT_IN_PRESETS` - Object with 16 built-in aspect ratios
 
 ### Conversion Pipeline
 
-1. User crops image on canvas (manual drag/resize or preset-based)
-2. Click "Convert & Download"
-3. Create temporary canvas with cropped region
-4. Apply max width/height constraints if specified
-5. If web optimization enabled:
-   - Test lossless compression first
-   - If too large, iterate quality from 100→1 until target size met
-6. Apply resampling if dimensions changed
-7. Convert to WebP blob
-8. Download file with generated filename
-9. Mark as processed and auto-advance to next image (or remove from queue)
+1. User selects image and adjusts crop on canvas
+2. Optional: Select or adjust crop preset
+3. Optional: Enable Freestyle Mode to remove aspect ratio constraint
+4. Optional: Set max width/height constraints or web optimization target
+5. Click "Convert & Download" button
+6. Processing steps:
+   - Create temporary canvas with cropped region
+   - Apply max width/height constraints if specified
+   - If web optimization enabled: iterate quality from 100→1 until target size met
+   - Apply resampling method if dimensions differ from crop
+   - Apply Gaussian blur pre-filter for significant downsampling (anti-aliasing)
+   - Convert to WebP blob
+7. Download file with generated filename: `image-YYYY-MM-DD-WIDTHxHEIGHTpx-qQUALITY.webp`
+8. If queue enabled: mark as processed, optionally remove from queue and auto-advance
+
+### Canvas Coordinate System
+
+The canvas uses a layered coordinate system:
+
+```
+Screen coords → Canvas coords → Image coords
+
+// Screen to canvas (using canvas.getBoundingClientRect())
+const rect = canvas.getBoundingClientRect();
+const canvasX = e.clientX - rect.left;
+const canvasY = e.clientY - rect.top;
+
+// Canvas to image (accounting for zoom and pan)
+const imgX = (canvasX - displayOffsetX - panX) / zoomLevel;
+const imgY = (canvasY - displayOffsetY - panY) / zoomLevel;
+```
+
+### Freestyle Mode
+
+Freestyle Mode (`isFreestyleMode`) disables aspect ratio constraints:
+- Can be toggled independently without changing preset selection
+- Preserves current crop area and settings when toggling
+- Works with both built-in and custom presets
+- Max-width/max-height constraints still apply during conversion
+- Implemented in aspect ratio check: `if (aspectRatio && !isFreestyleMode)`
 
 ### Custom Presets System
 
-JSON preset files can specify:
+JSON preset files can specify preset-specific settings:
 ```json
 {
   "Preset Name": {
@@ -98,74 +178,79 @@ JSON preset files can specify:
 }
 ```
 
-When a preset is selected, these values automatically populate the corresponding settings. The `default-selection` key is used to determine which preset should be auto-selected based on image dimensions.
+When a preset is selected:
+- Crop ratio sets aspect ratio constraint
+- Max dimensions auto-populate constraints
+- Target file size enables web optimization
+- `default-selection` auto-selects preset based on image orientation (Square/Landscape/Portrait)
 
 ## Development Workflow
 
 ### Making Changes
 
-1. **Always work in EXPERIMENTAL first** - Never modify STABLE directly
-2. Test changes thoroughly in EXPERIMENTAL build
-3. Once stable and tested, copy changes to STABLE (`index.html`)
-4. Update version numbers in CHANGELOG.md and README.md
-5. Commit all changes with descriptive messages
+1. **Always work in EXPERIMENTAL first** - Never modify STABLE (`index.html`) directly
+   - Edit `webp-conv-experimental.html` first
+   - Test thoroughly in browser
+   - Once stable, copy changes to `index.html`
 
-### Testing
+2. **Testing in Browser**
+   - Open the HTML file directly (no server needed)
+   - Use browser DevTools Console for debugging
+   - Test with various image types: JPEG, PNG, GIF, WebP, etc.
+   - Test edge cases: very large images, small images, various aspect ratios
+   - Test queue system with 1, 5, 10, and 20+ images
+   - Verify all presets work correctly
 
-Since this is a client-side application:
-- Open the HTML file directly in a browser (no server needed)
-- Test with various image types (JPEG, PNG, GIF, etc.)
-- Test edge cases (very large images, small images, various aspect ratios)
-- Test queue system with 1, 5, 10, and 20+ images
-- Use browser DevTools console for debugging
+3. **Quality Assurance Checklist**
+   - Image loading and display works correctly
+   - Canvas interactions (zoom, pan, crop) work smoothly
+   - All 16 built-in presets function properly
+   - Custom preset loading works
+   - Freestyle mode toggle works independently
+   - Conversion produces valid WebP output
+   - Filename generation includes correct metadata
+   - Queue system: add, navigate, mark processed, remove
+   - Auto-advance works after conversion
+   - Remove After Convert feature works
+   - Browser DevTools shows no errors or warnings
 
-### Running the App
+4. **Migration to STABLE**
+   - Verify no regressions in existing features
+   - Copy all changes from EXPERIMENTAL to `index.html` (STABLE)
+   - Update `CHANGELOG.md` with new version entry
+   - Update `README.md` with version information if needed
+   - Test STABLE build on multiple browsers (Chrome, Firefox, Safari, Edge)
+   - Create a single commit with all changes
 
-**No build process required** - Simply open the HTML file in a browser:
-- Open `index.html` for STABLE version
-- Open `webp-converter-web-EXPERIMENTAL.html` for EXPERIMENTAL version
-- Changes require browser refresh to see effects
-
-## File Structure
-
-- `index.html` - STABLE v2.2.1 build (default/production)
-- `webp-converter-web-EXPERIMENTAL.html` - EXPERIMENTAL v2.2.1 build
-- `presets.json` - Example custom presets (21 presets for various platforms)
-- `CHANGELOG.md` - Version history and release notes
-- `README.md` - User-facing feature documentation
-- `PROJECT_SUMMARY.md` - Project overview and features
-- `LICENSE` - MIT License
+5. **Version Numbering**
+   - Current: **v2.3.0** (MAJOR.MINOR.PATCH format)
+   - **MAJOR**: Significant features or breaking changes
+   - **MINOR**: New features (presets, resampling methods, anti-aliasing)
+   - **PATCH**: Bug fixes and minor improvements
 
 ## Code Patterns and Conventions
 
 ### Event Handlers
 
-All event handlers use React synthetic events and follow the pattern `handle[EventName]`:
+All event handlers use React synthetic events with descriptive names:
 ```javascript
-const handleMouseDown = (e) => { /* ... */ };
-const handleConvert = async () => { /* ... */ };
-```
-
-### Canvas Coordinate Conversion
-
-Convert between screen coordinates and image coordinates:
-```javascript
-// Screen to canvas
-const rect = canvas.getBoundingClientRect();
-const canvasX = e.clientX - rect.left;
-const canvasY = e.clientY - rect.top;
-
-// Canvas to image coordinates
-const imgX = (canvasX - displayOffsetX - panX) / zoomLevel;
-const imgY = (canvasY - displayOffsetY - panY) / zoomLevel;
+const handleMouseDown = (e) => { /* detect drag type and start position */ };
+const handleMouseMove = (e) => { /* apply transformations */ };
+const handleMouseUp = (e) => { /* cleanup state */ };
+const handleConvert = async () => { /* conversion pipeline */ };
+const handleWheel = (e) => { /* zoom */ };
 ```
 
 ### State Updates with Dependencies
 
-When updating state that depends on previous state, always use functional updates:
+Always use functional updates when state depends on previous state:
 ```javascript
+// Good - functional update
 setImageQueue(prev => [...prev, ...newItems]);
 setProcessedImages(prev => new Set([...prev, currentImageIndex]));
+
+// Avoid - direct state reference
+setImageQueue([...imageQueue, ...newItems]); // May use stale state
 ```
 
 ### Async Blob Creation
@@ -177,50 +262,19 @@ const blob = await new Promise(resolve => {
 });
 ```
 
-## Important Constraints
+### Pixel Ratio Handling
 
-1. **Single-file architecture** - All code must remain in one HTML file per build
-2. **No server required** - All processing happens client-side
-3. **No NPM/build tools** - Must work with CDN libraries and inline code
-4. **Browser compatibility** - Requires modern browser with Canvas and WebP support
-5. **Memory constraints** - Large images (4K+) load full resolution into memory
-
-## Migration Path: EXPERIMENTAL → STABLE
-
-Before migrating features from EXPERIMENTAL to STABLE:
-1. Test thoroughly in EXPERIMENTAL build with various images
-2. Verify no regressions in existing features
-3. Copy all changes to `index.html` (STABLE)
-4. Update CHANGELOG.md with new version entry
-5. Update README.md with version information
-6. Test STABLE build on multiple browsers (Chrome, Firefox, Safari, Edge)
-7. Create a single commit with all changes
-
-**Example workflow for a bug fix:**
-```
-1. Apply fix to webp-converter-web-EXPERIMENTAL.html
-2. Test in browser - verify fix works
-3. Copy fix to index.html
-4. Update CHANGELOG.md with bug fix entry
-5. Update README.md version/date if needed
-6. Commit: "Fix [issue] in both STABLE and EXPERIMENTAL builds"
+Account for device pixel ratio for crisp rendering on high-DPI displays:
+```javascript
+const dpr = window.devicePixelRatio || 1;
+// Scale canvas and context accordingly
 ```
 
-## Known Issues and Debugging
+## Debugging Tips
 
-### Freestyle Cropping (Fixed in v2.2.1)
-- Previously: Dragging inside crop rectangle would pan image in Freestyle mode
-- Cause: `aspectRatio === null` check in `isInsideCrop()` function
-- Fix: Removed `aspectRatio === null` check - only check `!image`
-- Files affected: Both `index.html` and `webp-converter-web-EXPERIMENTAL.html`
+### Console Logging Strategy
 
-### Queue Features with Custom Presets (Status: Working)
-- All queue features (mark as processed, auto-advance, remove after convert) work correctly with both built-in and custom presets
-- Fixed in v2.0
-
-### Console Logging Strategy for Debugging
-
-For debugging queue-related issues:
+For queue-related debugging:
 ```javascript
 console.log('[Queue] Before conversion, index:', currentImageIndex);
 console.log('[Queue] useCustomPresets:', useCustomPresets);
@@ -228,53 +282,100 @@ console.log('[Queue] After marking processed');
 console.log('[Queue] removeAfterConvert:', removeAfterConvert);
 ```
 
-For debugging canvas interactions:
+For canvas interactions:
 ```javascript
 console.log('[Canvas] Mouse at:', { canvasX, canvasY });
+console.log('[Canvas] Drag type:', dragType);
 console.log('[Crop] Position:', { cropX, cropY, cropWidth, cropHeight });
 ```
+
+For conversion debugging:
+```javascript
+console.log('[Convert] Starting conversion');
+console.log('[Convert] Web optimize:', webOptimize, 'Target:', targetSize);
+console.log('[Convert] Resampling method:', resamplingMethod);
+console.log('[Convert] Blob size:', blob.size, 'bytes');
+```
+
+### Browser DevTools Tips
+
+1. **Console Tab** - View logs and errors
+2. **Performance Tab** - Profile conversion performance
+3. **Network Tab** - Verify CDN libraries load (React, Tailwind, Babel)
+4. **Debugger Tab** - Set breakpoints in the inline script
+5. **Application → Local Storage** - Check if any data is persisted
 
 ## Common Development Tasks
 
 ### Adding a New Built-in Preset
 
-1. Find `BUILT_IN_PRESETS` object (line ~30 in EXPERIMENTAL, ~19 in STABLE)
-2. Add new entry:
-   ```javascript
-   "Preset Name": aspectRatioValue, // e.g., 16/9 for landscape
-   ```
+1. Find `BUILT_IN_PRESETS` object (around line 30 in both files)
+2. Add entry: `"Preset Name": aspectRatioValue,` (e.g., `16/9` for landscape)
 3. For aspect ratio `null`, use Freestyle: `"Freestyle": null`
-4. Test in both EXPERIMENTAL and STABLE
-5. Update README.md if it's a notable preset
+4. Update UI preset selector (maps from `BUILT_IN_PRESETS` keys)
+5. Test in both EXPERIMENTAL and STABLE
+6. Update README.md with new preset in built-in list
 
 ### Fixing Canvas Interaction Issues
 
-1. Check `detectHandle()` function - handles detection logic
-2. Check `isInsideCrop()` function - determines if click is on crop area
-3. Check `handleMouseDown()` - sets drag type and initial state
-4. Check `handleMouseMove()` - applies transformations based on drag type
-5. Check `handleMouseUp()` - cleanup and state reset
+Check these functions in order:
+1. `detectHandle()` - Verify handle detection logic
+2. `isInsideCrop()` - Verify click detection on crop area
+3. `handleMouseDown()` - Check drag type assignment
+4. `handleMouseMove()` - Check transformation logic for drag type
+5. `handleMouseUp()` - Check state cleanup
 
 ### Adding Quality/Performance Improvements
 
-- Resampling methods are modular - add new method as `resample[MethodName](srcCanvas, dstCanvas)`
-- Anti-aliasing is applied in `resampleImage()` - modify blur radius calculation if needed
-- Web optimization loop is in `handleConvert()` - quality iteration logic around line 1290
+- **Resampling methods** are modular - add new `resample[MethodName](srcCanvas, dstCanvas)`
+- **Anti-aliasing** is applied in resampling functions - modify Gaussian blur radius in `applyGaussianBlur()` if needed
+- **Web optimization loop** in `handleConvert()` - modify quality iteration logic (around line 1290)
 
-## Version Numbering
+### Handling Edge Cases
 
-Current: **v2.2.1**
+1. **Very large images** - May exceed memory limits, test with 8K+ images
+2. **Aspect ratio constraints** - Verify Freestyle mode disables them correctly
+3. **Queue with custom presets** - Ensure preset settings apply correctly to each queue item
+4. **Concurrent conversions** - App processes one image at a time, but queue handles multiple
 
-Format: `MAJOR.MINOR.PATCH`
-- **MAJOR**: Significant feature additions or breaking changes
-- **MINOR**: New features (resampling, queue system, anti-aliasing)
-- **PATCH**: Bug fixes and minor improvements
+## Known Issues and Fixed Bugs
 
-## Recent Changes (v2.2.1)
+### Freestyle Cropping (Fixed in v2.2.1)
+- **Issue**: Dragging inside crop rectangle would pan image in Freestyle mode
+- **Cause**: `aspectRatio === null` check in `isInsideCrop()` rejected Freestyle interactions
+- **Fix**: Removed unnecessary check - only check `!image` to validate interaction
+- **Status**: ✅ Fixed in both builds
 
-- Fixed freestyle cropping drag bug in `isInsideCrop()` function
-- Removed unnecessary `aspectRatio === null` check that blocked Freestyle mode interactions
-- Applied fix to both STABLE and EXPERIMENTAL builds
-- Updated CHANGELOG.md and README.md with v2.2.1 information
-- Renamed `webp-converter-web.html` to `index.html` for web hosting convention
+### Queue Features with Custom Presets (Fixed in v2.0)
+- **Issue**: Queue features (mark processed, auto-advance, remove after convert) didn't work with custom presets
+- **Fix**: Ensured all code paths properly handle queue logic regardless of preset source
+- **Status**: ✅ Fixed - all queue features work with built-in and custom presets
 
+## Important Constraints
+
+1. **Single-file architecture** - All code must remain in one HTML file per build
+2. **No server required** - All processing happens 100% client-side
+3. **No external dependencies beyond CDN** - React, Babel, and Tailwind loaded from unpkg.com
+4. **Browser compatibility** - Requires modern browser with Canvas API and WebP support
+5. **Memory constraints** - Large images (8K+) may exceed available memory
+6. **No persistent storage** - App doesn't save state between sessions
+
+## Recent Changes (v2.3.0)
+
+**Freestyle Toggle Switch Feature**
+- Added `isFreestyleMode` state variable
+- Implemented independent toggle control below crop preset selector
+- Modified aspect ratio constraint logic: `if (aspectRatio && !isFreestyleMode)`
+- Preserves crop area and settings when toggling on/off
+- Works with both built-in and custom presets
+- Export constraints (max-width/max-height) still apply regardless of mode
+
+## File References for Key Locations
+
+**Preset management**: `BUILT_IN_PRESETS` object (line ~30 in both files)
+**State initialization**: `WebPConverter()` function start (line ~49 in both files)
+**Canvas rendering**: Search for `<canvas ref=` in JSX
+**Conversion logic**: `handleConvert()` function (line ~1180 in both files)
+**Queue functions**: `loadNextImage()`, `loadPreviousImage()`, `markImageAsProcessed()`
+**Resampling**: `resampleImage()` and `resample[Method]()` functions
+**Anti-aliasing**: `applyGaussianBlur()` function

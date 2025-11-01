@@ -2,10 +2,10 @@
 
 ## Current Releases
 
-### STABLE Build v2.3.0
+### STABLE Build v2.4.0
 **File:** `index.html` (default)
 **Status:** Production Ready ✅
-**Date:** October 31, 2025
+**Date:** November 1, 2025
 
 #### All Features:
 **Core Functionality:**
@@ -47,20 +47,25 @@
 - ✅ **Flexible Cropping** - Use Freestyle Mode with any preset without changing the selection
 - ✅ **Settings Preservation** - Toggling Freestyle on/off maintains current crop and settings
 
+**New in v2.4.0:**
+- ✅ **Fixed Ratio Feature** - Auto-link max width and height to maintain aspect ratio
+- ✅ **Enhanced SEO** - Comprehensive meta tags, Open Graph, Twitter Cards, and JSON-LD structured data
+- ✅ **Improved Discoverability** - Better ranking in search engines and social media previews
+
 #### Known Issues:
 - None reported
 
 ---
 
 ### EXPERIMENTAL Build
-**File:** `webp-converter-web-EXPERIMENTAL.html`
+**File:** `webp-conv-experimental.html`
 **Status:** Testing & Development ⚠️
-**Date:** October 31, 2025
-**Version:** 2.3.0-EXPERIMENTAL
+**Date:** November 1, 2025
+**Version:** 2.4.0-EXPERIMENTAL
 
 #### Current State:
-- Contains all STABLE v2.3.0 features
-- Currently synchronized with STABLE (no experimental features in testing)
+- Contains all STABLE v2.4.0 features
+- Currently synchronized with STABLE (no additional experimental features in testing)
 
 #### Known Issues:
 - None reported
@@ -68,6 +73,50 @@
 ---
 
 ## Version History
+
+### v2.4.0-STABLE (November 1, 2025)
+**Fixed Ratio & Enhanced SEO**
+
+**New Features:**
+- **Fixed Ratio Feature** - Intelligent dimension linking for aspect ratio preservation
+  - Link icon button (🔗) between max width/height fields
+  - Toggle between linked (auto-calculate) and unlinked (independent) modes
+  - Uses current crop's aspect ratio for accurate calculations
+  - Automatically disabled in Freestyle Mode
+  - Visual feedback with blue ring border on linked inputs
+  - Default to linked mode for intuitive workflow
+
+- **Enhanced SEO** - Comprehensive search engine optimization
+  - Improved meta description with feature highlights
+  - Relevant keywords for image conversion and WebP compression
+  - Open Graph tags for social media sharing (Facebook, LinkedIn, Discord)
+  - Twitter Card tags with custom creator attribution
+  - JSON-LD structured data for rich snippets
+  - Canonical URL specification
+  - Theme color and color scheme meta tags
+  - SVG favicon and Apple touch icon support
+
+**Improvements:**
+- Better user workflow for setting constrained dimensions
+- Simplified dimension input - no need to calculate manually
+- Improved search engine visibility and rankings
+- Enhanced social media preview when sharing
+- Professional SEO structure for web discoverability
+
+**SEO Technical Details:**
+- `robots` meta: index, follow with image preview support
+- Schema.org WebApplication markup with pricing information
+- Creator details with sameAs links to all social profiles
+- Optimized Open Graph image dimensions (1200x630px)
+- Twitter Card with creator attribution
+
+**Implementation Details:**
+- New state variable: `linkDimensions` (default: true)
+- Link toggle button with visual feedback and tooltips
+- Auto-calculation on width change: `newHeight = Math.round(parseInt(newWidth) / (cropWidth / cropHeight))`
+- Auto-calculation on height change: `newWidth = Math.round(parseInt(newHeight) * (cropWidth / cropHeight))`
+- Enhanced meta tags in `<head>` with proper categorization
+- JSON-LD structured data for proper web application identification
 
 ### v2.3.0-STABLE (October 31, 2025)
 **Freestyle Control Enhancement**
