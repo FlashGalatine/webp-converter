@@ -315,6 +315,7 @@ Created by **Flash Galatine**
 - GitHub: [FlashGalatine](https://github.com/FlashGalatine)
 - X/Twitter: [@AsheJunius](https://x.com/AsheJunius)
 - Twitch: [flashgalatine](https://www.twitch.tv/flashgalatine)
+- Discord: [discord.gg/5VUSKTZCe5](https://discord.gg/5VUSKTZCe5)
 - BlueSky: [@projectgalatine.com](https://bsky.app/profile/projectgalatine.com)
 - Patreon: [Project Galatine](https://www.patreon.com/ProjectGalatine)
 - Blog: [blog.projectgalatine.com](https://blog.projectgalatine.com/)
