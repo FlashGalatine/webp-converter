@@ -81,5 +81,11 @@
     "max-height": 1440,
     "max-filesize": 1,
     "max-filesize-unit": "MB"
+  },
+  "Discord 2x2": {
+    "max-height": 1440,
+    "max-filesize": 1,
+    "max-filesize-unit": "MB",
+	"crop-ratio": 1.578034682
   }
 }
