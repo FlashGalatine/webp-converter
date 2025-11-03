@@ -2,10 +2,10 @@
 
 ## Current Releases
 
-### STABLE Build v2.4.0
+### STABLE Build v2.5.0
 **File:** `index.html` (default)
 **Status:** Production Ready ✅
-**Date:** November 1, 2025
+**Date:** November 2, 2025
 
 #### All Features:
 **Core Functionality:**
@@ -19,6 +19,7 @@
 - ✅ Max dimension constraints
 - ✅ Web optimization with target file size
 - ✅ Drag & drop image loading
+- ✅ Clipboard paste support (Ctrl+V)
 - ✅ Keyboard shortcuts (zoom, pan)
 - ✅ Real-time conversion progress
 - ✅ Auto-generated filenames with metadata
@@ -52,6 +53,11 @@
 - ✅ **Enhanced SEO** - Comprehensive meta tags, Open Graph, Twitter Cards, and JSON-LD structured data
 - ✅ **Improved Discoverability** - Better ranking in search engines and social media previews
 
+**New in v2.5.0:**
+- ✅ **Clipboard Paste Support** - Press Ctrl+V (or Cmd+V on Mac) to paste images directly
+- ✅ **Smart Queue Integration** - Pasted images automatically added to queue if multiple images loaded
+- ✅ **Quick Image Loading** - Timestamp-based filenames for pasted images from screenshot tools
+
 #### Known Issues:
 - None reported
 
@@ -60,11 +66,11 @@
 ### EXPERIMENTAL Build
 **File:** `webp-conv-experimental.html`
 **Status:** Testing & Development ⚠️
-**Date:** November 1, 2025
-**Version:** 2.4.0-EXPERIMENTAL
+**Date:** November 2, 2025
+**Version:** 2.5.0-EXPERIMENTAL
 
 #### Current State:
-- Contains all STABLE v2.4.0 features
+- Contains all STABLE v2.5.0 features
 - Currently synchronized with STABLE (no additional experimental features in testing)
 
 #### Known Issues:
@@ -73,6 +79,28 @@
 ---
 
 ## Version History
+
+### v2.5.0-STABLE (November 2, 2025)
+**Clipboard Paste Support & Queue Integration**
+
+**New Features:**
+- **Clipboard Paste Support** - Quick image loading from clipboard
+  - Press Ctrl+V (Windows/Linux) or Cmd+V (Mac) to paste images
+  - Automatically generates timestamped filenames for pasted images
+  - Works with screenshot tools, image viewers, and any application that copies to clipboard
+
+- **Smart Queue Integration** - Seamless multi-image workflow
+  - Pasted images automatically added to queue when multiple images already loaded
+  - Pasted images load directly when no images are in queue
+  - Maintains consistency with file upload and drag-and-drop behavior
+  - Properly tracked in queue with filename and metadata
+
+**Improvements:**
+- Faster image loading workflow for batch processing
+- Better clipboard support for modern web browsers
+- Enhanced user experience with multiple image sources
+
+---
 
 ### v2.4.0-STABLE (November 1, 2025)
 **Fixed Ratio & Enhanced SEO**

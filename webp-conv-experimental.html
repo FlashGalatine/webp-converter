@@ -182,7 +182,7 @@
             const containerRef = useRef(null);
             
             // Load image
-            const loadImage = (file) => {
+            const loadImage = (file, skipAutoPreset = false) => {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     const img = new Image();
@@ -190,9 +190,9 @@
                         setImage(img);
                         setImageData(e.target.result);
 
-                        // Auto-select preset based on image dimensions (if using custom presets)
+                        // Auto-select preset based on image dimensions (if using custom presets and not skipping)
                         let presetToUse = selectedPreset;
-                        if (useCustomPresets && customPresetsRaw) {
+                        if (!skipAutoPreset && useCustomPresets && customPresetsRaw) {
                             const aspectRatio = img.width / img.height;
                             let targetSelection = null;
 
@@ -349,10 +349,10 @@
             
             const loadImageFromQueue = (index) => {
                 if (index < 0 || index >= imageQueue.length) return;
-                
+
                 const queueItem = imageQueue[index];
                 setCurrentImageIndex(index);
-                loadImage(queueItem.file);
+                loadImage(queueItem.file, true); // Skip auto-preset selection when navigating queue
             };
             
             const loadNextImage = () => {
@@ -414,7 +414,7 @@
                         // Load the next image
                         console.log('[Queue] Loading next image:', nextItem.name);
                         setCurrentImageIndex(nextIndex);
-                        loadImage(nextItem.file);
+                        loadImage(nextItem.file, true); // Skip auto-preset selection when removing image from queue
                     } else {
                         // Queue is now empty
                         console.log('[Queue] Clearing queue state');
@@ -436,7 +436,7 @@
                 setImage(null);
                 setImageData(null);
             };
-            
+
             // Initialize crop based on aspect ratio
             const initializeCrop = (imgWidth, imgHeight, ratio) => {
                 if (!ratio) {
@@ -906,6 +906,49 @@
             
             const handleDragOver = (e) => {
                 e.preventDefault();
+            };
+
+            // Clipboard paste handler
+            const handlePaste = async (e) => {
+                const items = e.clipboardData?.items;
+                if (!items) return;
+
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    // Check if the item is an image
+                    if (item.type.startsWith('image/')) {
+                        e.preventDefault();
+
+                        try {
+                            const blob = item.getAsFile();
+                            if (blob) {
+                                // Convert blob to File object with a generated name
+                                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                                const fileName = `pasted-image-${timestamp}.${blob.type.split('/')[1]}`;
+                                const file = new File([blob], fileName, { type: blob.type });
+
+                                // If queue has images, add to queue; otherwise load directly
+                                if (imageQueue.length > 0) {
+                                    const newQueueItem = {
+                                        id: Date.now(),
+                                        file: file,
+                                        name: fileName,
+                                        size: blob.size,
+                                        type: blob.type
+                                    };
+                                    setImageQueue(prev => [...prev, newQueueItem]);
+                                    console.log('[Paste] Image added to queue:', fileName);
+                                } else {
+                                    loadImage(file);
+                                    console.log('[Paste] Image pasted from clipboard:', fileName);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('[Paste] Error processing clipboard image:', error);
+                        }
+                        break; // Only process the first image
+                    }
+                }
             };
 
             // Gaussian blur for anti-aliasing pre-filter
@@ -1493,6 +1536,12 @@
                 return () => window.removeEventListener('keydown', handleKeyDown);
             }, [image, zoomLevel, canvasWidth, canvasHeight]);
 
+            // Clipboard paste handler
+            useEffect(() => {
+                window.addEventListener('paste', handlePaste);
+                return () => window.removeEventListener('paste', handlePaste);
+            }, [imageQueue]);
+
             // Dynamic canvas sizing
             useEffect(() => {
                 const updateCanvasSize = () => {
@@ -1588,7 +1637,7 @@
                                 Select Image(s)
                             </button>
                             <p className="text-xs text-gray-400 mt-2">
-                                Single or multiple files • Drag & drop onto canvas
+                                Single or multiple files • Drag & drop • Ctrl+V to paste
                             </p>
                         </div>
                         
@@ -2059,9 +2108,9 @@
                     </div>
                     
                     {/* Right Panel - Canvas */}
-                    <div 
+                    <div
                         ref={containerRef}
-                        className="flex-1 flex items-center justify-center bg-gray-900"
+                        className="flex-1 flex flex-col items-center justify-center bg-gray-900"
                         onDrop={handleDrop}
                         onDragOver={handleDragOver}
                     >
@@ -2086,6 +2135,26 @@
                                 className="border-2 border-gray-700"
                                 style={{ maxWidth: '100%', maxHeight: '100%', cursor: cursorStyle }}
                             />
+                        )}
+
+                        {/* Image Navigation Buttons */}
+                        {image && (
+                            <div className="flex gap-2 mt-4 w-full px-4">
+                                <button
+                                    onClick={loadPreviousImage}
+                                    disabled={imageQueue.length === 0 || currentImageIndex <= 0 || isOptimizing}
+                                    className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white py-2 px-4 rounded"
+                                >
+                                    ← Previous
+                                </button>
+                                <button
+                                    onClick={loadNextImage}
+                                    disabled={imageQueue.length === 0 || currentImageIndex >= imageQueue.length - 1 || isOptimizing}
+                                    className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white py-2 px-4 rounded"
+                                >
+                                    Next →
+                                </button>
+                            </div>
                         )}
                     </div>
                 </div>

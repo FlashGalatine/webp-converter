@@ -1,4 +1,4 @@
-# WebP Converter v2.4.0
+# WebP Converter v2.5.0
 
 ## Quick Start
 
@@ -8,7 +8,7 @@ Simply open `index.html` in your browser to start using the converter!
 
 This project has **TWO builds**:
 
-- **🟢 STABLE v2.4.0** (`index.html`) - Production-ready, fully tested - **Default version**
+- **🟢 STABLE v2.5.0** (`index.html`) - Production-ready, fully tested - **Default version**
 - **🟠 EXPERIMENTAL** (`webp-conv-experimental.html`) - Testing bleeding-edge features
 
 **The default `index.html` is the STABLE version.** Use EXPERIMENTAL if you want to test new features early.
@@ -19,6 +19,26 @@ See `CHANGELOG.md` for detailed version history.
 
 ## Overview
 WebP Converter is a powerful client-side image conversion tool with advanced features for batch processing, custom presets, professional-grade resampling, adaptive anti-aliasing, and intelligent dimension linking.
+
+## What's New in v2.5.0
+
+### 📋 Clipboard Paste Support
+**Quick Image Loading from Clipboard** - Paste images with a single keyboard shortcut
+- **Keyboard Shortcut**: Press **Ctrl+V** (Windows/Linux) or **Cmd+V** (Mac) to paste images
+- **Works with Screenshots**: Perfect for quick screenshot conversion workflows
+- **Auto Filenames**: Pasted images get timestamped names like `pasted-image-2025-11-02T12-34-56.png`
+- **Queue Compatible**: Pasted images automatically added to queue when multiple images are loaded
+- **Direct Loading**: Pasted image loads directly if queue is empty
+- **All Formats Supported**: Works with PNG, JPEG, WebP, GIF from clipboard
+
+### 🔄 Smart Queue Integration
+**Seamless Multi-Image Workflow** - Pasted images integrate naturally with batch processing
+- **Queue Awareness**: Automatically detects if images are already loaded
+- **Consistent Behavior**: Matches file upload and drag-and-drop behavior
+- **Proper Metadata**: Pasted images tracked with filename and file size in queue
+- **No Manual Steps**: No need to manually add pasted images - happens automatically
+
+---
 
 ## What's New in v2.4.0
 
@@ -145,7 +165,7 @@ When using custom presets, the following settings are automatically applied:
 
 ### Quick Start
 1. Open `index.html` (STABLE) or `webp-conv-experimental.html` (EXPERIMENTAL)
-2. Load an image (or multiple images for batch processing)
+2. Load an image by clicking "Select Image(s)", drag & drop, or paste from clipboard (Ctrl+V)
 3. Select a crop preset or use freestyle
 4. Optionally set max width/height (use the 🔗 button to link dimensions)
 5. Adjust quality settings and resampling method
@@ -155,6 +175,7 @@ When using custom presets, the following settings are automatically applied:
 **Loading Multiple Images:**
 - **Method 1**: Click "Select Image(s)" and hold Ctrl/Cmd to select multiple files
 - **Method 2**: Drag and drop multiple images onto the canvas
+- **Method 3**: Press Ctrl+V (or Cmd+V on Mac) to paste images from clipboard
 
 **Queue Controls:**
 - **Previous/Next**: Navigate between queued images

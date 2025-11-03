@@ -908,6 +908,49 @@
                 e.preventDefault();
             };
 
+            // Clipboard paste handler
+            const handlePaste = async (e) => {
+                const items = e.clipboardData?.items;
+                if (!items) return;
+
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    // Check if the item is an image
+                    if (item.type.startsWith('image/')) {
+                        e.preventDefault();
+
+                        try {
+                            const blob = item.getAsFile();
+                            if (blob) {
+                                // Convert blob to File object with a generated name
+                                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                                const fileName = `pasted-image-${timestamp}.${blob.type.split('/')[1]}`;
+                                const file = new File([blob], fileName, { type: blob.type });
+
+                                // If queue has images, add to queue; otherwise load directly
+                                if (imageQueue.length > 0) {
+                                    const newQueueItem = {
+                                        id: Date.now(),
+                                        file: file,
+                                        name: fileName,
+                                        size: blob.size,
+                                        type: blob.type
+                                    };
+                                    setImageQueue(prev => [...prev, newQueueItem]);
+                                    console.log('[Paste] Image added to queue:', fileName);
+                                } else {
+                                    loadImage(file);
+                                    console.log('[Paste] Image pasted from clipboard:', fileName);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('[Paste] Error processing clipboard image:', error);
+                        }
+                        break; // Only process the first image
+                    }
+                }
+            };
+
             // Gaussian blur for anti-aliasing pre-filter
             const applyGaussianBlur = (sourceCanvas, radius) => {
                 if (radius < 0.5) return sourceCanvas; // Skip if radius too small
@@ -1493,6 +1536,12 @@
                 return () => window.removeEventListener('keydown', handleKeyDown);
             }, [image, zoomLevel, canvasWidth, canvasHeight]);
 
+            // Clipboard paste handler
+            useEffect(() => {
+                window.addEventListener('paste', handlePaste);
+                return () => window.removeEventListener('paste', handlePaste);
+            }, [imageQueue]);
+
             // Dynamic canvas sizing
             useEffect(() => {
                 const updateCanvasSize = () => {
@@ -1588,7 +1637,7 @@
                                 Select Image(s)
                             </button>
                             <p className="text-xs text-gray-400 mt-2">
-                                Single or multiple files • Drag & drop onto canvas
+                                Single or multiple files • Drag & drop • Ctrl+V to paste
                             </p>
                         </div>
                         
