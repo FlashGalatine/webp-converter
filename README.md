@@ -38,11 +38,11 @@ WebP Converter is a powerful client-side image conversion tool with advanced fea
 - **Add/Remove Presets**: Quick buttons to add new presets or remove existing ones
 - **Reorder Presets**: Up/Down arrow buttons allow you to change preset order with smooth animations
 - **Intuitive Fields**: Forms for all preset parameters (crop ratio, dimensions, file size, auto-selection)
-- **Import Existing**: Load your existing `presets.json` file to edit (or drag and drop)
+- **Import Existing**: Load your existing `presets.json` file to edit, or try `example_presets.json` as a starting point (drag and drop supported)
 - **Export JSON**: Generate valid `presets.json` files ready to use
 - **Validation Built-in**: Real-time validation of crop ratios, preset names, and default selections
 - **Default Selection Logic**: Only one preset allowed per type (Square, Landscape, Portrait) with visual status indicator
-- **Drag-and-Drop Import**: Drop JSON files anywhere on the page to import instantly
+- **Drag-and-Drop Import**: Drop JSON files anywhere on the page to import instantly (try `example_presets.json`)
 - **Smooth Animations**: Presets slide and highlight when moved for visual feedback
 - **JSON Preview**: Live preview of your JSON before export
 
@@ -258,8 +258,10 @@ When resizing images (using Max Width/Height), select the appropriate resampling
 
 ### Loading Custom Presets
 1. Click the **"Load Custom Presets"** button in the "Preset Source" section
-2. Select your JSON preset file (e.g., `presets.json`)
+2. Select your JSON preset file (e.g., `presets.json` or `example_presets.json`)
 3. The app will load all presets from the file
+
+**Tip:** You can use `example_presets.json` as a reference, or import it into the Preset Editor to customize it further!
 
 ### Switching Between Presets
 - Once loaded, custom presets appear in the **"Crop Preset"** dropdown
@@ -304,6 +306,8 @@ The included `presets.json` file contains presets for:
 - **Twitter/X** (various image layouts)
 - **Discord** (image layouts)
 - Generic aspect ratios (Square, 16:9, 9:16, etc.)
+
+**See Also:** Check out `example_presets.json` for additional preset examples that you can use as a reference when creating your own custom presets.
 
 ## Built-in Presets
 The app includes these built-in presets:
