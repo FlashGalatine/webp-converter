@@ -2,9 +2,62 @@
 
 ## Current Releases
 
-### STABLE Build v2.5.0
+### STABLE Build v2.6.0
 **File:** `index.html` (default)
 **Status:** Production Ready ✅
+**Date:** November 8, 2025
+
+#### New Features:
+- ✅ **Aspect Ratio String Format** - Crop ratios now support readable formats: "16/9", "4/3", "21/9" alongside decimals
+- ✅ **Preset Editor Tool** - New companion app (`preset-editor.html`) for creating and managing custom presets
+- ✅ **JSON Import/Export** - Preset Editor can import existing presets and export new ones
+
+#### All Features:
+**Core Functionality:**
+- ✅ Full image loading and preview
+- ✅ Interactive canvas with zoom and pan
+- ✅ Manual crop adjustment with handles
+- ✅ Built-in aspect ratio presets
+- ✅ Custom preset loading from JSON files
+- ✅ Lossy and lossless WebP conversion
+- ✅ Quality adjustment (0-100)
+- ✅ Max dimension constraints
+- ✅ Web optimization with target file size
+- ✅ Drag & drop image loading
+- ✅ Clipboard paste support (Ctrl+V)
+- ✅ Keyboard shortcuts (zoom, pan)
+- ✅ Real-time conversion progress
+- ✅ Auto-generated filenames with metadata
+
+**From v2.0:**
+- ✅ **Image Queue System** - Batch process multiple images
+- ✅ **Advanced Resampling Methods** - Lanczos, Bicubic, Bilinear, Nearest Neighbor
+- ✅ **Auto Zoom to Fit** - Images automatically fit canvas on load
+- ✅ **Auto-load Presets** - Automatically loads presets.json if present
+- ✅ **Smart Preset Selection** - Auto-selects preset based on image dimensions
+- ✅ **Queue Auto-advance** - Automatically move to next image after conversion
+- ✅ **Remove After Convert** - Option to auto-remove processed images from queue
+
+**From v2.1:**
+- ✅ **Adaptive Anti-Aliasing** - Prevents oversharpening during downsampling
+- ✅ **Gaussian Pre-Filter** - Applies optimal blur before resampling to eliminate artifacts
+- ✅ **Smart Quality Control** - Automatically adjusts filtering based on downsampling ratio
+
+**From v2.2:**
+- ✅ **Dynamic Canvas Sizing** - Canvas automatically adapts to screen resolution (4K support)
+- ✅ **Intelligent Cursor Feedback** - Directional cursors show which way handles can be resized
+- ✅ **Author Attribution** - Proper credit and links throughout all files
+
+**From v2.3.0:**
+- ✅ **Freestyle Toggle Switch** - Independent control to disable aspect ratio constraints
+- ✅ **Flexible Cropping** - Use Freestyle Mode with any preset without changing the selection
+- ✅ **Settings Preservation** - Toggling Freestyle on/off maintains current crop and settings
+
+---
+
+### STABLE Build v2.5.0
+**File:** `index.html` (previous)
+**Status:** Superseded
 **Date:** November 2, 2025
 
 #### All Features:

@@ -4,12 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-WebP Converter is a client-side web application for converting images to WebP format with advanced cropping, presets, and batch processing capabilities. The project uses a dual-build strategy:
+WebP Converter is a client-side web application for converting images to WebP format with advanced cropping, presets, and batch processing capabilities. The project includes a dual-build strategy for the converter plus a companion preset editor tool:
 
-- **STABLE** (`index.html`) - Production-ready build (v2.3.0)
-- **EXPERIMENTAL** (`webp-conv-experimental.html`) - Testing build for new features
+- **STABLE** (`index.html`) - Production-ready converter build (v2.6.0)
+- **EXPERIMENTAL** (`webp-conv-experimental.html`) - Testing build for new converter features
+- **Preset Editor** (`preset-editor.html`) - Companion tool for creating and managing custom presets (v1.0.0)
 
-All builds are **standalone single-file HTML applications** with no external dependencies beyond CDN-loaded libraries.
+All tools are **standalone single-file HTML applications** with no external dependencies beyond CDN-loaded libraries.
 
 ## Tech Stack
 
@@ -67,11 +68,18 @@ Both STABLE and EXPERIMENTAL builds follow this structure:
 
 ### File Organization
 
-- `index.html` - **STABLE v2.3.0** build (production)
+**WebP Converter:**
+- `index.html` - **STABLE v2.6.0** build (production)
 - `webp-conv-experimental.html` - **EXPERIMENTAL** build (testing)
+
+**Preset Editor:**
+- `preset-editor.html` - **v1.0.0** Companion tool for creating and managing presets
+
+**Documentation & Examples:**
 - `presets.json` - Example custom presets for various platforms
 - `CHANGELOG.md` - Version history and release notes
 - `README.md` - User-facing feature documentation
+- `CLAUDE.md` - This file (developer guidance)
 - `PROJECT_SUMMARY.md` - Project overview
 - `LICENSE` - MIT License
 
@@ -360,15 +368,105 @@ Check these functions in order:
 5. **Memory constraints** - Large images (8K+) may exceed available memory
 6. **No persistent storage** - App doesn't save state between sessions
 
-## Recent Changes (v2.3.0)
+## Preset Editor (preset-editor.html)
 
-**Freestyle Toggle Switch Feature**
-- Added `isFreestyleMode` state variable
-- Implemented independent toggle control below crop preset selector
-- Modified aspect ratio constraint logic: `if (aspectRatio && !isFreestyleMode)`
-- Preserves crop area and settings when toggling on/off
-- Works with both built-in and custom presets
-- Export constraints (max-width/max-height) still apply regardless of mode
+The Preset Editor is a companion tool for creating and managing custom presets without manual JSON editing.
+
+### Features
+- **Visual Interface**: User-friendly forms for all preset parameters
+- **Ratio Format Support**: Accepts both ratio notation (`16/9`, `4/3`) and decimal format (`1.777`)
+- **Add/Remove Presets**: Quick buttons to add new presets or remove existing ones
+- **Reorder Presets**: Up/Down arrow buttons allow changing preset order
+- **Import/Export**: Load existing presets.json files and export new ones
+- **Drag-and-Drop**: Drop JSON files anywhere on the page to import
+- **Real-time Validation**: Validates crop ratios, preset names, and detects duplicates
+- **Default Selection Logic**: Enforces one preset per type (Square/Landscape/Portrait) with visual status indicator
+- **JSON Preview**: Live preview of generated JSON before export
+
+### Preset Reordering
+Users can change the order of presets using the arrow buttons on each preset card:
+- **Up Arrow (↑)**: Moves the preset one position up in the list
+  - Disabled on the first preset (grayed out)
+  - Blue color when enabled, gray when disabled
+- **Down Arrow (↓)**: Moves the preset one position down in the list
+  - Disabled on the last preset (grayed out)
+  - Blue color when enabled, gray when disabled
+- **Remove Button (−)**: Removes the preset entirely (always enabled)
+
+The preset order is maintained when exporting to JSON, allowing you to control the order in which presets appear.
+
+#### Animation Feedback
+When a preset is moved, it displays a smooth animation:
+- **Slide Animation**: The card smoothly slides up or down with a fade effect (0.4s)
+- **Highlight Flash**: A blue glow briefly appears around the moved preset (0.6s)
+- Together these effects provide visual feedback that the action was successful
+
+### Reordering Functions
+- `movePresetUp(id)`: Moves a preset up one position (if not already at top)
+  - Triggers slide-up animation + highlight effect
+  - Clears animation after 600ms
+- `movePresetDown(id)`: Moves a preset down one position (if not already at bottom)
+  - Triggers slide-down animation + highlight effect
+  - Clears animation after 600ms
+- Both functions use array swap logic and immediately update state
+
+#### CSS Animations
+Three keyframe animations provide smooth feedback:
+- `slideUp`: Preset fades in while sliding upward
+- `slideDown`: Preset fades in while sliding downward
+- `highlight`: Blue glow effect that fades away
+
+### Default Selection Validation
+Only one preset can be assigned as the default for each image type:
+- **Square**: One preset for square images (1:1)
+- **Landscape**: One preset for landscape images (width > height)
+- **Portrait**: One preset for portrait images (height > width)
+
+When a user attempts to assign a default-selection that's already taken:
+1. A modal alert explains which preset currently has that selection
+2. The change is prevented, preserving the existing assignment
+3. A status panel displays current assignments with visual indicators (green = assigned, gray = unassigned)
+4. Export validation double-checks for duplicates before creating the JSON file
+
+### Validation Functions
+- `getPresetWithDefaultSelection(selection, excludeId)`: Finds which preset has a specific default-selection
+- `isDefaultSelectionTaken(selection, excludeId)`: Checks if a default-selection is already assigned
+- Export validation counts default selections and prevents conflicts
+
+### Architecture
+- Standalone single-file HTML application (`preset-editor.html`)
+- React 18 + Tailwind CSS (via CDN)
+- No build process, no server required
+- Works entirely client-side with file import/export via browser APIs
+
+### How to Use
+1. Open `preset-editor.html` in a browser
+2. Click "Add Preset" to create new presets, or "Import JSON" to load existing ones
+3. Alternatively, drag and drop a `presets.json` file onto the page
+4. Edit preset details (supports both `16/9` and `1.777` ratio formats)
+5. Click "Export JSON" to download your presets file
+6. Use the exported file with WebP Converter by importing it
+
+### Preset Parameters
+- **Preset Name** (required) - Unique identifier for the preset
+- **Crop Ratio** (optional) - `"16/9"`, `"4/3"`, `1.777`, or other format
+- **Max Width** (optional) - Maximum export width in pixels
+- **Max Height** (optional) - Maximum export height in pixels
+- **Max File Size** (optional) - Target file size with unit (KB/MB/GB)
+- **Default Selection** (optional) - Auto-select based on image orientation (Square/Landscape/Portrait)
+
+## Recent Changes (v2.6.0)
+
+**Aspect Ratio String Format & Preset Editor**
+- Added `parseAspectRatio()` function supporting ratio notation: `"16/9"`, `"4/3"`, `"21/9"`
+- Maintains backward compatibility with decimal format: `1.777`, `1.333`
+- Created new Preset Editor tool (`preset-editor.html`) for visual preset management
+- Added drag-and-drop import support in Preset Editor
+- Enhanced validation for crop ratios and preset names
+- **Default Selection Logic**: Only one preset allowed per type (Square/Landscape/Portrait)
+  - User alerts prevent conflicting assignments
+  - Visual status indicator shows current assignments
+  - Export validation prevents duplicate default selections
 
 ## File References for Key Locations
 

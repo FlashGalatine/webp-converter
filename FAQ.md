@@ -203,6 +203,45 @@ Create a JSON file with this format:
 - `max-filesize-unit`: "KB", "MB", or "GB" (default: "MB")
 - `default-selection`: Auto-select based on image orientation: "Square", "Landscape", or "Portrait"
 
+### What is the Preset Editor?
+The Preset Editor (`preset-editor.html`) is a companion tool that makes creating and managing custom presets easy, without writing JSON manually. It provides a visual interface to create, edit, and organize your presets.
+
+**Launch it:** Open `preset-editor.html` in your browser
+
+### How do I use the Preset Editor?
+1. **Create Presets**: Click "Add Preset" to add a new preset
+2. **Edit Fields**: Fill in the preset details:
+   - **Preset Name**: Give your preset a name
+   - **Crop Ratio**: Enter ratio (e.g., "16/9", "4/3") or decimal (e.g., "1.777")
+   - **Max Width/Height**: Set export size limits (optional)
+   - **Max File Size**: Set target file size for web optimization (optional)
+   - **Default Selection**: Auto-select based on image orientation
+3. **Reorder**: Use ↑/↓ buttons to change preset order
+4. **Remove**: Click − to delete a preset
+5. **Import**: Drag and drop or click "Import JSON" to load existing presets
+6. **Export**: Click "Export JSON" to download your presets file
+
+### Does the Preset Editor support ratio notation like "16/9"?
+Yes! The Preset Editor fully supports both formats:
+- **Ratio notation**: "16/9", "4/3", "21/9", "3/2" (human-readable)
+- **Decimal format**: 1.777, 1.333, 2.333 (mathematical)
+
+You can use either format in the Crop Ratio field, and they work in both the Preset Editor and WebP Converter.
+
+### Can I import existing presets into the Preset Editor?
+Yes! Two ways:
+1. **Click "Import JSON"** button and select your presets.json file
+2. **Drag and drop** a JSON file anywhere on the Preset Editor page
+
+### What validation does the Preset Editor perform?
+The Preset Editor validates:
+- **Preset names**: Must be unique and non-empty
+- **Crop ratios**: Validates both ratio format ("16/9") and decimal format ("1.777")
+- **Default selections**: Ensures only one preset per type (Square, Landscape, Portrait)
+- **Number fields**: Ensures valid numeric values for dimensions
+
+Invalid presets are flagged with red error messages and cannot be exported.
+
 ### Can I use built-in and custom presets together?
 You can switch between them using the buttons in the "Preset Source" section:
 - **Use Built-in**: Switch back to built-in presets
@@ -587,4 +626,4 @@ The Canvas API may use GPU acceleration depending on your browser and system. We
 
 ---
 
-**Last Updated:** November 4, 2025 | Version 2.5.0
+**Last Updated:** November 8, 2025 | Version 2.6.0

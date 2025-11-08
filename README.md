@@ -1,15 +1,17 @@
-# WebP Converter v2.5.0
+# WebP Converter v2.6.0
 
 ## Quick Start
 
-Simply open `index.html` in your browser to start using the converter!
+- **WebP Converter**: Simply open `index.html` in your browser to start converting images!
+- **Preset Editor**: Open `preset-editor.html` to create and manage custom presets
 
 ## Version Information
 
-This project has **TWO builds**:
+This project has **THREE tools**:
 
-- **🟢 STABLE v2.5.0** (`index.html`) - Production-ready, fully tested - **Default version**
-- **🟠 EXPERIMENTAL** (`webp-conv-experimental.html`) - Testing bleeding-edge features
+- **🟢 WebP Converter STABLE v2.6.0** (`index.html`) - Production-ready image conversion tool - **Default version**
+- **🟠 WebP Converter EXPERIMENTAL** (`webp-conv-experimental.html`) - Testing bleeding-edge features
+- **⚙️ Preset Editor** (`preset-editor.html`) - Create and manage custom presets with ease
 
 **The default `index.html` is the STABLE version.** Use EXPERIMENTAL if you want to test new features early.
 
@@ -19,6 +21,36 @@ See `CHANGELOG.md` for detailed version history.
 
 ## Overview
 WebP Converter is a powerful client-side image conversion tool with advanced features for batch processing, custom presets, professional-grade resampling, adaptive anti-aliasing, and intelligent dimension linking.
+
+## What's New in v2.6.0
+
+### 🎯 Aspect Ratio String Format Support
+**More Readable Crop Ratios** - Define ratios using intuitive notation
+- **String Format**: Use `16/9`, `4/3`, `21/9`, `3/2` instead of decimal calculations
+- **Backward Compatible**: Decimal format like `1.777` still fully supported
+- **In Presets**: Custom preset JSON files can now use either format: `"crop-ratio": "16/9"` or `"crop-ratio": 1.777`
+- **Easier to Read**: More intuitive notation matches common industry standards
+- **Validation**: Both formats are validated to ensure correct values
+
+### 🛠️ New Preset Editor Tool
+**Companion Application for Preset Management** - Create presets without manual JSON editing
+- **Visual Editor**: User-friendly interface for managing crop ratios and export settings
+- **Add/Remove Presets**: Quick buttons to add new presets or remove existing ones
+- **Reorder Presets**: Up/Down arrow buttons allow you to change preset order with smooth animations
+- **Intuitive Fields**: Forms for all preset parameters (crop ratio, dimensions, file size, auto-selection)
+- **Import Existing**: Load your existing `presets.json` file to edit (or drag and drop)
+- **Export JSON**: Generate valid `presets.json` files ready to use
+- **Validation Built-in**: Real-time validation of crop ratios, preset names, and default selections
+- **Default Selection Logic**: Only one preset allowed per type (Square, Landscape, Portrait) with visual status indicator
+- **Drag-and-Drop Import**: Drop JSON files anywhere on the page to import instantly
+- **Smooth Animations**: Presets slide and highlight when moved for visual feedback
+- **JSON Preview**: Live preview of your JSON before export
+
+### 📋 Preset JSON Features
+**Enhanced Preset Specifications** - New format support in custom presets
+- **Ratio Format Support**: `"crop-ratio": "16/9"` now works alongside `"crop-ratio": 1.777`
+- **All Parameters**: Full support for crop-ratio, max-width, max-height, max-filesize, max-filesize-unit, default-selection
+- **Example Presets**: Create presets for social media (Twitter, Instagram, Discord, BlueSky) or custom specifications
 
 ## What's New in v2.5.0
 

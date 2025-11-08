@@ -242,7 +242,46 @@
             const getCurrentPresets = () => {
                 return useCustomPresets ? customPresets : BUILT_IN_PRESETS;
             };
-            
+
+            // Parse aspect ratio from string (e.g., "16/9" or "1.777") or number
+            const parseAspectRatio = (value) => {
+                if (value === null || value === undefined || value === '') {
+                    return null;
+                }
+
+                // If it's a number, return it directly
+                if (typeof value === 'number') {
+                    return value;
+                }
+
+                // Convert to string if it isn't already
+                const strValue = String(value).trim();
+
+                // Check if it's a ratio format (e.g., "16/9")
+                if (strValue.includes('/')) {
+                    const parts = strValue.split('/');
+                    if (parts.length === 2) {
+                        const numerator = parseFloat(parts[0].trim());
+                        const denominator = parseFloat(parts[1].trim());
+
+                        // Validate that both are valid numbers and denominator is not zero
+                        if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
+                            return numerator / denominator;
+                        }
+                    }
+                    // If ratio format is invalid, return null
+                    return null;
+                }
+
+                // Otherwise, try to parse as decimal number
+                const numValue = parseFloat(strValue);
+                if (!isNaN(numValue) && numValue > 0) {
+                    return numValue;
+                }
+
+                return null;
+            };
+
             // Load custom presets from JSON file
             const loadCustomPresets = (file) => {
                 const reader = new FileReader();
@@ -255,7 +294,8 @@
                         const converted = {};
                         for (const [name, config] of Object.entries(jsonData)) {
                             if (config['crop-ratio']) {
-                                converted[name] = config['crop-ratio'];
+                                // Parse crop-ratio using the parseAspectRatio function
+                                converted[name] = parseAspectRatio(config['crop-ratio']);
                             } else if (config['max-width'] && config['max-height']) {
                                 // Calculate crop-ratio from max dimensions if crop-ratio not defined
                                 converted[name] = config['max-width'] / config['max-height'];
@@ -1737,7 +1777,12 @@
                         
                         {/* Custom Preset Loader */}
                         <div className="mb-6">
-                            <h2 className="text-sm font-semibold mb-2 text-gray-300">Preset Source</h2>
+                            <div className="flex justify-between items-center mb-2">
+                                <h2 className="text-sm font-semibold text-gray-300">Preset Source</h2>
+                                <a href="preset-editor.html" className="text-xs bg-blue-600 hover:bg-blue-700 text-white py-1 px-2 rounded" title="Create and manage custom presets">
+                                    ⚙️ Preset Editor
+                                </a>
+                            </div>
                             <input
                                 ref={presetFileInputRef}
                                 type="file"
