@@ -7,185 +7,24 @@
 **Status:** Production Ready ✅
 **Date:** November 9, 2025
 
-#### Bug Fixes & Improvements:
-- ✅ **Fixed Auto-Load Presets Bug** - Aspect ratios from JSON presets now properly parse string formats like "16/9"
-- ✅ **Fixed Lanczos Resampling Error** - Resolved ReferenceError when using Lanczos with custom presets
-- ✅ **Fixed Blob URL Memory Leak** - Delayed URL revocation to ensure downloads complete before cleanup
-- ✅ **Improved Error Handling** - Added comprehensive error handlers for image loading and file operations
-- ✅ **Added Division-by-Zero Guards** - Protected dimension calculations to prevent NaN values
-- ✅ **Performance Optimization** - Memoized preset selection to avoid unnecessary recalculations
-- ✅ **Code Quality Improvements** - Eliminated 16 magic numbers with named constants, consolidated duplicated code
-- ✅ **Accessibility Enhancements** - Added dynamic ARIA labels to canvas element
+**Latest Improvements:**
+- ✅ Fixed auto-load presets bug (now parses "16/9" ratio format)
+- ✅ Fixed Lanczos resampling error with custom presets
+- ✅ Fixed blob URL memory leak in downloads
+- ✅ Added comprehensive error handling and validation
+- ✅ Performance optimization (memoized preset selection)
+- ✅ Code quality improvements (eliminated magic numbers, reduced duplication)
+- ✅ Accessibility enhancements (ARIA labels)
 
-#### All Features:
-**Core Functionality:**
-- ✅ Full image loading and preview
-- ✅ Interactive canvas with zoom and pan
-- ✅ Manual crop adjustment with handles
-- ✅ Built-in aspect ratio presets
-- ✅ Custom preset loading from JSON files (now with proper ratio parsing)
-- ✅ Lossy and lossless WebP conversion
-- ✅ Quality adjustment (0-100)
-- ✅ Max dimension constraints
-- ✅ Web optimization with target file size
-- ✅ Drag & drop image loading
-- ✅ Clipboard paste support (Ctrl+V)
-- ✅ Keyboard shortcuts (zoom, pan)
-- ✅ Real-time conversion progress
-- ✅ Auto-generated filenames with metadata
-
-**From v2.0:**
-- ✅ **Image Queue System** - Batch process multiple images
-- ✅ **Advanced Resampling Methods** - Lanczos, Bicubic, Bilinear, Nearest Neighbor
-- ✅ **Auto Zoom to Fit** - Images automatically fit canvas on load
-- ✅ **Auto-load Presets** - Automatically loads presets.json if present
-- ✅ **Smart Preset Selection** - Auto-selects preset based on image dimensions
-- ✅ **Queue Auto-advance** - Automatically move to next image after conversion
-- ✅ **Remove After Convert** - Option to auto-remove processed images from queue
-
-**From v2.1:**
-- ✅ **Adaptive Anti-Aliasing** - Prevents oversharpening during downsampling
-- ✅ **Gaussian Pre-Filter** - Applies optimal blur before resampling to eliminate artifacts
-- ✅ **Smart Quality Control** - Automatically adjusts filtering based on downsampling ratio
-
-**From v2.2:**
-- ✅ **Dynamic Canvas Sizing** - Canvas automatically adapts to screen resolution (4K support)
-- ✅ **Intelligent Cursor Feedback** - Directional cursors show which way handles can be resized
-- ✅ **Author Attribution** - Proper credit and links throughout all files
-
-**From v2.3.0:**
-- ✅ **Freestyle Toggle Switch** - Independent control to disable aspect ratio constraints
-- ✅ **Flexible Cropping** - Use Freestyle Mode with any preset without changing the selection
-- ✅ **Settings Preservation** - Toggling Freestyle on/off maintains current crop and settings
-
----
-
-### STABLE Build v2.6.0
-**File:** `index.html` (previous)
-**Status:** Superseded
-**Date:** November 8, 2025
-
-#### New Features:
-- ✅ **Aspect Ratio String Format** - Crop ratios now support readable formats: "16/9", "4/3", "21/9" alongside decimals
-- ✅ **Preset Editor Tool** - New companion app (`preset-editor.html`) for creating and managing custom presets
-- ✅ **JSON Import/Export** - Preset Editor can import existing presets and export new ones
-
-#### All Features:
-**Core Functionality:**
-- ✅ Full image loading and preview
-- ✅ Interactive canvas with zoom and pan
-- ✅ Manual crop adjustment with handles
-- ✅ Built-in aspect ratio presets
-- ✅ Custom preset loading from JSON files
-- ✅ Lossy and lossless WebP conversion
-- ✅ Quality adjustment (0-100)
-- ✅ Max dimension constraints
-- ✅ Web optimization with target file size
-- ✅ Drag & drop image loading
-- ✅ Clipboard paste support (Ctrl+V)
-- ✅ Keyboard shortcuts (zoom, pan)
-- ✅ Real-time conversion progress
-- ✅ Auto-generated filenames with metadata
-
-**From v2.0:**
-- ✅ **Image Queue System** - Batch process multiple images
-- ✅ **Advanced Resampling Methods** - Lanczos, Bicubic, Bilinear, Nearest Neighbor
-- ✅ **Auto Zoom to Fit** - Images automatically fit canvas on load
-- ✅ **Auto-load Presets** - Automatically loads presets.json if present
-- ✅ **Smart Preset Selection** - Auto-selects preset based on image dimensions
-- ✅ **Queue Auto-advance** - Automatically move to next image after conversion
-- ✅ **Remove After Convert** - Option to auto-remove processed images from queue
-
-**From v2.1:**
-- ✅ **Adaptive Anti-Aliasing** - Prevents oversharpening during downsampling
-- ✅ **Gaussian Pre-Filter** - Applies optimal blur before resampling to eliminate artifacts
-- ✅ **Smart Quality Control** - Automatically adjusts filtering based on downsampling ratio
-
-**From v2.2:**
-- ✅ **Dynamic Canvas Sizing** - Canvas automatically adapts to screen resolution (4K support)
-- ✅ **Intelligent Cursor Feedback** - Directional cursors show which way handles can be resized
-- ✅ **Author Attribution** - Proper credit and links throughout all files
-
-**From v2.3.0:**
-- ✅ **Freestyle Toggle Switch** - Independent control to disable aspect ratio constraints
-- ✅ **Flexible Cropping** - Use Freestyle Mode with any preset without changing the selection
-- ✅ **Settings Preservation** - Toggling Freestyle on/off maintains current crop and settings
-
----
-
-### STABLE Build v2.5.0
-**File:** `index.html` (previous)
-**Status:** Superseded
-**Date:** November 2, 2025
-
-#### All Features:
-**Core Functionality:**
-- ✅ Full image loading and preview
-- ✅ Interactive canvas with zoom and pan
-- ✅ Manual crop adjustment with handles
-- ✅ Built-in aspect ratio presets
-- ✅ Custom preset loading from JSON files
-- ✅ Lossy and lossless WebP conversion
-- ✅ Quality adjustment (0-100)
-- ✅ Max dimension constraints
-- ✅ Web optimization with target file size
-- ✅ Drag & drop image loading
-- ✅ Clipboard paste support (Ctrl+V)
-- ✅ Keyboard shortcuts (zoom, pan)
-- ✅ Real-time conversion progress
-- ✅ Auto-generated filenames with metadata
-
-**From v2.0:**
-- ✅ **Image Queue System** - Batch process multiple images
-- ✅ **Advanced Resampling Methods** - Lanczos, Bicubic, Bilinear, Nearest Neighbor
-- ✅ **Auto Zoom to Fit** - Images automatically fit canvas on load
-- ✅ **Auto-load Presets** - Automatically loads presets.json if present
-- ✅ **Smart Preset Selection** - Auto-selects preset based on image dimensions
-- ✅ **Queue Auto-advance** - Automatically move to next image after conversion
-- ✅ **Remove After Convert** - Option to auto-remove processed images from queue
-
-**New in v2.1:**
-- ✅ **Adaptive Anti-Aliasing** - Prevents oversharpening during downsampling
-- ✅ **Gaussian Pre-Filter** - Applies optimal blur before resampling to eliminate artifacts
-- ✅ **Smart Quality Control** - Automatically adjusts filtering based on downsampling ratio
-
-**New in v2.2:**
-- ✅ **Dynamic Canvas Sizing** - Canvas automatically adapts to screen resolution (4K support)
-- ✅ **Intelligent Cursor Feedback** - Directional cursors show which way handles can be resized
-- ✅ **Author Attribution** - Proper credit and links throughout all files
-
-**New in v2.3.0:**
-- ✅ **Freestyle Toggle Switch** - Independent control to disable aspect ratio constraints
-- ✅ **Flexible Cropping** - Use Freestyle Mode with any preset without changing the selection
-- ✅ **Settings Preservation** - Toggling Freestyle on/off maintains current crop and settings
-
-**New in v2.4.0:**
-- ✅ **Fixed Ratio Feature** - Auto-link max width and height to maintain aspect ratio
-- ✅ **Enhanced SEO** - Comprehensive meta tags, Open Graph, Twitter Cards, and JSON-LD structured data
-- ✅ **Improved Discoverability** - Better ranking in search engines and social media previews
-
-**New in v2.5.0:**
-- ✅ **Clipboard Paste Support** - Press Ctrl+V (or Cmd+V on Mac) to paste images directly
-- ✅ **Smart Queue Integration** - Pasted images automatically added to queue if multiple images loaded
-- ✅ **Quick Image Loading** - Timestamp-based filenames for pasted images from screenshot tools
-
-#### Known Issues:
-- None reported
+See [Version History](#version-history) for detailed release notes.
 
 ---
 
 ### EXPERIMENTAL Build
 **File:** `webp-conv-experimental.html`
-**Status:** Testing & Development ⚠️
-**Date:** November 9, 2025
-**Version:** 2.6.1-EXPERIMENTAL (synchronized with STABLE)
+**Status:** Testing & Development ⚠️ (Synchronized with STABLE v2.6.1)
 
-#### Current State:
-- Contains all STABLE v2.6.1 features and improvements
-- Currently synchronized with STABLE (ready for promotion to STABLE)
-
-#### Known Issues:
-- None reported
+For testing new features before they reach stable. Currently identical to STABLE v2.6.1.
 
 ---
 
