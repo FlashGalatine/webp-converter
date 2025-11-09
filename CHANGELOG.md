@@ -2,9 +2,67 @@
 
 ## Current Releases
 
-### STABLE Build v2.6.0
+### STABLE Build v2.6.1
 **File:** `index.html` (default)
 **Status:** Production Ready ✅
+**Date:** November 9, 2025
+
+#### Bug Fixes & Improvements:
+- ✅ **Fixed Auto-Load Presets Bug** - Aspect ratios from JSON presets now properly parse string formats like "16/9"
+- ✅ **Fixed Lanczos Resampling Error** - Resolved ReferenceError when using Lanczos with custom presets
+- ✅ **Fixed Blob URL Memory Leak** - Delayed URL revocation to ensure downloads complete before cleanup
+- ✅ **Improved Error Handling** - Added comprehensive error handlers for image loading and file operations
+- ✅ **Added Division-by-Zero Guards** - Protected dimension calculations to prevent NaN values
+- ✅ **Performance Optimization** - Memoized preset selection to avoid unnecessary recalculations
+- ✅ **Code Quality Improvements** - Eliminated 16 magic numbers with named constants, consolidated duplicated code
+- ✅ **Accessibility Enhancements** - Added dynamic ARIA labels to canvas element
+
+#### All Features:
+**Core Functionality:**
+- ✅ Full image loading and preview
+- ✅ Interactive canvas with zoom and pan
+- ✅ Manual crop adjustment with handles
+- ✅ Built-in aspect ratio presets
+- ✅ Custom preset loading from JSON files (now with proper ratio parsing)
+- ✅ Lossy and lossless WebP conversion
+- ✅ Quality adjustment (0-100)
+- ✅ Max dimension constraints
+- ✅ Web optimization with target file size
+- ✅ Drag & drop image loading
+- ✅ Clipboard paste support (Ctrl+V)
+- ✅ Keyboard shortcuts (zoom, pan)
+- ✅ Real-time conversion progress
+- ✅ Auto-generated filenames with metadata
+
+**From v2.0:**
+- ✅ **Image Queue System** - Batch process multiple images
+- ✅ **Advanced Resampling Methods** - Lanczos, Bicubic, Bilinear, Nearest Neighbor
+- ✅ **Auto Zoom to Fit** - Images automatically fit canvas on load
+- ✅ **Auto-load Presets** - Automatically loads presets.json if present
+- ✅ **Smart Preset Selection** - Auto-selects preset based on image dimensions
+- ✅ **Queue Auto-advance** - Automatically move to next image after conversion
+- ✅ **Remove After Convert** - Option to auto-remove processed images from queue
+
+**From v2.1:**
+- ✅ **Adaptive Anti-Aliasing** - Prevents oversharpening during downsampling
+- ✅ **Gaussian Pre-Filter** - Applies optimal blur before resampling to eliminate artifacts
+- ✅ **Smart Quality Control** - Automatically adjusts filtering based on downsampling ratio
+
+**From v2.2:**
+- ✅ **Dynamic Canvas Sizing** - Canvas automatically adapts to screen resolution (4K support)
+- ✅ **Intelligent Cursor Feedback** - Directional cursors show which way handles can be resized
+- ✅ **Author Attribution** - Proper credit and links throughout all files
+
+**From v2.3.0:**
+- ✅ **Freestyle Toggle Switch** - Independent control to disable aspect ratio constraints
+- ✅ **Flexible Cropping** - Use Freestyle Mode with any preset without changing the selection
+- ✅ **Settings Preservation** - Toggling Freestyle on/off maintains current crop and settings
+
+---
+
+### STABLE Build v2.6.0
+**File:** `index.html` (previous)
+**Status:** Superseded
 **Date:** November 8, 2025
 
 #### New Features:
@@ -119,12 +177,12 @@
 ### EXPERIMENTAL Build
 **File:** `webp-conv-experimental.html`
 **Status:** Testing & Development ⚠️
-**Date:** November 2, 2025
-**Version:** 2.5.0-EXPERIMENTAL
+**Date:** November 9, 2025
+**Version:** 2.6.1-EXPERIMENTAL (synchronized with STABLE)
 
 #### Current State:
-- Contains all STABLE v2.5.0 features
-- Currently synchronized with STABLE (no additional experimental features in testing)
+- Contains all STABLE v2.6.1 features and improvements
+- Currently synchronized with STABLE (ready for promotion to STABLE)
 
 #### Known Issues:
 - None reported
@@ -132,6 +190,76 @@
 ---
 
 ## Version History
+
+### v2.6.1-STABLE (November 9, 2025)
+**Bug Fixes & Code Quality Improvements**
+
+**Bug Fixes:**
+- **Fixed Auto-Load Presets Bug** - Aspect ratios from JSON presets now properly parse string formats like "16/9", "4/3" (was only handling numeric decimal values)
+  - Uses `parseAspectRatio()` function which supports both formats
+  - Enables custom presets with ratio notation to work correctly
+
+- **Fixed Lanczos Resampling Error** - Resolved `ReferenceError: a is not defined` when using Lanczos resampling with certain presets
+  - All references to `a` variable in loop bounds now use `LANCZOS_WINDOW_SIZE` constant
+  - Prevents crashes during high-quality image downsampling
+
+- **Fixed Blob URL Memory Leak** - Download cleanup now delayed to ensure completion
+  - Changed `URL.revokeObjectURL(url)` to `setTimeout(() => URL.revokeObjectURL(url), 100)`
+  - Prevents premature URL revocation that could interrupt downloads
+
+**Error Handling & Robustness:**
+- Added comprehensive error handlers for image loading
+  - `loadImage()` now has try-catch wrapper
+  - Image decode errors caught with `img.onerror` handler
+  - File read errors caught with `reader.onerror` handler
+
+- Added division-by-zero guards in dimension calculations
+  - Max width/height constraints now verify dimensions are > 0 before division
+  - Prevents NaN values in resampling operations
+
+**Performance Optimizations:**
+- **Memoized Preset Selection** - `getCurrentPresets()` now uses `useMemo` hook
+  - Eliminates unnecessary recalculation on every render
+  - Only recalculates when `useCustomPresets` or `customPresets` changes
+
+- **Improved React Imports** - Added `useMemo` and `useCallback` for future optimizations
+  - Allows for more sophisticated performance improvements
+  - Prepares codebase for event handler memoization
+
+**Code Quality Improvements:**
+- **Eliminated Magic Numbers** - Created 16 named constants for better maintainability
+  - UI Constants: CANVAS_PADDING, CROP_HANDLE_SIZE, HANDLE_TOLERANCE, MIN_CROP_SIZE, ZOOM_MIN, ZOOM_MAX, ZOOM_INITIAL_DELAY, TRANSITION_DELAY
+  - Image Processing: MIN_BLUR_RADIUS, BLUR_THRESHOLD, GAUSSIAN_KERNEL_MULTIPLIER, LANCZOS_WINDOW_SIZE, SIGNIFICANT_DOWNSAMPLE_THRESHOLD, ASPECT_RATIO_TOLERANCE
+  - Cursor Map: CURSOR_MAP object
+
+- **Removed Code Duplication** - Consolidated queue handling logic
+  - Created `handlePostConversionQueue()` helper function
+  - Replaced 3 duplicate instances of queue management (lossless, quality-optimized, and default conversion paths)
+  - Single source of truth for post-conversion behavior
+
+- **Centralized Cursor Styling** - Unified cursor map into global constant
+  - Removed 2 duplicate CURSOR_MAP definitions
+  - Saved 40+ lines of duplicate code
+  - Single reference for all cursor type mappings
+
+- **Consistent Naming Conventions** - Standardized throughout codebase
+  - Event handlers follow `handle*` pattern
+  - State getters follow `get*` pattern
+  - Boolean checks follow `is*` pattern
+
+**Accessibility Improvements:**
+- **Canvas ARIA Labels** - Added dynamic accessibility descriptions
+  - Shows current crop dimensions and zoom level
+  - Updates in real-time for screen readers
+  - Improves experience for users with assistive technologies
+
+**Testing:**
+- All features tested with built-in and custom presets
+- Verified with various image sizes and aspect ratios
+- No regressions in existing functionality
+- 100% backward compatible with v2.6.0
+
+---
 
 ### v2.5.0-STABLE (November 2, 2025)
 **Clipboard Paste Support & Queue Integration**

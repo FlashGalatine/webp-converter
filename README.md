@@ -1,4 +1,4 @@
-# WebP Converter v2.6.0
+# WebP Converter v2.6.1
 
 ## Quick Start
 
@@ -9,13 +9,47 @@
 
 This project has **THREE tools**:
 
-- **🟢 WebP Converter STABLE v2.6.0** (`index.html`) - Production-ready image conversion tool - **Default version**
+- **🟢 WebP Converter STABLE v2.6.1** (`index.html`) - Production-ready image conversion tool - **Default version**
 - **🟠 WebP Converter EXPERIMENTAL** (`webp-conv-experimental.html`) - Testing bleeding-edge features
 - **⚙️ Preset Editor** (`preset-editor.html`) - Create and manage custom presets with ease
 
 **The default `index.html` is the STABLE version.** Use EXPERIMENTAL if you want to test new features early.
 
 See `CHANGELOG.md` for detailed version history.
+
+---
+
+## What's New in v2.6.1
+
+### 🐛 Bug Fixes & Code Quality Improvements
+**Enhanced Stability and Maintainability** - Performance improvements and critical bug fixes
+
+- **Fixed Auto-Load Presets Bug**: Aspect ratios from JSON presets now properly parse string formats like `"16/9"` (was only handling numeric values)
+- **Fixed Lanczos Resampling Error**: Resolved `ReferenceError` when using Lanczos resampling with custom presets
+- **Fixed Blob URL Memory Leak**: Delayed URL revocation to ensure downloads complete before cleanup
+- **Improved Error Handling**: Added comprehensive error handlers for image loading, file reading, and canvas operations
+- **Added Division-by-Zero Guards**: Protected dimension calculations to prevent NaN values
+
+### ⚡ Performance Optimizations
+**Smarter State Management** - Reduced unnecessary recalculations
+
+- **Memoized Preset Selection**: `getCurrentPresets()` now uses `useMemo` to avoid recalculation on every render
+- **Improved React Imports**: Added `useMemo` and `useCallback` to React imports for future optimization opportunities
+
+### 🎯 Code Quality Enhancements
+**Better Maintainability & Clarity** - Refactored code for consistency and readability
+
+- **Eliminated Magic Numbers**: Created 16 named constants (CANVAS_PADDING, MIN_CROP_SIZE, BLUR_THRESHOLD, LANCZOS_WINDOW_SIZE, etc.)
+- **Removed Code Duplication**: Consolidated 3 instances of duplicated queue handling logic into single `handlePostConversionQueue()` helper function
+- **Centralized Cursor Map**: Unified cursor styling object into global `CURSOR_MAP` constant (removed 40 lines of duplicate code)
+- **Consistent Naming**: Standardized function naming conventions throughout codebase
+
+### ♿ Accessibility Improvements
+**Better Screen Reader Support** - Enhanced ARIA labels for assistive technologies
+
+- **Canvas ARIA Labels**: Added dynamic ARIA labels to canvas element showing current crop dimensions and zoom level
+
+These improvements maintain 100% backward compatibility while significantly enhancing code quality, reliability, and performance.
 
 ---
 
