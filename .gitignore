@@ -41,6 +41,7 @@ PYTHON/
 # Project-specific ignores
 Feedback.md
 CLAUDE.md
+GEMINI.md
 
 # User data and mount points
 mnt/
