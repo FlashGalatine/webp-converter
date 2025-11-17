@@ -8,25 +8,35 @@
 export type QueueItemStatus = 'pending' | 'processing' | 'completed' | 'error';
 
 /**
- * Item in the image queue
+ * Simple queue item (legacy-compatible)
  */
 export interface QueueItem {
   /** Unique identifier for this queue item */
-  id: string;
+  id: number;
   /** Image file */
   file: File;
-  /** Preview data URL */
-  preview: string;
   /** Original filename */
-  filename: string;
+  name: string;
   /** File size in bytes */
   size: number;
+  /** MIME type */
+  type: string;
+}
+
+/**
+ * Extended queue item with additional metadata
+ *
+ * For future use with enhanced queue features.
+ */
+export interface ExtendedQueueItem extends QueueItem {
+  /** Preview data URL */
+  preview?: string;
   /** Processing status */
-  status: QueueItemStatus;
+  status?: QueueItemStatus;
   /** Error message if status is 'error' */
   error?: string;
   /** Timestamp when added to queue */
-  addedAt: Date;
+  addedAt?: Date;
   /** Timestamp when processed (if completed) */
   processedAt?: Date;
 }

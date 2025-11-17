@@ -58,17 +58,19 @@ export function generateFilenameFromTemplate(
 /**
  * Generates a filename for pasted images
  *
- * Format: pasted-image-TIMESTAMP.png
+ * Format: pasted-image-TIMESTAMP.ext
  * Example: pasted-image-2025-11-17T14-30-45.png
  *
+ * @param mimeType - MIME type of the image (e.g., 'image/png')
  * @returns Generated filename for pasted image
  */
-export function generatePastedImageFilename(): string {
+export function generatePastedImageFilename(mimeType: string = 'image/png'): string {
   const timestamp = new Date()
     .toISOString()
     .replace(/:/g, '-')
     .replace(/\..+/, '');
-  return `pasted-image-${timestamp}.png`;
+  const extension = mimeType.split('/')[1] || 'png';
+  return `pasted-image-${timestamp}.${extension}`;
 }
 
 /**
