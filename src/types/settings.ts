@@ -37,6 +37,30 @@ export interface DimensionSettings {
 }
 
 /**
+ * Dimension constraints for conversion utilities
+ */
+export interface DimensionConstraints {
+  /** Maximum width in pixels (null = no constraint) */
+  maxWidth: number | null;
+  /** Maximum height in pixels (null = no constraint) */
+  maxHeight: number | null;
+}
+
+/**
+ * Result of quality optimization process
+ */
+export interface QualityOptimizationResult {
+  /** Optimized WebP blob */
+  blob: Blob;
+  /** Quality used ('lossless' or 1-100) */
+  quality: number | 'lossless';
+  /** File size in bytes */
+  size: number;
+  /** Whether the target size was met */
+  metTargetSize: boolean;
+}
+
+/**
  * Web optimization settings
  */
 export interface WebOptimizationSettings {
