@@ -173,7 +173,7 @@ export function Canvas({
       ref={canvasRef}
       width={width}
       height={height}
-      className="border border-gray-300 rounded cursor-default"
+      className="border border-gray-700 rounded cursor-default bg-gray-800"
       style={{ cursor: cursorStyle }}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}

@@ -24,10 +24,10 @@ export function Select({
   const selectId = id || label?.toLowerCase().replace(/\s+/g, '-');
 
   const selectClasses = [
-    'block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm',
+    'block w-full px-3 py-2 border border-gray-600 rounded-md shadow-sm',
     'focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent',
-    'bg-white',
-    props.disabled ? 'bg-gray-100 cursor-not-allowed' : '',
+    'bg-gray-800 text-white',
+    props.disabled ? 'bg-gray-900 cursor-not-allowed text-gray-600' : '',
     className,
   ]
     .filter(Boolean)
@@ -38,7 +38,7 @@ export function Select({
       {label && (
         <label
           htmlFor={selectId}
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-300 mb-1"
         >
           {label}
         </label>

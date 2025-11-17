@@ -59,7 +59,7 @@ export function Queue({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-white">
           Queue ({currentIndex + 1} / {queue.length})
         </h3>
 
@@ -81,7 +81,7 @@ export function Queue({
           ← Previous
         </Button>
 
-        <span className="flex-1 text-center text-sm text-gray-600">
+        <span className="flex-1 text-center text-sm text-gray-400">
           {processedCount} processed, {remainingCount} remaining
         </span>
 
@@ -97,9 +97,9 @@ export function Queue({
             type="checkbox"
             checked={removeAfterConvert}
             onChange={onToggleRemoveAfterConvert}
-            className="rounded border-gray-300 text-amber-500 focus:ring-amber-500"
+            className="rounded border-gray-600 text-amber-500 focus:ring-amber-500"
           />
-          <span className="text-sm text-gray-700">
+          <span className="text-sm text-gray-300">
             Remove images after conversion
           </span>
         </label>
@@ -116,24 +116,24 @@ export function Queue({
               key={item.id}
               className={`flex items-center gap-2 p-2 rounded border ${
                 isActive
-                  ? 'border-amber-500 bg-amber-50'
-                  : 'border-gray-200 bg-white'
+                  ? 'border-amber-500 bg-amber-900/30'
+                  : 'border-gray-700 bg-gray-800'
               }`}
             >
               <button
                 onClick={() => onNavigateToIndex(index)}
-                className="flex-1 text-left text-sm hover:text-amber-600 truncate"
+                className="flex-1 text-left text-sm text-white hover:text-amber-400 truncate"
                 title={item.name}
               >
-                <span className={isProcessed ? 'line-through text-gray-400' : ''}>
+                <span className={isProcessed ? 'line-through text-gray-500' : ''}>
                   {index + 1}. {item.name}
                 </span>
                 {isProcessed && (
-                  <span className="ml-2 text-xs text-green-600">✓ Processed</span>
+                  <span className="ml-2 text-xs text-green-400">✓ Processed</span>
                 )}
               </button>
 
-              <span className="text-xs text-gray-500">
+              <span className="text-xs text-gray-400">
                 {(item.size / 1024).toFixed(1)} KB
               </span>
 

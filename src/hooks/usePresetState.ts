@@ -35,6 +35,8 @@ export interface UsePresetStateReturn {
   getPresetNames: () => string[];
   /** Check if preset name exists */
   hasPreset: (name: string) => boolean;
+  /** Get selected preset settings (raw config) */
+  getSelectedPresetSettings: () => Record<string, any> | null;
 }
 
 /**
@@ -133,6 +135,14 @@ export function usePresetState(
     [useCustomPresets, customPresets]
   );
 
+  /**
+   * Gets the selected preset's settings (raw config)
+   */
+  const getSelectedPresetSettings = useCallback((): Record<string, any> | null => {
+    if (!useCustomPresets) return null;
+    return customPresetsRaw[selectedPreset] ?? null;
+  }, [useCustomPresets, customPresetsRaw, selectedPreset]);
+
   return {
     selectedPreset,
     useCustomPresets,
@@ -146,5 +156,6 @@ export function usePresetState(
     getSelectedAspectRatio,
     getPresetNames,
     hasPreset,
+    getSelectedPresetSettings,
   };
 }

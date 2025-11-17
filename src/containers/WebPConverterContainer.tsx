@@ -409,8 +409,34 @@ export function WebPConverterContainer() {
           aspectRatio
         );
       }
+
+      // Apply preset-specific settings if using custom presets
+      const settings = presetState.getSelectedPresetSettings();
+      if (settings) {
+        // Apply max-width
+        if (settings['max-width']) {
+          conversionSettings.setMaxWidth(String(settings['max-width']));
+        } else {
+          conversionSettings.setMaxWidth('');
+        }
+
+        // Apply max-height
+        if (settings['max-height']) {
+          conversionSettings.setMaxHeight(String(settings['max-height']));
+        } else {
+          conversionSettings.setMaxHeight('');
+        }
+
+        // Apply max-filesize
+        if (settings['max-filesize']) {
+          conversionSettings.setTargetSize(String(settings['max-filesize']));
+          conversionSettings.setWebOptimize(true);
+        } else {
+          conversionSettings.setWebOptimize(false);
+        }
+      }
     },
-    [presetState, imageState.image, cropState]
+    [presetState, imageState.image, cropState, conversionSettings]
   );
 
   const handleCustomPresetFileSelect = useCallback(
@@ -691,15 +717,15 @@ export function WebPConverterContainer() {
   // ========================================
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
+    <div className="min-h-screen bg-gray-900 p-4">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <header className="text-center mb-6">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">WebP Converter</h1>
-          <p className="text-lg text-gray-600">
+          <h1 className="text-4xl font-bold text-white mb-2">WebP Converter</h1>
+          <p className="text-lg text-amber-400">
             Vite + TypeScript + React (v3.0.0-alpha)
           </p>
-          <p className="text-sm text-gray-500 mt-2">
+          <p className="text-sm text-gray-400 mt-2">
             Keyboard shortcuts: +/- (zoom), 0 (reset), F (fit)
           </p>
         </header>
@@ -817,7 +843,7 @@ export function WebPConverterContainer() {
         <footer className="mt-6 text-center text-sm text-gray-500">
           <p>
             Legacy builds available in{' '}
-            <code className="bg-gray-100 px-2 py-1 rounded">legacy/</code> directory
+            <code className="bg-gray-800 text-amber-400 px-2 py-1 rounded">legacy/</code> directory
           </p>
         </footer>
       </div>

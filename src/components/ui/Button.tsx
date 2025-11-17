@@ -28,17 +28,17 @@ export function Button({
   ...props
 }: ButtonProps) {
   const baseStyles =
-    'font-medium rounded transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2';
+    'font-medium rounded transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-900';
 
   const variantStyles = {
     primary:
-      'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500 disabled:bg-gray-300 disabled:cursor-not-allowed',
+      'bg-amber-500 text-white hover:bg-amber-600 focus:ring-amber-500 disabled:bg-gray-600 disabled:cursor-not-allowed',
     secondary:
-      'bg-gray-200 text-gray-900 hover:bg-gray-300 focus:ring-gray-500 disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed',
+      'bg-gray-700 text-gray-100 hover:bg-gray-600 focus:ring-gray-500 disabled:bg-gray-800 disabled:text-gray-600 disabled:cursor-not-allowed',
     danger:
-      'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500 disabled:bg-gray-300 disabled:cursor-not-allowed',
+      'bg-red-500 text-white hover:bg-red-600 focus:ring-red-500 disabled:bg-gray-600 disabled:cursor-not-allowed',
     outline:
-      'border-2 border-amber-500 text-amber-500 hover:bg-amber-50 focus:ring-amber-500 disabled:border-gray-300 disabled:text-gray-300 disabled:cursor-not-allowed',
+      'border-2 border-amber-500 text-amber-500 hover:bg-amber-900/30 focus:ring-amber-500 disabled:border-gray-600 disabled:text-gray-600 disabled:cursor-not-allowed',
   };
 
   const sizeStyles = {

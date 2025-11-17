@@ -30,9 +30,9 @@ export function Input({
     'block w-full px-3 py-2 border rounded-md shadow-sm',
     'focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent',
     error
-      ? 'border-red-300 text-red-900 placeholder-red-300'
-      : 'border-gray-300 placeholder-gray-400',
-    props.disabled ? 'bg-gray-100 cursor-not-allowed' : 'bg-white',
+      ? 'border-red-500 text-red-400 placeholder-red-400 bg-gray-800'
+      : 'border-gray-600 placeholder-gray-500 text-white bg-gray-800',
+    props.disabled ? 'bg-gray-900 cursor-not-allowed text-gray-600' : '',
     className,
   ]
     .filter(Boolean)
@@ -43,15 +43,15 @@ export function Input({
       {label && (
         <label
           htmlFor={inputId}
-          className="block text-sm font-medium text-gray-700 mb-1"
+          className="block text-sm font-medium text-gray-300 mb-1"
         >
           {label}
         </label>
       )}
       <input id={inputId} className={inputClasses} {...props} />
-      {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
+      {error && <p className="mt-1 text-sm text-red-400">{error}</p>}
       {helper && !error && (
-        <p className="mt-1 text-sm text-gray-500">{helper}</p>
+        <p className="mt-1 text-sm text-gray-400">{helper}</p>
       )}
     </div>
   );

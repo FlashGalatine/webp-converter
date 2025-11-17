@@ -75,7 +75,7 @@ export function Controls({
     <div className="space-y-6">
       {/* Quality Settings */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">Quality Settings</h3>
+        <h3 className="text-lg font-semibold text-white">Quality Settings</h3>
 
         <div className="space-y-2">
           <label className="flex items-center gap-2">
@@ -83,9 +83,9 @@ export function Controls({
               type="checkbox"
               checked={lossless}
               onChange={onLosslessToggle}
-              className="rounded border-gray-300 text-amber-500 focus:ring-amber-500"
+              className="rounded border-gray-600 text-amber-500 focus:ring-amber-500"
             />
-            <span className="text-sm font-medium text-gray-700">
+            <span className="text-sm font-medium text-gray-300">
               Lossless Compression
             </span>
           </label>
@@ -93,7 +93,7 @@ export function Controls({
 
         {!lossless && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-300 mb-2">
               Quality: {quality}%
             </label>
             <input
@@ -102,7 +102,7 @@ export function Controls({
               max="100"
               value={quality}
               onChange={(e) => onQualityChange(parseInt(e.target.value))}
-              className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-amber-500"
+              className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer accent-amber-500"
             />
           </div>
         )}
@@ -110,7 +110,7 @@ export function Controls({
 
       {/* Dimension Constraints */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-gray-900">
+        <h3 className="text-lg font-semibold text-white">
           Dimension Constraints
         </h3>
 
@@ -141,9 +141,9 @@ export function Controls({
             id="web-optimize"
             checked={webOptimize}
             onChange={onWebOptimizeToggle}
-            className="rounded border-gray-300 text-amber-500 focus:ring-amber-500"
+            className="rounded border-gray-600 text-amber-500 focus:ring-amber-500"
           />
-          <label htmlFor="web-optimize" className="text-sm font-medium text-gray-700">
+          <label htmlFor="web-optimize" className="text-sm font-medium text-gray-300">
             Web Optimization (Target File Size)
           </label>
         </div>
@@ -158,7 +158,7 @@ export function Controls({
               step="0.1"
             />
             <div className="pb-2">
-              <span className="text-sm text-gray-600">MB</span>
+              <span className="text-sm text-gray-400">MB</span>
             </div>
           </div>
         )}
@@ -195,13 +195,13 @@ export function Controls({
       {/* Optimization Progress */}
       {isOptimizing && (
         <div className="space-y-2">
-          <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="w-full bg-gray-700 rounded-full h-2">
             <div
               className="bg-amber-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${optimizingProgress}%` }}
             />
           </div>
-          <p className="text-sm text-center text-gray-600">{optimizingStatus}</p>
+          <p className="text-sm text-center text-gray-400">{optimizingStatus}</p>
         </div>
       )}
     </div>

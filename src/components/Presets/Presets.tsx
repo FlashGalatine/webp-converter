@@ -118,7 +118,7 @@ export function Presets({
       </div>
 
       {useCustomPresets && customPresetsFileName && (
-        <div className="text-xs text-gray-600 bg-gray-100 px-3 py-2 rounded">
+        <div className="text-xs text-gray-400 bg-gray-800 border border-gray-700 px-3 py-2 rounded">
           Using: {customPresetsFileName}
         </div>
       )}

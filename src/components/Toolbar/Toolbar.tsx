@@ -31,9 +31,9 @@ export function Toolbar({
   hasImage,
 }: ToolbarProps) {
   return (
-    <div className="flex items-center gap-2 p-4 bg-gray-50 rounded-lg border border-gray-200">
+    <div className="flex items-center gap-2 p-4 bg-gray-800 rounded-lg border border-gray-700">
       <div className="flex items-center gap-2">
-        <span className="text-sm font-medium text-gray-700">Zoom:</span>
+        <span className="text-sm font-medium text-gray-300">Zoom:</span>
         <Button
           size="sm"
           variant="secondary"
@@ -43,7 +43,7 @@ export function Toolbar({
         >
           −
         </Button>
-        <span className="text-sm font-mono min-w-[4rem] text-center">
+        <span className="text-sm font-mono min-w-[4rem] text-center text-white">
           {(zoomLevel * 100).toFixed(0)}%
         </span>
         <Button
@@ -75,7 +75,7 @@ export function Toolbar({
         </Button>
       </div>
 
-      <div className="ml-auto text-xs text-gray-500">
+      <div className="ml-auto text-xs text-gray-400">
         Keyboard: +/− to zoom, 0 to reset, F to fit, drag to pan
       </div>
     </div>
