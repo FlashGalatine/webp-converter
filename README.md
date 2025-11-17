@@ -1,397 +1,392 @@
-# WebP Converter v2.6.1
+# WebP Converter v3.0.0-alpha
+
+**Modern React + TypeScript + Vite architecture** - Fast, type-safe, and fully integrated preset editor!
 
 ## Quick Start
 
-- **WebP Converter**: Simply open `index.html` in your browser to start converting images!
-- **Preset Editor**: Open `preset-editor.html` to create and manage custom presets
+### Development Mode (Recommended)
 
-## Version Information
+```bash
+# Install dependencies
+npm install
 
-This project has **THREE tools**:
+# Start development server with hot reload
+npm run dev
+```
 
-- **🟢 WebP Converter STABLE v2.6.1** (`index.html`) - Production-ready image conversion tool - **Default version**
-- **🟠 WebP Converter EXPERIMENTAL** (`webp-conv-experimental.html`) - Testing bleeding-edge features
-- **⚙️ Preset Editor** (`preset-editor.html`) - Create and manage custom presets with ease
+Then open http://localhost:5173 in your browser.
 
-**The default `index.html` is the STABLE version.** Use EXPERIMENTAL if you want to test new features early.
+### Production Build
 
-See `CHANGELOG.md` for detailed version history.
+```bash
+# Build for production
+npm run build
 
----
+# Preview production build
+npm run preview
+```
 
-## What's New in v2.6.1
+The production build outputs to `dist/` directory.
 
-### 🐛 Bug Fixes & Code Quality Improvements
-**Enhanced Stability and Maintainability** - Performance improvements and critical bug fixes
+### Legacy Standalone Version
 
-- **Fixed Auto-Load Presets Bug**: Aspect ratios from JSON presets now properly parse string formats like `"16/9"` (was only handling numeric values)
-- **Fixed Lanczos Resampling Error**: Resolved `ReferenceError` when using Lanczos resampling with custom presets
-- **Fixed Blob URL Memory Leak**: Delayed URL revocation to ensure downloads complete before cleanup
-- **Improved Error Handling**: Added comprehensive error handlers for image loading, file reading, and canvas operations
-- **Added Division-by-Zero Guards**: Protected dimension calculations to prevent NaN values
-
-### ⚡ Performance Optimizations
-**Smarter State Management** - Reduced unnecessary recalculations
-
-- **Memoized Preset Selection**: `getCurrentPresets()` now uses `useMemo` to avoid recalculation on every render
-- **Improved React Imports**: Added `useMemo` and `useCallback` to React imports for future optimization opportunities
-
-### 🎯 Code Quality Enhancements
-**Better Maintainability & Clarity** - Refactored code for consistency and readability
-
-- **Eliminated Magic Numbers**: Created 16 named constants (CANVAS_PADDING, MIN_CROP_SIZE, BLUR_THRESHOLD, LANCZOS_WINDOW_SIZE, etc.)
-- **Removed Code Duplication**: Consolidated 3 instances of duplicated queue handling logic into single `handlePostConversionQueue()` helper function
-- **Centralized Cursor Map**: Unified cursor styling object into global `CURSOR_MAP` constant (removed 40 lines of duplicate code)
-- **Consistent Naming**: Standardized function naming conventions throughout codebase
-
-### ♿ Accessibility Improvements
-**Better Screen Reader Support** - Enhanced ARIA labels for assistive technologies
-
-- **Canvas ARIA Labels**: Added dynamic ARIA labels to canvas element showing current crop dimensions and zoom level
-
-These improvements maintain 100% backward compatibility while significantly enhancing code quality, reliability, and performance.
+The original standalone HTML files are available in the `legacy/` directory:
+- `legacy/index.html` - Legacy v2.6.1 converter (standalone, no build required)
+- `legacy/webp-conv-experimental.html` - Legacy experimental build
+- `preset-editor.html` - Legacy standalone preset editor (now integrated in main app)
 
 ---
 
-## Overview
-WebP Converter is a powerful client-side image conversion tool with advanced features for batch processing, custom presets, professional-grade resampling, adaptive anti-aliasing, and intelligent dimension linking.
+## What's New in v3.0.0-alpha
 
-## What's New in v2.6.0
+### 🚀 Complete Architecture Refactor
+**Modern Development Stack** - Rebuilt from the ground up with professional tooling
 
-### 🎯 Aspect Ratio String Format Support
-**More Readable Crop Ratios** - Define ratios using intuitive notation
-- **String Format**: Use `16/9`, `4/3`, `21/9`, `3/2` instead of decimal calculations
-- **Backward Compatible**: Decimal format like `1.777` still fully supported
-- **In Presets**: Custom preset JSON files can now use either format: `"crop-ratio": "16/9"` or `"crop-ratio": 1.777`
-- **Easier to Read**: More intuitive notation matches common industry standards
-- **Validation**: Both formats are validated to ensure correct values
+- **Vite + TypeScript**: Fast HMR, type safety, and modern build tooling
+- **React 18**: Component-based architecture with hooks
+- **Tailwind CSS**: Utility-first styling with full customization
+- **Modular Codebase**: Clean separation of concerns (components, hooks, utilities, types)
+- **Build Optimization**: Production builds are tree-shaken and minified
+  - Bundle: 247.59 KB (77.20 KB gzipped)
+  - CSS: 6.55 KB (1.68 KB gzipped)
 
-### 🛠️ New Preset Editor Tool
-**Companion Application for Preset Management** - Create presets without manual JSON editing
-- **Visual Editor**: User-friendly interface for managing crop ratios and export settings
-- **Add/Remove Presets**: Quick buttons to add new presets or remove existing ones
-- **Reorder Presets**: Up/Down arrow buttons allow you to change preset order with smooth animations
-- **Intuitive Fields**: Forms for all preset parameters (crop ratio, dimensions, file size, auto-selection)
-- **Import Existing**: Load your existing `presets.json` file to edit, or try `example_presets.json` as a starting point (drag and drop supported)
-- **Export JSON**: Generate valid `presets.json` files ready to use
-- **Validation Built-in**: Real-time validation of crop ratios, preset names, and default selections
-- **Default Selection Logic**: Only one preset allowed per type (Square, Landscape, Portrait) with visual status indicator
-- **Drag-and-Drop Import**: Drop JSON files anywhere on the page to import instantly (try `example_presets.json`)
-- **Smooth Animations**: Presets slide and highlight when moved for visual feedback
-- **JSON Preview**: Live preview of your JSON before export
+### ✨ Integrated Preset Editor Modal (NEW!)
+**No more switching between files** - Create and manage presets without leaving the converter
 
-### 📋 Preset JSON Features
-**Enhanced Preset Specifications** - New format support in custom presets
-- **Ratio Format Support**: `"crop-ratio": "16/9"` now works alongside `"crop-ratio": 1.777`
-- **All Parameters**: Full support for crop-ratio, max-width, max-height, max-filesize, max-filesize-unit, default-selection
-- **Example Presets**: Create presets for social media (Twitter, Instagram, Discord, BlueSky) or custom specifications
+- **Modal Interface**: Opens directly in the main app via "Create/Edit Presets" button
+- **Visual Editor**: Add, remove, reorder presets with smooth animations
+- **Drag & Drop Import**: Drop JSON files anywhere on the modal to import
+- **Live JSON Preview**: See the generated JSON before exporting
+- **Save & Apply**: Instantly load your presets into the converter
+- **Validation**: Real-time validation with error messages
+- **Default Selection Status**: Visual panel shows current assignments (Square/Landscape/Portrait)
+- **All Legacy Features**: Complete feature parity with `preset-editor.html`
 
-## What's New in v2.5.0
+### 🏗️ Professional Code Structure
 
-### 📋 Clipboard Paste Support
-**Quick Image Loading from Clipboard** - Paste images with a single keyboard shortcut
-- **Keyboard Shortcut**: Press **Ctrl+V** (Windows/Linux) or **Cmd+V** (Mac) to paste images
-- **Works with Screenshots**: Perfect for quick screenshot conversion workflows
-- **Auto Filenames**: Pasted images get timestamped names like `pasted-image-2025-11-02T12-34-56.png`
-- **Queue Compatible**: Pasted images automatically added to queue when multiple images are loaded
-- **Direct Loading**: Pasted image loads directly if queue is empty
-- **All Formats Supported**: Works with PNG, JPEG, WebP, GIF from clipboard
+```
+src/
+├── components/         # React components
+│   ├── Canvas/        # Image display and crop overlay
+│   ├── Controls/      # Conversion settings
+│   ├── ErrorBoundary/ # Error handling
+│   ├── PresetEditor/  # Integrated preset editor modal
+│   ├── Presets/       # Preset selection
+│   ├── Queue/         # Batch processing
+│   ├── Toolbar/       # Zoom controls
+│   └── ui/            # Reusable UI primitives (Button, Input, Modal, etc.)
+├── containers/        # Container components with business logic
+├── hooks/             # Custom React hooks (state management)
+├── types/             # TypeScript type definitions
+├── utils/             # Utility functions
+│   ├── canvas/        # Canvas operations
+│   ├── imageProcessing/ # Conversion and resampling
+│   ├── files/         # File operations
+│   └── presets/       # Preset management
+└── constants/         # App constants
+```
 
-### 🔄 Smart Queue Integration
-**Seamless Multi-Image Workflow** - Pasted images integrate naturally with batch processing
-- **Queue Awareness**: Automatically detects if images are already loaded
-- **Consistent Behavior**: Matches file upload and drag-and-drop behavior
-- **Proper Metadata**: Pasted images tracked with filename and file size in queue
-- **No Manual Steps**: No need to manually add pasted images - happens automatically
+### 🎨 Enhanced Features
+
+**Phase 7 Optimizations:**
+- ✅ Full 8-directional crop resize with aspect ratio enforcement
+- ✅ Error boundary for graceful error handling
+- ✅ Loading spinners with size variants
+- ✅ Improved accessibility (ARIA labels, keyboard shortcuts)
+- ✅ Keyboard shortcuts displayed in header (+/-, 0, F)
+
+**Phase 8 Integration:**
+- ✅ Preset Editor fully integrated as modal
+- ✅ All validation logic (name uniqueness, crop ratio format, default selections)
+- ✅ Import/Export JSON with proper type validation
+- ✅ Reordering animations (slide up/down with blue glow)
+
+### 🔧 Development Experience
+
+- **Hot Module Replacement (HMR)**: Changes reflect instantly without page reload
+- **TypeScript IntelliSense**: Full autocomplete and type checking
+- **Component Isolation**: Each component is self-contained and testable
+- **Consistent Patterns**: Hooks for state, props for data flow
+- **No Magic**: Explicit imports, clear dependencies
 
 ---
-
-## What's New in v2.4.0
-
-### 🔗 Fixed Ratio Feature
-**Intelligent Dimension Linking** - Auto-maintain aspect ratio when setting max width/height
-- **Link Toggle Button**: Click the 🔗 icon between max width/height fields to toggle linking mode
-- **Linked Mode (Default)**: Adjust width → height auto-calculates, and vice versa
-- **Unlinked Mode**: Set width and height independently without automatic adjustments
-- **Smart Calculations**: Uses your current crop's aspect ratio for accurate dimension scaling
-- **Freestyle Compatible**: Automatically disables when using Freestyle Mode, re-enables when switching back
-- **Visual Feedback**: Blue ring border around inputs when linked, shows exact status with emoji (🔗 = linked, ⛓️‍💥 = unlinked)
-
-### 🔍 Enhanced SEO & Discoverability
-**Professional Search Engine Optimization** - Better visibility and social media sharing
-- **Search Engine Keywords**: Optimized for "webp converter", "image converter", "batch convert", and more
-- **Rich Meta Tags**: Improved title and description for better search results
-- **Social Media Ready**: Open Graph and Twitter Card tags for beautiful previews when sharing
-- **Structured Data**: JSON-LD schema markup for search engines to understand the app
-- **Creator Attribution**: Links to all social profiles (GitHub, Twitter, Twitch, BlueSky, Patreon)
-- **Favicon Support**: Professional SVG emoji favicon (🖼️) for browser tabs and bookmarks
-
-## What's New in v2.3.0
-
-### 🎨 Freestyle Toggle Switch
-**Independent Freestyle Mode Control** - Disable aspect ratio constraints without changing presets
-- **Flexible Toggle**: Enable Freestyle Mode as an independent option while keeping your preset selection
-- **Preserve Current Crop**: Toggling Freestyle on/off maintains your current crop area and settings
-- **Easy Access**: Simple checkbox control positioned right below the Crop Preset selector
-- **Works with All Presets**: Compatible with both built-in and custom presets
-- **Export Respects Limits**: Max-width/max-height settings still apply during export
-
-## What's New in v2.2.1
-
-### 🐛 Bug Fix
-**Fixed Freestyle Cropping** - Crop area can now be dragged in Freestyle mode
-- Previously, dragging inside the crop rectangle would pan the image instead of moving the crop area
-- Interaction detection now works correctly for all aspect ratio settings
-
-## What's New in v2.2
-
-### 🖥️ Dynamic Canvas Sizing
-Responsive canvas that adapts to your screen:
-- **Automatic Scaling**: Canvas fills available screen space
-- **4K Ready**: Perfect for high-resolution displays and ultra-wide monitors
-- **Window Resize**: Adjusts dynamically when you resize the browser
-- **Minimum Size**: Maintains usable dimensions on smaller displays
-- **More Space**: Up to 50% more working area on large screens
-
-### 🎯 Intelligent Cursor Feedback
-Context-aware cursors improve usability:
-- **Directional Arrows**: Shows which way handles can be resized (↕, ↔, diagonals)
-- **Move Cursor**: Inside crop area to reposition
-- **Grab/Grabbing**: Pan the canvas when zoomed in
-- **Instant Feedback**: Know exactly what each action will do
-
-### 👤 Author Attribution
-Proper credit throughout the project:
-- Visible attribution in all HTML files
-- Links to GitHub, social media, and support channels
-- Professional project presentation
-
-## What's New in v2.1
-
-### 🎯 Adaptive Anti-Aliasing
-Professional-grade image quality improvements for downsampling:
-- **Automatic Quality Control**: Intelligent pre-filtering prevents oversharpening artifacts
-- **Gaussian Pre-Filter**: Applies optimal blur before resampling based on downsampling ratio
-- **No Configuration Needed**: Works automatically - you'll see "Applying anti-aliasing..." when active
-- **Smart Detection**: Only applies for significant downsampling (< 67% scale)
-- **Better Results**: Eliminates ringing, halos, and moiré patterns that occur with bicubic/Lanczos
-
-**Technical Details:**
-- Prevents oversharpening that naturally occurs with bicubic and Lanczos interpolation
-- Uses Nyquist frequency-based blur radius calculation
-- Two-pass separable Gaussian blur for efficiency
-- Formula: `blurRadius = (1.0 / scale - 1.0) * 0.5`
-- Examples:
-  - 4K → 1080p (4x downsample): radius ≈ 1.5
-  - 1080p → 720p (1.5x downsample): radius ≈ 0.25
-
-**When It Works:**
-- Applies to: Bicubic, Lanczos, and Bilinear resampling methods
-- Skipped for: Nearest Neighbor and Browser Default methods
-- Only active when downsampling significantly (reducing by more than 33%)
-
-## What's New in v2.0
-
-### 🎉 Image Queue System
-- **Batch Processing**: Load and process multiple images at once
-- **Multi-file Selection**: Select multiple files or drag & drop entire folders
-- **Visual Queue Panel**: See all queued images with status indicators
-- **Progress Tracking**: Track which images have been processed (✓)
-- **Auto-advance**: Automatically move to next image after conversion
-- **Remove After Convert**: Option to auto-remove images from queue after processing
-- **Navigation**: Previous/Next buttons and click-to-load functionality
-
-### 🎨 Advanced Resampling Methods
-Choose the best resampling algorithm for your needs when resizing images:
-- **Lanczos**: Highest quality, best for downscaling (slower)
-- **Bicubic**: Recommended default, excellent quality/speed balance
-- **Bilinear**: Fast with smooth results
-- **Nearest Neighbor**: Fastest, preserves hard edges (ideal for pixel art)
-- **Browser Default**: Native browser resampling
-
-### ⚡ Smart Auto-Features
-- **Auto Zoom to Fit**: Images automatically fit the canvas on load
-- **Auto-load Presets**: Automatically loads `presets.json` if present in the same folder
-- **Smart Preset Selection**: Auto-selects appropriate preset based on image dimensions (Square/Landscape/Portrait)
-
-### 🎯 Custom Preset System
-- Load custom presets from JSON files
-- Switch between built-in and custom presets at any time
-- Automatic application of preset-specific settings
-- Platform-specific presets (BlueSky, Twitter, Discord, etc.)
-
-### Preset-Specific Settings
-When using custom presets, the following settings are automatically applied:
-- **Max Width/Height**: Automatically constrains output dimensions
-- **Target File Size**: Automatically enables web optimization with specified target size
-- **Crop Ratio**: Sets the aspect ratio for cropping
-- **Default Selection**: Auto-selects preset based on image orientation
 
 ## How to Use
 
-### Quick Start
-1. Open `index.html` (STABLE) or `webp-conv-experimental.html` (EXPERIMENTAL)
-2. Load an image by clicking "Select Image(s)", drag & drop, or paste from clipboard (Ctrl+V)
-3. Select a crop preset or use freestyle
-4. Optionally set max width/height (use the 🔗 button to link dimensions)
-5. Adjust quality settings and resampling method
-6. Click "Convert & Download"
+### Starting the App
 
-### Using the Image Queue System
+**Development:**
+```bash
+npm run dev
+```
+- Opens at http://localhost:5173
+- Hot reload on file changes
+- Development error overlays
+- Source maps for debugging
+
+**Production:**
+```bash
+npm run build
+npm run preview
+```
+- Optimized production build
+- Opens at http://localhost:4173
+- Minified and tree-shaken code
+
+### Using the Converter
+
+1. **Load Images**
+   - Click "📁 Load Image" button
+   - Drag & drop images onto canvas
+   - Press **Ctrl+V** (or Cmd+V) to paste from clipboard
+   - Multi-select for batch processing
+
+2. **Adjust Crop**
+   - Select a preset from dropdown or use Freestyle mode
+   - Drag crop area to reposition
+   - Resize from any of 8 handles
+   - Zoom with mouse wheel or toolbar buttons
+   - Pan by dragging outside crop area
+
+3. **Configure Settings**
+   - Adjust quality slider (1-100) or enable lossless
+   - Set max width/height constraints (use 🔗 to link dimensions)
+   - Choose resampling method (Lanczos, Bicubic, Bilinear, Nearest Neighbor)
+   - Enable "Optimize for Web" for target file size
+
+4. **Convert & Download**
+   - Click "Convert & Download" button
+   - File downloads with metadata in filename
+   - For queues: auto-advances to next image
+
+### Creating Custom Presets
+
+**Option 1: Integrated Preset Editor (Recommended)**
+1. Click **"✏️ Create/Edit Presets"** in the Presets panel
+2. Click "➕ Add Preset" to create new presets
+3. Fill in preset details:
+   - **Name** (required, unique)
+   - **Crop Ratio** (e.g., "16/9" or "1.777")
+   - **Max Width/Height** (pixels)
+   - **Max File Size** (with KB/MB/GB selector)
+   - **Default Selection** (Square/Landscape/Portrait)
+4. Use ↑/↓ arrows to reorder presets
+5. Click **"Save & Apply"** to load into converter
+6. Or click **"💾 Export JSON"** to save for later
+
+**Option 2: Import JSON File**
+1. Click **"📁 Load Custom Presets"** in the Presets panel
+2. Select your JSON file (e.g., `presets.json` or `example_presets.json`)
+3. Presets load immediately
+
+**Drag & Drop:**
+- Drag JSON files onto the Preset Editor modal
+- Blue overlay appears when ready to drop
+- Presets import instantly
+
+### Image Queue System
+
 **Loading Multiple Images:**
-- **Method 1**: Click "Select Image(s)" and hold Ctrl/Cmd to select multiple files
-- **Method 2**: Drag and drop multiple images onto the canvas
-- **Method 3**: Press Ctrl+V (or Cmd+V on Mac) to paste images from clipboard
+- Select multiple files with Ctrl/Cmd+Click
+- Drag & drop multiple images
+- Paste multiple images from clipboard
 
 **Queue Controls:**
-- **Previous/Next**: Navigate between queued images
-- **Click Image**: Jump to any image in the queue
-- **Remove (✕)**: Remove individual images from queue
+- **Previous/Next**: Navigate between images
+- **Click Image**: Jump to specific image
+- **Remove (✕)**: Remove individual image
 - **Clear All**: Clear entire queue
-- **Remove After Convert**: Enable to auto-remove images after processing
+- **Remove After Convert**: Auto-remove after processing
 
 **Status Indicators:**
-- **▶** = Currently active image (amber background)
-- **✓** = Already processed/converted (green checkmark)
+- **▶ Amber background**: Currently active image
+- **✓ Green checkmark**: Already processed
 
-### Choosing a Resampling Method
-When resizing images (using Max Width/Height), select the appropriate resampling method:
+### Keyboard Shortcuts
 
-- **Lanczos** - Best for photographs and high-quality downscaling (with anti-aliasing)
-- **Bicubic** - Good all-around choice, recommended default (with anti-aliasing)
-- **Bilinear** - Faster processing with acceptable quality (with anti-aliasing)
-- **Nearest Neighbor** - Use for pixel art or when you want sharp edges (no anti-aliasing)
-- **Browser Default** - Let the browser handle resampling (no anti-aliasing)
+- **+/=**: Zoom in
+- **-**: Zoom out
+- **0**: Reset zoom to 100%
+- **F**: Zoom to fit
+- **Ctrl+V** (Cmd+V): Paste image from clipboard
+- **ESC**: Close modal (when open)
 
-*Note: Resampling only applies when the output dimensions differ from the crop dimensions. Anti-aliasing is automatically applied for Lanczos, Bicubic, and Bilinear when significantly downsampling.*
+---
 
-### Using the Fixed Ratio Feature (NEW in v2.4.0)
-**Intelligent Dimension Linking** - Automatically maintain aspect ratio when setting constraints:
+## Resampling Methods
 
-**Linked Mode (Default):**
-1. Look for the 🔗 icon next to "Max Dimensions" heading
-2. Enter a value in **Max Width** → **Max Height** auto-calculates based on your crop's aspect ratio
-3. Or enter a value in **Max Height** → **Max Width** auto-calculates automatically
-4. Inputs have a blue ring border to indicate linked mode
+When resizing images using Max Width/Height constraints:
 
-**Unlinked Mode:**
-1. Click the 🔗 icon to toggle to ⛓️‍💥 (unlinked) mode
-2. Now you can set width and height independently
-3. Useful when you need specific dimensions that don't match your crop ratio
-4. Inputs lose the blue ring border in unlinked mode
+- **Lanczos**: Highest quality, best for downscaling (with anti-aliasing)
+- **Bicubic**: Recommended default, excellent quality/speed balance (with anti-aliasing)
+- **Bilinear**: Fast processing with acceptable quality (with anti-aliasing)
+- **Nearest Neighbor**: Fastest, preserves hard edges (ideal for pixel art, no anti-aliasing)
+- **Browser Default**: Native browser resampling (no anti-aliasing)
 
-**Smart Behavior:**
-- Uses your **current crop's aspect ratio** for calculations (not the preset's ratio)
-- Automatically disables when **Freestyle Mode** is active (button shows ⛓️ grayed out)
-- Re-enables when you switch back to a preset mode
-- **Linked by default** for intuitive workflow - you can toggle any time
+**Anti-aliasing** automatically applies for significant downsampling (< 67% scale) with Lanczos, Bicubic, and Bilinear methods to prevent oversharpening artifacts.
 
-**When to Use Each Mode:**
-- **Linked Mode**: When you want to maintain aspect ratio while setting just one dimension
-- **Unlinked Mode**: When you need specific width AND height (e.g., exact 1200x800 for a banner)
+---
 
-### Loading Custom Presets
-1. Click the **"Load Custom Presets"** button in the "Preset Source" section
-2. Select your JSON preset file (e.g., `presets.json` or `example_presets.json`)
-3. The app will load all presets from the file
-
-**Tip:** You can use `example_presets.json` as a reference, or import it into the Preset Editor to customize it further!
-
-### Switching Between Presets
-- Once loaded, custom presets appear in the **"Crop Preset"** dropdown
-- An info panel shows preset-specific settings (if any) for the selected preset
-- Click **"Use Built-in"** to switch back to built-in presets
-- Click **"Load Different"** to load a different custom preset file
-
-### Preset Information
-When a custom preset is selected, you'll see an amber-colored info panel showing:
-- Max width constraint (if specified)
-- Max height constraint (if specified)
-- Target file size (if specified)
-
-## JSON Format
-
-Your JSON preset file should follow this format:
+## Custom Preset JSON Format
 
 ```json
 {
   "Preset Name": {
-    "max-width": 1000,
-    "max-height": 2000,
-    "max-filesize": 1,
+    "crop-ratio": "16/9",
+    "max-width": 1920,
+    "max-height": 1080,
+    "max-filesize": 1.5,
     "max-filesize-unit": "MB",
-    "crop-ratio": 0.5,
     "default-selection": "Landscape"
   }
 }
 ```
 
 ### Available Properties
-- `max-width`: Maximum width in pixels (optional)
-- `max-height`: Maximum height in pixels (optional)
-- `max-filesize`: Target file size value (optional)
-- `max-filesize-unit`: Unit for file size - "KB", "MB", or "GB" (default: "MB")
-- `crop-ratio`: Aspect ratio (width/height) for cropping (optional, null = freestyle)
-- `default-selection`: Auto-select trigger - "Square", "Landscape", or "Portrait" (optional)
 
-### Example Presets
-The included `presets.json` file contains presets for:
-- **BlueSky** (various image layouts)
-- **Twitter/X** (various image layouts)
-- **Discord** (image layouts)
-- Generic aspect ratios (Square, 16:9, 9:16, etc.)
+- **crop-ratio**: Aspect ratio as string ("16/9") or decimal (1.777) - optional
+- **max-width**: Maximum width in pixels - optional
+- **max-height**: Maximum height in pixels - optional
+- **max-filesize**: Target file size value - optional
+- **max-filesize-unit**: "KB", "MB", or "GB" (default: "MB") - optional
+- **default-selection**: "Square", "Landscape", or "Portrait" - optional
 
-**See Also:** Check out `example_presets.json` for additional preset examples that you can use as a reference when creating your own custom presets.
+**Validation Rules:**
+- Preset names must be unique (case-insensitive)
+- Crop ratio must be valid format ("16/9" or decimal)
+- Only ONE preset per default-selection type
+- File size unit must be KB, MB, or GB
+
+---
 
 ## Built-in Presets
-The app includes these built-in presets:
-- Freestyle
+
+- Freestyle (no aspect ratio constraint)
 - Square (1:1)
-- 16:9 Landscape
-- 9:16 Portrait
-- 4:3 Landscape
-- 3:4 Portrait
+- 16:9 Landscape / 9:16 Portrait
+- 4:3 Landscape / 3:4 Portrait
 - 21:9 Ultrawide
-- Twitter Post
-- Twitter Header
-- Instagram Square/Portrait/Landscape
+- Twitter Post / Twitter Header
+- Instagram Square / Portrait / Landscape
 - Facebook Post
 - YouTube Thumbnail
 - Discord Avatar
 - Pinterest Pin
 
+---
+
 ## Tips & Best Practices
 
-### Image Quality (NEW in v2.1)
-- **Anti-aliasing works automatically** - no configuration needed
-- For high-quality downsampling: Use **Lanczos** or **Bicubic** with anti-aliasing (default)
-- Downsampling 4K to 1080p? Anti-aliasing prevents oversharpening and ringing artifacts
-- Want pixel-perfect sharp edges? Use **Nearest Neighbor** (skips anti-aliasing)
+### Development
+- Use `npm run dev` for fast iteration with HMR
+- TypeScript catches errors before runtime
+- Component isolation makes testing easier
+- Vite build is optimized for production
+
+### Image Quality
+- Anti-aliasing works automatically for downsampling
+- Use **Lanczos** or **Bicubic** for high-quality photos
+- Use **Nearest Neighbor** for pixel art (no blur)
+- Quality 85-95 is optimal for most photos
 
 ### Performance
-- For batch processing large images, use "Auto Zoom to Fit" and "Remove After Convert" for faster workflow
-- Lanczos resampling is slower but produces the best quality for downscaling
-- Use Nearest Neighbor for pixel art to preserve sharp edges
-- Anti-aliasing adds minimal overhead (only applies when needed)
+- Batch processing: Use queue with "Remove After Convert"
+- Lanczos is slower but produces best quality
+- HMR makes development extremely fast
+- Production build is optimized and minified
 
 ### Presets
-- Place `presets.json` in the same folder as the converter for automatic loading
-- Use `default-selection` to auto-select presets based on image orientation
-- Custom presets override manual settings for max dimensions and target file size
-- You can still manually adjust quality and lossless settings after preset selection
-- The crop can be adjusted manually on the canvas even with presets
+- Use Integrated Preset Editor for visual management
+- Place `presets.json` in project root for auto-loading
+- Export presets from editor for backup
+- Use `example_presets.json` as reference
 
 ### Workflow
-- Process similar images in batch using the queue system with the same settings
-- Use "Optimize for Web" to hit specific file size targets
-- Combine resampling methods with quality settings for optimal results
-- Navigate queue with Previous/Next buttons or click images directly
-- Watch for "Applying anti-aliasing..." status message during significant downsampling
+- Process similar images in batch with same settings
+- Use "Optimize for Web" for file size targets
+- Combine resampling + quality for optimal results
+- Keyboard shortcuts speed up workflow significantly
 
-### File Management
-- Converted files are named with date, resolution, and quality: `image-2025-10-26-1920x1080px-q95.webp`
-- Lossless files are marked with `qLL` in the filename
-- No data leaves your computer - all processing is client-side
+---
+
+## Project Structure
+
+### Key Directories
+
+- **src/components/**: React components (Canvas, Controls, Presets, etc.)
+- **src/containers/**: Container components with business logic
+- **src/hooks/**: Custom React hooks for state management
+- **src/utils/**: Utility functions (canvas, image processing, files)
+- **src/types/**: TypeScript type definitions
+- **src/constants/**: Application constants
+- **legacy/**: Original standalone HTML files (v2.6.1)
+- **dist/**: Production build output (generated)
+
+### Configuration Files
+
+- **vite.config.ts**: Vite configuration
+- **tsconfig.json**: TypeScript compiler options
+- **tailwind.config.js**: Tailwind CSS customization
+- **package.json**: Dependencies and scripts
+
+---
+
+## npm Scripts
+
+```bash
+npm run dev      # Start development server (localhost:5173)
+npm run build    # Build for production (outputs to dist/)
+npm run preview  # Preview production build (localhost:4173)
+```
+
+---
+
+## Migration from Legacy Version
+
+The v3.0.0 refactor maintains **100% feature parity** with v2.6.1:
+
+**Migrated Features:**
+- ✅ All 16 built-in presets
+- ✅ Custom preset loading and validation
+- ✅ Image queue with batch processing
+- ✅ All 5 resampling methods + anti-aliasing
+- ✅ Crop resize with 8-directional handles
+- ✅ Zoom, pan, and canvas interactions
+- ✅ Quality optimization and file size targeting
+- ✅ Clipboard paste support
+- ✅ Fixed ratio dimension linking
+- ✅ Freestyle mode toggle
+- ✅ **Preset Editor (now integrated as modal)**
+
+**New in v3.0.0:**
+- ✅ TypeScript type safety
+- ✅ Component-based architecture
+- ✅ Hot Module Replacement (HMR)
+- ✅ Error boundary for error handling
+- ✅ Integrated Preset Editor modal
+- ✅ Professional build tooling
+- ✅ Accessibility improvements
+
+**Legacy Files:**
+- Available in `legacy/` directory
+- No build required (standalone HTML)
+- v2.6.1 feature set preserved
+
+---
+
+## Browser Compatibility
+
+Requires modern browser with:
+- ES2020+ JavaScript support
+- Canvas API
+- WebP support
+- File API
+
+**Tested on:**
+- Chrome 90+
+- Firefox 88+
+- Safari 14+
+- Edge 90+
 
 ---
 
