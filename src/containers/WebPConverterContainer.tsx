@@ -4,7 +4,14 @@
  * Orchestrates all hooks and event handlers for the WebP Converter application.
  */
 
-import { useRef, useEffect, useCallback, type ChangeEvent, type MouseEvent } from 'react';
+import {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  type ChangeEvent,
+  type MouseEvent,
+} from 'react';
 import {
   useImageState,
   useCanvasState,
@@ -15,7 +22,15 @@ import {
   useCanvasInteraction,
   useClipboard,
 } from '../hooks';
-import { Canvas, Toolbar, Presets, Controls, Queue, Button } from '../components';
+import {
+  Canvas,
+  Toolbar,
+  Presets,
+  Controls,
+  Queue,
+  Button,
+  PresetEditorModal,
+} from '../components';
 import {
   getCursorPosition,
   detectCropHandle,
@@ -52,6 +67,9 @@ export function WebPConverterContainer() {
   const conversionSettings = useConversionSettings();
   const interaction = useCanvasInteraction();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Preset Editor Modal state
+  const [isPresetEditorOpen, setIsPresetEditorOpen] = useState(false);
 
   // ========================================
   // Image Loading Handlers
@@ -436,6 +454,27 @@ export function WebPConverterContainer() {
     cropState.toggleFreestyle();
   }, [cropState]);
 
+  const handleOpenPresetEditor = useCallback(() => {
+    setIsPresetEditorOpen(true);
+  }, []);
+
+  const handleClosePresetEditor = useCallback(() => {
+    setIsPresetEditorOpen(false);
+  }, []);
+
+  const handleSavePresetsFromEditor = useCallback(
+    (presets: any, raw: any) => {
+      presetState.loadCustomPresets(presets, raw, 'preset-editor');
+
+      // Select first preset if available
+      const presetNames = Object.keys(presets);
+      if (presetNames.length > 0) {
+        handlePresetChange(presetNames[0]);
+      }
+    },
+    [presetState, handlePresetChange]
+  );
+
   // ========================================
   // Conversion Handler
   // ========================================
@@ -730,6 +769,7 @@ export function WebPConverterContainer() {
               onCustomPresetFileSelect={handleCustomPresetFileSelect}
               onClearCustomPresets={handleClearCustomPresets}
               onToggleFreestyle={handleToggleFreestyle}
+              onOpenPresetEditor={handleOpenPresetEditor}
             />
 
             <Controls
@@ -781,6 +821,13 @@ export function WebPConverterContainer() {
           </p>
         </footer>
       </div>
+
+      {/* Preset Editor Modal */}
+      <PresetEditorModal
+        isOpen={isPresetEditorOpen}
+        onClose={handleClosePresetEditor}
+        onSave={handleSavePresetsFromEditor}
+      />
     </div>
   );
 }

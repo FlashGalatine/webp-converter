@@ -24,6 +24,8 @@ export interface PresetsProps {
   onClearCustomPresets: () => void;
   /** Toggle freestyle mode handler */
   onToggleFreestyle: () => void;
+  /** Open preset editor handler */
+  onOpenPresetEditor: () => void;
 }
 
 /**
@@ -39,6 +41,7 @@ export function Presets({
   onCustomPresetFileSelect,
   onClearCustomPresets,
   onToggleFreestyle,
+  onOpenPresetEditor,
 }: PresetsProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -81,26 +84,37 @@ export function Presets({
         </Button>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="space-y-2">
         <Button
           size="sm"
-          variant="outline"
-          onClick={handleLoadCustomPresets}
+          variant="primary"
+          onClick={onOpenPresetEditor}
           fullWidth
         >
-          📁 Load Custom Presets
+          ✏️ Create/Edit Presets
         </Button>
 
-        {useCustomPresets && (
+        <div className="flex items-center gap-2">
           <Button
             size="sm"
-            variant="secondary"
-            onClick={onClearCustomPresets}
-            title="Clear custom presets and use built-in"
+            variant="outline"
+            onClick={handleLoadCustomPresets}
+            fullWidth
           >
-            ✕
+            📁 Load Custom Presets
           </Button>
-        )}
+
+          {useCustomPresets && (
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={onClearCustomPresets}
+              title="Clear custom presets and use built-in"
+            >
+              ✕
+            </Button>
+          )}
+        </div>
       </div>
 
       {useCustomPresets && customPresetsFileName && (

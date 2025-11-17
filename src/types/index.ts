@@ -10,6 +10,7 @@ export * from './image';
 
 // Preset types
 export * from './preset';
+export * from './presetEditor';
 
 // Canvas types
 export * from './canvas';
