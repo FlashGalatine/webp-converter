@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 WebP Converter is a client-side web application for converting images to WebP format with advanced cropping, presets, and batch processing capabilities. The project includes a dual-build strategy for the converter plus a companion preset editor tool:
 
-- **STABLE** (`index.html`) - Production-ready converter build (v2.6.0)
+- **STABLE** (`index.html`) - Production-ready converter build (v2.6.1)
 - **EXPERIMENTAL** (`webp-conv-experimental.html`) - Testing build for new converter features
 - **Preset Editor** (`preset-editor.html`) - Companion tool for creating and managing custom presets (v1.0.0)
 
@@ -77,8 +77,10 @@ Both STABLE and EXPERIMENTAL builds follow this structure:
 
 **Documentation & Examples:**
 - `presets.json` - Example custom presets for various platforms
+- `example_presets.json` - Additional example presets for social media platforms
 - `CHANGELOG.md` - Version history and release notes
 - `README.md` - User-facing feature documentation
+- `FAQ.md` - Frequently asked questions and troubleshooting
 - `CLAUDE.md` - This file (developer guidance)
 - `PROJECT_SUMMARY.md` - Project overview
 - `LICENSE` - MIT License
@@ -231,7 +233,7 @@ When a preset is selected:
    - Create a single commit with all changes
 
 5. **Version Numbering**
-   - Current: **v2.3.0** (MAJOR.MINOR.PATCH format)
+   - Current: **v2.6.1** (MAJOR.MINOR.PATCH format)
    - **MAJOR**: Significant features or breaking changes
    - **MINOR**: New features (presets, resampling methods, anti-aliasing)
    - **PATCH**: Bug fixes and minor improvements
@@ -455,8 +457,45 @@ When a user attempts to assign a default-selection that's already taken:
 - **Max File Size** (optional) - Target file size with unit (KB/MB/GB)
 - **Default Selection** (optional) - Auto-select based on image orientation (Square/Landscape/Portrait)
 
-## Recent Changes (v2.6.0)
+## Recent Changes
 
+### v2.6.1 (November 9, 2025)
+**Bug Fixes & Code Quality Improvements**
+
+**Bug Fixes:**
+- **Fixed Auto-Load Presets Bug** - Aspect ratios from JSON presets now properly parse string formats like "16/9", "4/3" (was only handling numeric decimal values)
+  - Uses `parseAspectRatio()` function which supports both formats
+  - Enables custom presets with ratio notation to work correctly
+- **Fixed Lanczos Resampling Error** - Resolved `ReferenceError: a is not defined` when using Lanczos resampling with certain presets
+  - All references to `a` variable in loop bounds now use `LANCZOS_WINDOW_SIZE` constant
+  - Prevents crashes during high-quality image downsampling
+- **Fixed Blob URL Memory Leak** - Download cleanup now delayed to ensure completion
+  - Changed `URL.revokeObjectURL(url)` to `setTimeout(() => URL.revokeObjectURL(url), 100)`
+  - Prevents premature URL revocation that could interrupt downloads
+
+**Performance Optimizations:**
+- **Memoized Preset Selection** - `getCurrentPresets()` now uses `useMemo` hook
+  - Eliminates unnecessary recalculation on every render
+  - Only recalculates when `useCustomPresets` or `customPresets` changes
+
+**Code Quality Improvements:**
+- **Eliminated Magic Numbers** - Created 16 named constants for better maintainability
+  - UI Constants: CANVAS_PADDING, CROP_HANDLE_SIZE, HANDLE_TOLERANCE, MIN_CROP_SIZE, ZOOM_MIN, ZOOM_MAX, etc.
+  - Image Processing: MIN_BLUR_RADIUS, BLUR_THRESHOLD, GAUSSIAN_KERNEL_MULTIPLIER, LANCZOS_WINDOW_SIZE, etc.
+- **Removed Code Duplication** - Consolidated queue handling logic
+  - Created `handlePostConversionQueue()` helper function
+  - Replaced 3 duplicate instances of queue management
+- **Centralized Cursor Styling** - Unified cursor map into global constant
+  - Removed 2 duplicate CURSOR_MAP definitions
+  - Single source of truth for all cursor type mappings
+- **Consistent Naming Conventions** - Standardized throughout codebase
+
+**Accessibility Improvements:**
+- **Canvas ARIA Labels** - Added dynamic accessibility descriptions
+  - Shows current crop dimensions and zoom level
+  - Updates in real-time for screen readers
+
+### v2.6.0 (Prior Release)
 **Aspect Ratio String Format & Preset Editor**
 - Added `parseAspectRatio()` function supporting ratio notation: `"16/9"`, `"4/3"`, `"21/9"`
 - Maintains backward compatibility with decimal format: `1.777`, `1.333`
