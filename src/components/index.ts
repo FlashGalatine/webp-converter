@@ -8,3 +8,4 @@ export * from './Toolbar';
 export * from './Presets';
 export * from './Controls';
 export * from './Queue';
+export * from './ErrorBoundary';

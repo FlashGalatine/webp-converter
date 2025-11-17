@@ -5,3 +5,4 @@
 export * from './coordinates';
 export * from './interaction';
 export * from './drawing';
+export * from './cropResize';

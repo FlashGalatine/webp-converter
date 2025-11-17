@@ -20,6 +20,7 @@ import {
   getCursorPosition,
   detectCropHandle,
   isInsideCropArea,
+  calculateCropResize,
 } from '../utils/canvas';
 import {
   applyDimensionConstraints,
@@ -300,8 +301,27 @@ export function WebPConverterContainer() {
           );
 
           cropState.updateCropPosition(newX, newY);
+        } else if (interaction.dragType?.startsWith('resize-')) {
+          // Handle resize
+          const handle = interaction.dragType.replace('resize-', '') as HandlePosition;
+          const deltaImgX = deltaX / canvasState.zoomLevel;
+          const deltaImgY = deltaY / canvasState.zoomLevel;
+
+          const result = calculateCropResize({
+            cropX: interaction.dragStartState.cropX,
+            cropY: interaction.dragStartState.cropY,
+            cropWidth: interaction.dragStartState.cropWidth,
+            cropHeight: interaction.dragStartState.cropHeight,
+            deltaX: deltaImgX,
+            deltaY: deltaImgY,
+            handle,
+            aspectRatio: cropState.isFreestyleMode ? null : cropState.aspectRatio,
+            imageWidth: imageState.image.width,
+            imageHeight: imageState.image.height,
+          });
+
+          cropState.setCropArea(result.x, result.y, result.width, result.height);
         }
-        // TODO: Implement resize handlers for all 8 handles
       }
     },
     [imageState.image, cropState, canvasState, interaction]
@@ -640,10 +660,13 @@ export function WebPConverterContainer() {
           <p className="text-lg text-gray-600">
             Vite + TypeScript + React (v3.0.0-alpha)
           </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Keyboard shortcuts: +/- (zoom), 0 (reset), F (fit)
+          </p>
         </header>
 
         {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6" role="main">
           {/* Left Column - Canvas & Toolbar */}
           <div className="lg:col-span-2 space-y-4">
             <Toolbar
@@ -691,6 +714,7 @@ export function WebPConverterContainer() {
               multiple
               className="hidden"
               onChange={handleFileSelect}
+              aria-label="Select image files"
             />
           </div>
 
