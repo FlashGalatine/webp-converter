@@ -2,6 +2,21 @@
 
 ## Current Releases
 
+### STABLE Build v2.6.2
+**File:** `index.html` (default)
+**Status:** Production Ready ✅
+**Date:** November 19, 2025
+
+**Latest Improvements:**
+- ✅ Fixed crop zone interaction (can now move and resize without snapping back)
+- ✅ Fixed auto zoom-to-fit on image load
+- ✅ Improved drag state management using refs
+- ✅ Better synchronization between image loading and canvas rendering
+
+See [Version History](#version-history) for detailed release notes.
+
+---
+
 ### STABLE Build v2.6.1
 **File:** `index.html` (default)
 **Status:** Production Ready ✅
@@ -16,19 +31,59 @@
 - ✅ Code quality improvements (eliminated magic numbers, reduced duplication)
 - ✅ Accessibility enhancements (ARIA labels)
 
-See [Version History](#version-history) for detailed release notes.
-
 ---
 
 ### EXPERIMENTAL Build
 **File:** `webp-conv-experimental.html`
-**Status:** Testing & Development ⚠️ (Synchronized with STABLE v2.6.1)
+**Status:** Testing & Development ⚠️ (Synchronized with STABLE v2.6.2)
 
-For testing new features before they reach stable. Currently identical to STABLE v2.6.1.
+For testing new features before they reach stable. Currently identical to STABLE v2.6.2.
 
 ---
 
 ## Version History
+
+### v2.6.2-STABLE (November 19, 2025)
+**Critical Bug Fixes - Crop Zone & Auto Zoom**
+
+**Bug Fixes:**
+- **Fixed Crop Zone Interaction** - Crop zone can now be moved and resized smoothly
+  - Resolved issue where crop zone would snap back to original position after mouse release
+  - Fixed inability to move or resize crop zone during drag operations
+  - The crop zone would appear to resize/move during drag but snap back when mouse was released
+  - Root cause: Preset change effect was running when dragging ended, resetting crop state
+
+- **Fixed Auto Zoom-to-Fit** - Images now automatically zoom to fit when loaded
+  - Added proper useEffect that watches for image and canvas dimension changes
+  - Ensures zoom-to-fit only runs when both image and canvas are ready
+  - Removed duplicate zoom-to-fit call from loadImage function that could run prematurely
+
+**Technical Improvements:**
+- **Improved Drag State Management** - Used refs instead of state for drag values
+  - Prevents document-level mouse event handler from re-running during drag
+  - Eliminates stale closure issues with drag start values
+  - Added `dragStateRef` and `cropStateRef` to track drag state without triggering re-renders
+
+- **Better Preset Change Handling** - Prevented crop reset during/after dragging
+  - Added `isDraggingRef` to track current dragging state accurately
+  - Added `blockPresetResetRef` to prevent immediate resets after drag ends
+  - Preset change effect now only runs when preset actually changes, not on every render
+  - Uses refs to track last applied preset to avoid unnecessary re-initialization
+
+- **Improved Effect Dependencies** - Better synchronization between effects
+  - Removed `canvas` and `presets` objects from dependency arrays (they change on every render)
+  - Only depend on actual values that should trigger effects
+  - Proper cleanup of timeouts in useEffect hooks
+
+**Testing:**
+- Verified crop zone can be moved smoothly in all directions
+- Verified crop zone can be resized from all handles without snapping back
+- Verified zoom-to-fit works on initial image load
+- Verified zoom-to-fit works when loading images from queue
+- No regressions in existing functionality
+- 100% backward compatible with v2.6.1
+
+---
 
 ### v2.6.1-STABLE (November 9, 2025)
 **Bug Fixes & Code Quality Improvements**

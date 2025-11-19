@@ -1,4 +1,4 @@
-# WebP Converter v2.6.1
+# WebP Converter v2.6.2
 
 ## Quick Start
 
@@ -40,6 +40,31 @@ This project has been refactored to use **Vite + TypeScript + React**:
 **Note:** The old HTML files have been archived in the `archived/` directory. The project now uses a modern build system with TypeScript and React components.
 
 See `CHANGELOG.md` for detailed version history.
+
+---
+
+## What's New in v2.6.2
+
+### 🐛 Critical Bug Fixes
+**Fixed Crop Zone Interaction & Auto Zoom** - Resolved issues with crop manipulation and image display
+
+- **Fixed Crop Zone Interaction**: Crop zone can now be moved and resized smoothly without snapping back
+  - Resolved issue where crop zone would snap back to original position after mouse release
+  - Fixed inability to move or resize crop zone during drag operations
+  - Implemented proper drag state management using refs to prevent effect re-runs
+  - Added blocking mechanism to prevent preset resets during and immediately after dragging
+
+- **Fixed Auto Zoom-to-Fit**: Images now automatically zoom to fit when loaded
+  - Added proper useEffect to watch for image and canvas dimension changes
+  - Ensures zoom-to-fit only runs when both image and canvas are ready
+  - Removed duplicate zoom-to-fit call that could run before canvas was ready
+
+### ⚡ Technical Improvements
+**Better State Management** - Improved React hooks and effect dependencies
+
+- Used refs for drag state to prevent unnecessary effect re-runs
+- Improved preset change effect to only run when preset actually changes
+- Better synchronization between image loading and canvas rendering
 
 ---
 
