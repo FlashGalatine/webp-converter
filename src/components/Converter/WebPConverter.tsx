@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { BUILT_IN_PRESETS } from '../../constants/presets';
 import { ZOOM_INITIAL_DELAY, TRANSITION_DELAY } from '../../constants/canvas';
 import { ASPECT_RATIO_TOLERANCE } from '../../constants/processing';
 import { loadImageFromFile, createFileFromBlob } from '../../utils/files/loaders';
@@ -11,7 +10,7 @@ import Canvas from '../Canvas/Canvas';
 import Controls from '../Controls/Controls';
 import QueuePanel from '../Queue/QueuePanel';
 import Toolbar from '../Toolbar/Toolbar';
-import type { ResamplingMethod, ImageQueueItem } from '../../types';
+import type { ResamplingMethod } from '../../types';
 
 export default function WebPConverter() {
   // Image state
@@ -74,9 +73,6 @@ export default function WebPConverter() {
       // Auto zoom to fit on load
       setTimeout(() => {
         if (canvas.canvasWidth && canvas.canvasHeight) {
-          const zoomX = (canvas.canvasWidth - 40) / img.width;
-          const zoomY = (canvas.canvasHeight - 40) / img.height;
-          const newZoom = Math.min(zoomX, zoomY);
           canvas.handleZoomToFit();
         }
       }, ZOOM_INITIAL_DELAY);
@@ -283,8 +279,6 @@ export default function WebPConverter() {
           presetFileInputRef={presetFileInputRef}
           onFileSelect={handleFileSelect}
           onPresetFileSelect={handlePresetFileSelect}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
         />
 
         <QueuePanel
@@ -346,7 +340,6 @@ export default function WebPConverter() {
           isOptimizing={imageProcessing.isOptimizing}
           imageQueueLength={imageQueue.imageQueue.length}
           currentImageIndex={imageQueue.currentImageIndex}
-          processedImagesCount={imageQueue.processedImages.size}
           remainingCount={imageQueue.imageQueue.length - imageQueue.processedImages.size}
           isCurrentProcessed={imageQueue.processedImages.has(imageQueue.currentImageIndex)}
           optimizingProgress={imageProcessing.optimizingProgress}

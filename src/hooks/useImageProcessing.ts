@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { TRANSITION_DELAY } from '../constants/canvas';
 import { prepareImageForConversion, getOptimizationStatus } from '../utils/imageProcessing/conversion';
 import { downloadBlob } from '../utils/files/downloads';
 import type { ResamplingMethod } from '../types';

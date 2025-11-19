@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ImageQueueItem } from '../../types';
 
 interface QueuePanelProps {

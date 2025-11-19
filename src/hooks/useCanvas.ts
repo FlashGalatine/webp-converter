@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { CANVAS_PADDING, ZOOM_MIN, ZOOM_MAX, ZOOM_INITIAL_DELAY, MIN_CROP_SIZE } from '../constants/canvas';
+import { CANVAS_PADDING, ZOOM_MIN, ZOOM_MAX, MIN_CROP_SIZE } from '../constants/canvas';
 import { renderCanvas } from '../utils/canvas/rendering';
 import { getCursorPos, detectHandle, isInsideCrop, getCursorStyle } from '../utils/canvas/interactions';
 import { CURSOR_MAP } from '../constants/cursors';

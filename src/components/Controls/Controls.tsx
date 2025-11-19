@@ -1,4 +1,3 @@
-import React from 'react';
 import type { ResamplingMethod } from '../../types';
 import type { CustomPresetsRaw } from '../../types';
 
@@ -60,7 +59,6 @@ interface ControlsProps {
   isOptimizing: boolean;
   imageQueueLength: number;
   currentImageIndex: number;
-  processedImagesCount: number;
   remainingCount: number;
   isCurrentProcessed: boolean;
 
@@ -112,7 +110,6 @@ export default function Controls({
   isOptimizing,
   imageQueueLength,
   currentImageIndex,
-  processedImagesCount,
   remainingCount,
   isCurrentProcessed,
   optimizingProgress,

@@ -1,6 +1,5 @@
 import { useState, useCallback } from 'react';
 import type { ImageQueueItem } from '../types';
-import { loadImageFromFile } from '../utils/files/loaders';
 
 export interface UseImageQueueReturn {
   imageQueue: ImageQueueItem[];

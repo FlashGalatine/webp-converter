@@ -6,17 +6,13 @@ interface ToolbarProps {
   presetFileInputRef: React.RefObject<HTMLInputElement>;
   onFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onPresetFileSelect: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onDrop: (e: React.DragEvent) => void;
-  onDragOver: (e: React.DragEvent) => void;
 }
 
 export default function Toolbar({
   fileInputRef,
   presetFileInputRef,
   onFileSelect,
-  onPresetFileSelect,
-  onDrop,
-  onDragOver
+  onPresetFileSelect
 }: ToolbarProps) {
   return (
     <>
