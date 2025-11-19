@@ -87,6 +87,10 @@ export default function WebPConverter() {
 
   // Handle preset change
   useEffect(() => {
+    // Don't reset crop if user is currently dragging
+    if (canvas.isDragging) return;
+    
+    // Only run when preset actually changes, not on every render
     const currentPresets = presets.getCurrentPresets();
     const ratio = (currentPresets as Record<string, number | null>)[selectedPreset] ?? null;
     canvas.setAspectRatio(ratio);
@@ -100,7 +104,8 @@ export default function WebPConverter() {
     setMaxHeight(settings.maxHeight);
     setTargetSize(settings.targetSize);
     setWebOptimize(settings.webOptimize);
-  }, [selectedPreset, presets.useCustomPresets, image, presets, canvas]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPreset, presets.useCustomPresets, canvas.isDragging]);
 
   // File upload handlers
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {

@@ -49,18 +49,34 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
   const [isFreestyleMode, setIsFreestyleMode] = useState(false);
   const [cursorStyle, setCursorStyle] = useState('default');
   const [isDragging, setIsDragging] = useState(false);
-  const [dragType, setDragType] = useState<DragType>(null);
-  const [dragStartX, setDragStartX] = useState(0);
-  const [dragStartY, setDragStartY] = useState(0);
-  const [dragStartCropX, setDragStartCropX] = useState(0);
-  const [dragStartCropY, setDragStartCropY] = useState(0);
-  const [dragStartCropWidth, setDragStartCropWidth] = useState(0);
-  const [dragStartCropHeight, setDragStartCropHeight] = useState(0);
-  const [dragStartPanX, setDragStartPanX] = useState(0);
-  const [dragStartPanY, setDragStartPanY] = useState(0);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  
+  // Use refs to store drag values and current crop to avoid effect re-runs during dragging
+  const dragStateRef = useRef({
+    dragType: null as DragType,
+    dragStartX: 0,
+    dragStartY: 0,
+    dragStartCropX: 0,
+    dragStartCropY: 0,
+    dragStartCropWidth: 0,
+    dragStartCropHeight: 0,
+    dragStartPanX: 0,
+    dragStartPanY: 0
+  });
+  
+  // Refs to track current crop dimensions for use in event handlers
+  const cropStateRef = useRef({
+    cropWidth: 0,
+    cropHeight: 0
+  });
+  
+  // Update crop refs when state changes
+  useEffect(() => {
+    cropStateRef.current.cropWidth = cropWidth;
+    cropStateRef.current.cropHeight = cropHeight;
+  }, [cropWidth, cropHeight]);
 
   const initializeCrop = useCallback((imgWidth: number, imgHeight: number, ratio: number | null) => {
     if (!ratio) {
@@ -116,27 +132,50 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
     );
 
     if (handle) {
-      setDragType(`resize-${handle}` as DragType);
-      setDragStartCropX(cropX);
-      setDragStartCropY(cropY);
-      setDragStartCropWidth(cropWidth);
-      setDragStartCropHeight(cropHeight);
+      const dragType = `resize-${handle}` as DragType;
+      dragStateRef.current = {
+        dragType,
+        dragStartX: pos.x,
+        dragStartY: pos.y,
+        dragStartCropX: cropX,
+        dragStartCropY: cropY,
+        dragStartCropWidth: cropWidth,
+        dragStartCropHeight: cropHeight,
+        dragStartPanX: panX,
+        dragStartPanY: panY
+      };
       setCursorStyle(CURSOR_MAP[handle] || 'default');
     } else if (isInsideCrop(pos.x, pos.y, image, cropWidth, cropHeight, cropX, cropY, zoomLevel, panX, panY, canvasRef.current)) {
-      setDragType('move');
-      setDragStartCropX(cropX);
-      setDragStartCropY(cropY);
+      const dragType = 'move' as DragType;
+      dragStateRef.current = {
+        dragType,
+        dragStartX: pos.x,
+        dragStartY: pos.y,
+        dragStartCropX: cropX,
+        dragStartCropY: cropY,
+        dragStartCropWidth: cropWidth,
+        dragStartCropHeight: cropHeight,
+        dragStartPanX: panX,
+        dragStartPanY: panY
+      };
       setCursorStyle('move');
     } else {
-      setDragType('pan');
-      setDragStartPanX(panX);
-      setDragStartPanY(panY);
+      const dragType = 'pan' as DragType;
+      dragStateRef.current = {
+        dragType,
+        dragStartX: pos.x,
+        dragStartY: pos.y,
+        dragStartCropX: cropX,
+        dragStartCropY: cropY,
+        dragStartCropWidth: cropWidth,
+        dragStartCropHeight: cropHeight,
+        dragStartPanX: panX,
+        dragStartPanY: panY
+      };
       setCursorStyle('grabbing');
     }
 
     setIsDragging(true);
-    setDragStartX(pos.x);
-    setDragStartY(pos.y);
   }, [image, cropX, cropY, cropWidth, cropHeight, zoomLevel, panX, panY]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
@@ -154,7 +193,7 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
-    setDragType(null);
+    dragStateRef.current.dragType = null;
   }, []);
 
   const handleMouseLeave = useCallback(() => {
@@ -168,47 +207,52 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
       const handleDocumentMouseMove = (e: MouseEvent) => {
         if (!image || !canvasRef.current) return;
         const pos = getCursorPos(e, canvasRef.current);
-        const dx = pos.x - dragStartX;
-        const dy = pos.y - dragStartY;
+        const dragState = dragStateRef.current;
+        const dx = pos.x - dragState.dragStartX;
+        const dy = pos.y - dragState.dragStartY;
 
-        if (dragType === 'pan') {
-          setPanX(dragStartPanX + dx);
-          setPanY(dragStartPanY + dy);
-        } else if (dragType === 'move') {
+        if (dragState.dragType === 'pan') {
+          setPanX(dragState.dragStartPanX + dx);
+          setPanY(dragState.dragStartPanY + dy);
+        } else if (dragState.dragType === 'move') {
           const dxImg = dx / zoomLevel;
           const dyImg = dy / zoomLevel;
 
-          let newX = dragStartCropX + dxImg;
-          let newY = dragStartCropY + dyImg;
+          let newX = dragState.dragStartCropX + dxImg;
+          let newY = dragState.dragStartCropY + dyImg;
 
-          newX = Math.max(0, Math.min(newX, image.width - cropWidth));
-          newY = Math.max(0, Math.min(newY, image.height - cropHeight));
+          // Use refs to get current crop dimensions
+          const currentCropWidth = cropStateRef.current.cropWidth;
+          const currentCropHeight = cropStateRef.current.cropHeight;
+
+          newX = Math.max(0, Math.min(newX, image.width - currentCropWidth));
+          newY = Math.max(0, Math.min(newY, image.height - currentCropHeight));
 
           setCropX(newX);
           setCropY(newY);
-        } else if (dragType && dragType.startsWith('resize-')) {
-          const direction = dragType.split('-')[1] as string;
+        } else if (dragState.dragType && dragState.dragType.startsWith('resize-')) {
+          const direction = dragState.dragType.split('-')[1] as string;
           const dxImg = dx / zoomLevel;
           const dyImg = dy / zoomLevel;
 
-          let newX = dragStartCropX;
-          let newY = dragStartCropY;
-          let newWidth = dragStartCropWidth;
-          let newHeight = dragStartCropHeight;
+          let newX = dragState.dragStartCropX;
+          let newY = dragState.dragStartCropY;
+          let newWidth = dragState.dragStartCropWidth;
+          let newHeight = dragState.dragStartCropHeight;
 
           if (direction.includes('w')) {
-            newX = dragStartCropX + dxImg;
-            newWidth = dragStartCropWidth - dxImg;
+            newX = dragState.dragStartCropX + dxImg;
+            newWidth = dragState.dragStartCropWidth - dxImg;
           }
           if (direction.includes('e')) {
-            newWidth = dragStartCropWidth + dxImg;
+            newWidth = dragState.dragStartCropWidth + dxImg;
           }
           if (direction.includes('n')) {
-            newY = dragStartCropY + dyImg;
-            newHeight = dragStartCropHeight - dyImg;
+            newY = dragState.dragStartCropY + dyImg;
+            newHeight = dragState.dragStartCropHeight - dyImg;
           }
           if (direction.includes('s')) {
-            newHeight = dragStartCropHeight + dyImg;
+            newHeight = dragState.dragStartCropHeight + dyImg;
           }
 
           // Maintain aspect ratio if set
@@ -216,12 +260,12 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
             if (direction.includes('e') || direction.includes('w')) {
               newHeight = newWidth / aspectRatio;
               if (direction.includes('n')) {
-                newY = dragStartCropY + dragStartCropHeight - newHeight;
+                newY = dragState.dragStartCropY + dragState.dragStartCropHeight - newHeight;
               }
             } else {
               newWidth = newHeight * aspectRatio;
               if (direction.includes('w')) {
-                newX = dragStartCropX + dragStartCropWidth - newWidth;
+                newX = dragState.dragStartCropX + dragState.dragStartCropWidth - newWidth;
               }
             }
           }
@@ -253,7 +297,7 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
 
       const handleDocumentMouseUp = () => {
         setIsDragging(false);
-        setDragType(null);
+        dragStateRef.current.dragType = null;
       };
 
       document.addEventListener('mousemove', handleDocumentMouseMove);
@@ -264,7 +308,7 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
         document.removeEventListener('mouseup', handleDocumentMouseUp);
       };
     }
-  }, [isDragging, dragType, dragStartX, dragStartY, dragStartCropX, dragStartCropY, dragStartCropWidth, dragStartCropHeight, dragStartPanX, dragStartPanY, image, zoomLevel, cropWidth, cropHeight, aspectRatio, isFreestyleMode]);
+  }, [isDragging, image, zoomLevel, aspectRatio, isFreestyleMode]);
 
   const handleWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
     e.preventDefault();
