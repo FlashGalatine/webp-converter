@@ -70,9 +70,9 @@ export default function WebPConverter() {
       const ratio = (currentPresets as Record<string, number | null>)[presetToUse] ?? null;
       canvas.initializeCrop(img.width, img.height, ratio);
 
-      // Auto zoom to fit on load
+      // Auto zoom to fit on load - wait for canvas to be ready
       setTimeout(() => {
-        if (canvas.canvasWidth && canvas.canvasHeight) {
+        if (canvas.canvasWidth && canvas.canvasHeight && img.width && img.height) {
           canvas.handleZoomToFit();
         }
       }, ZOOM_INITIAL_DELAY);
@@ -201,7 +201,7 @@ export default function WebPConverter() {
         setTimeout(() => {
           imageQueue.removeImageFromQueue(indexToProcess, loadImage);
         }, TRANSITION_DELAY);
-      } else {
+            } else {
         imageQueue.markImageAsProcessed();
         setTimeout(() => {
           if (indexToProcess < imageQueue.imageQueue.length - 1) {

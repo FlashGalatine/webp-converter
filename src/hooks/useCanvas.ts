@@ -144,97 +144,13 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
 
     const pos = getCursorPos(e.nativeEvent, canvasRef.current);
 
-    // Update cursor on hover
+    // Update cursor on hover (only when not dragging)
     if (!isDragging) {
       const handle = detectHandle(pos.x, pos.y, image, cropWidth, cropHeight, cropX, cropY, zoomLevel, panX, panY, canvasRef.current);
       const insideCrop = isInsideCrop(pos.x, pos.y, image, cropWidth, cropHeight, cropX, cropY, zoomLevel, panX, panY, canvasRef.current);
       setCursorStyle(getCursorStyle(handle, insideCrop, false));
     }
-
-    if (!isDragging) return;
-
-    const dx = pos.x - dragStartX;
-    const dy = pos.y - dragStartY;
-
-    if (dragType === 'pan') {
-      setPanX(dragStartPanX + dx);
-      setPanY(dragStartPanY + dy);
-    } else if (dragType === 'move') {
-      const dxImg = dx / zoomLevel;
-      const dyImg = dy / zoomLevel;
-
-      let newX = dragStartCropX + dxImg;
-      let newY = dragStartCropY + dyImg;
-
-      newX = Math.max(0, Math.min(newX, image.width - cropWidth));
-      newY = Math.max(0, Math.min(newY, image.height - cropHeight));
-
-      setCropX(newX);
-      setCropY(newY);
-    } else if (dragType && dragType.startsWith('resize-')) {
-      const direction = dragType.split('-')[1] as string;
-      const dxImg = dx / zoomLevel;
-      const dyImg = dy / zoomLevel;
-
-      let newX = dragStartCropX;
-      let newY = dragStartCropY;
-      let newWidth = dragStartCropWidth;
-      let newHeight = dragStartCropHeight;
-
-      if (direction.includes('w')) {
-        newX = dragStartCropX + dxImg;
-        newWidth = dragStartCropWidth - dxImg;
-      }
-      if (direction.includes('e')) {
-        newWidth = dragStartCropWidth + dxImg;
-      }
-      if (direction.includes('n')) {
-        newY = dragStartCropY + dyImg;
-        newHeight = dragStartCropHeight - dyImg;
-      }
-      if (direction.includes('s')) {
-        newHeight = dragStartCropHeight + dyImg;
-      }
-
-      // Maintain aspect ratio if set
-      if (aspectRatio && !isFreestyleMode) {
-        if (direction.includes('e') || direction.includes('w')) {
-          newHeight = newWidth / aspectRatio;
-          if (direction.includes('n')) {
-            newY = dragStartCropY + dragStartCropHeight - newHeight;
-          }
-        } else {
-          newWidth = newHeight * aspectRatio;
-          if (direction.includes('w')) {
-            newX = dragStartCropX + dragStartCropWidth - newWidth;
-          }
-        }
-      }
-
-      // Constrain to image bounds
-      if (newX < 0) {
-        newWidth += newX;
-        newX = 0;
-      }
-      if (newY < 0) {
-        newHeight += newY;
-        newY = 0;
-      }
-      if (newX + newWidth > image.width) {
-        newWidth = image.width - newX;
-      }
-      if (newY + newHeight > image.height) {
-        newHeight = image.height - newY;
-      }
-
-      if (newWidth > MIN_CROP_SIZE && newHeight > MIN_CROP_SIZE) {
-        setCropX(newX);
-        setCropY(newY);
-        setCropWidth(newWidth);
-        setCropHeight(newHeight);
-      }
-    }
-  }, [isDragging, dragType, dragStartX, dragStartY, dragStartCropX, dragStartCropY, dragStartCropWidth, dragStartCropHeight, dragStartPanX, dragStartPanY, image, zoomLevel, cropWidth, cropHeight, aspectRatio, isFreestyleMode]);
+  }, [isDragging, image, cropWidth, cropHeight, cropX, cropY, zoomLevel, panX, panY]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -242,10 +158,113 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
   }, []);
 
   const handleMouseLeave = useCallback(() => {
-    setIsDragging(false);
-    setDragType(null);
+    // Don't stop dragging on mouse leave - allow dragging outside canvas
     setCursorStyle('default');
   }, []);
+
+  // Add document-level mouse event listeners for proper drag handling
+  useEffect(() => {
+    if (isDragging) {
+      const handleDocumentMouseMove = (e: MouseEvent) => {
+        if (!image || !canvasRef.current) return;
+        const pos = getCursorPos(e, canvasRef.current);
+        const dx = pos.x - dragStartX;
+        const dy = pos.y - dragStartY;
+
+        if (dragType === 'pan') {
+          setPanX(dragStartPanX + dx);
+          setPanY(dragStartPanY + dy);
+        } else if (dragType === 'move') {
+          const dxImg = dx / zoomLevel;
+          const dyImg = dy / zoomLevel;
+
+          let newX = dragStartCropX + dxImg;
+          let newY = dragStartCropY + dyImg;
+
+          newX = Math.max(0, Math.min(newX, image.width - cropWidth));
+          newY = Math.max(0, Math.min(newY, image.height - cropHeight));
+
+          setCropX(newX);
+          setCropY(newY);
+        } else if (dragType && dragType.startsWith('resize-')) {
+          const direction = dragType.split('-')[1] as string;
+          const dxImg = dx / zoomLevel;
+          const dyImg = dy / zoomLevel;
+
+          let newX = dragStartCropX;
+          let newY = dragStartCropY;
+          let newWidth = dragStartCropWidth;
+          let newHeight = dragStartCropHeight;
+
+          if (direction.includes('w')) {
+            newX = dragStartCropX + dxImg;
+            newWidth = dragStartCropWidth - dxImg;
+          }
+          if (direction.includes('e')) {
+            newWidth = dragStartCropWidth + dxImg;
+          }
+          if (direction.includes('n')) {
+            newY = dragStartCropY + dyImg;
+            newHeight = dragStartCropHeight - dyImg;
+          }
+          if (direction.includes('s')) {
+            newHeight = dragStartCropHeight + dyImg;
+          }
+
+          // Maintain aspect ratio if set
+          if (aspectRatio && !isFreestyleMode) {
+            if (direction.includes('e') || direction.includes('w')) {
+              newHeight = newWidth / aspectRatio;
+              if (direction.includes('n')) {
+                newY = dragStartCropY + dragStartCropHeight - newHeight;
+              }
+            } else {
+              newWidth = newHeight * aspectRatio;
+              if (direction.includes('w')) {
+                newX = dragStartCropX + dragStartCropWidth - newWidth;
+              }
+            }
+          }
+
+          // Constrain to image bounds
+          if (newX < 0) {
+            newWidth += newX;
+            newX = 0;
+          }
+          if (newY < 0) {
+            newHeight += newY;
+            newY = 0;
+          }
+          if (newX + newWidth > image.width) {
+            newWidth = image.width - newX;
+          }
+          if (newY + newHeight > image.height) {
+            newHeight = image.height - newY;
+          }
+
+          if (newWidth > MIN_CROP_SIZE && newHeight > MIN_CROP_SIZE) {
+            setCropX(newX);
+            setCropY(newY);
+            setCropWidth(newWidth);
+            setCropHeight(newHeight);
+          }
+        }
+      };
+
+      const handleDocumentMouseUp = () => {
+        setIsDragging(false);
+        setDragType(null);
+      };
+
+      document.addEventListener('mousemove', handleDocumentMouseMove);
+      document.addEventListener('mouseup', handleDocumentMouseUp);
+
+      return () => {
+        document.removeEventListener('mousemove', handleDocumentMouseMove);
+        document.removeEventListener('mouseup', handleDocumentMouseUp);
+      };
+    }
+  }, [isDragging, dragType, dragStartX, dragStartY, dragStartCropX, dragStartCropY, dragStartCropWidth, dragStartCropHeight, dragStartPanX, dragStartPanY, image, zoomLevel, cropWidth, cropHeight, aspectRatio, isFreestyleMode]);
 
   const handleWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
     e.preventDefault();
