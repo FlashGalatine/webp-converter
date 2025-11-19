@@ -16,6 +16,10 @@ export default function WebPConverter() {
   // Image state
   const [image, setImage] = useState<HTMLImageElement | null>(null);
   const [selectedPreset, setSelectedPreset] = useState<string>("16:9 Landscape");
+  const lastPresetRef = useRef<string>("16:9 Landscape");
+  const lastUseCustomPresetsRef = useRef<boolean>(false);
+  const isDraggingRef = useRef<boolean>(false);
+  const blockPresetResetRef = useRef<boolean>(false);
 
   // Settings state
   const [quality, setQuality] = useState(95);
@@ -85,12 +89,39 @@ export default function WebPConverter() {
   // Image queue hook
   const imageQueue = useImageQueue(loadImage);
 
-  // Handle preset change
+  // Update dragging ref when dragging state changes
   useEffect(() => {
-    // Don't reset crop if user is currently dragging
-    if (canvas.isDragging) return;
+    const wasDragging = isDraggingRef.current;
+    isDraggingRef.current = canvas.isDragging;
     
-    // Only run when preset actually changes, not on every render
+    // If dragging just ended, block preset reset for a short time
+    if (wasDragging && !canvas.isDragging) {
+      blockPresetResetRef.current = true;
+      setTimeout(() => {
+        blockPresetResetRef.current = false;
+      }, 100); // Small delay to prevent immediate reset
+    }
+  }, [canvas.isDragging]);
+
+  // Handle preset change - only when preset actually changes
+  useEffect(() => {
+    // Skip if preset hasn't actually changed
+    const presetChanged = selectedPreset !== lastPresetRef.current;
+    const customPresetsChanged = presets.useCustomPresets !== lastUseCustomPresetsRef.current;
+    
+    if (!presetChanged && !customPresetsChanged) {
+      return;
+    }
+    
+    // Don't reset crop if user is currently dragging or just finished dragging
+    if (isDraggingRef.current || blockPresetResetRef.current) {
+      // Just update the refs, don't apply the preset yet
+      lastPresetRef.current = selectedPreset;
+      lastUseCustomPresetsRef.current = presets.useCustomPresets;
+      return;
+    }
+    
+    // Apply the new preset
     const currentPresets = presets.getCurrentPresets();
     const ratio = (currentPresets as Record<string, number | null>)[selectedPreset] ?? null;
     canvas.setAspectRatio(ratio);
@@ -104,8 +135,12 @@ export default function WebPConverter() {
     setMaxHeight(settings.maxHeight);
     setTargetSize(settings.targetSize);
     setWebOptimize(settings.webOptimize);
+    
+    // Update refs to track what was applied
+    lastPresetRef.current = selectedPreset;
+    lastUseCustomPresetsRef.current = presets.useCustomPresets;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPreset, presets.useCustomPresets, canvas.isDragging]);
+  }, [selectedPreset, presets.useCustomPresets]);
 
   // File upload handlers
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
