@@ -1,0 +1,2199 @@
+<!DOCTYPE html>
+<!--
+    WebP Image Converter - STABLE Build
+    Created by Flash Galatine
+    GitHub: https://github.com/FlashGalatine
+    X/Twitter: https://x.com/AsheJunius
+    Twitch: https://www.twitch.tv/flashgalatine
+    Discord: https://discord.gg/5VUSKTZCe5
+    BlueSky: https://bsky.app/profile/projectgalatine.com
+    Patreon: https://www.patreon.com/ProjectGalatine
+    Blog: https://blog.projectgalatine.com/
+-->
+<html lang="en">
+<head>
+    <!-- Character Encoding and Viewport -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO Meta Tags -->
+    <title>WebP Image Converter - Free Online Batch Image Conversion Tool</title>
+    <meta name="description" content="Convert images to WebP format with advanced cropping, batch processing, custom presets, and quality optimization. Client-side processing with no file uploads.">
+    <meta name="keywords" content="webp converter, image converter, batch convert, crop images, image optimization, webp compression, online converter, free tool, image processing, aspect ratio presets">
+    <meta name="author" content="Flash Galatine">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="revisit-after" content="7 days">
+    <meta name="language" content="English">
+
+    <!-- Open Graph (Social Media Sharing) -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="WebP Image Converter - Free Online Batch Image Conversion">
+    <meta property="og:description" content="Convert and optimize your images to WebP format with advanced cropping, presets, and batch processing. 100% client-side, no file uploads.">
+    <meta property="og:url" content="https://webp.projectgalatine.com">
+    <meta property="og:image" content="https://webp.projectgalatine.com/og-image.png">
+    <meta property="og:image:type" content="image/png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:site_name" content="WebP Converter">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="WebP Image Converter - Free Batch Image Conversion Tool">
+    <meta name="twitter:description" content="Convert and optimize images to WebP with cropping, presets, and batch processing. Client-side processing, no uploads.">
+    <meta name="twitter:image" content="https://webp.projectgalatine.com/og-image.png">
+    <meta name="twitter:creator" content="@AsheJunius">
+    <meta name="twitter:site" content="@AsheJunius">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" href="https://webp.projectgalatine.com">
+
+    <!-- Theme and Branding -->
+    <meta name="theme-color" content="#1f2937">
+    <meta name="color-scheme" content="dark light">
+
+    <!-- Icons -->
+    <link rel="icon" type="image/x-icon" href="app-web.ico">
+    <link rel="apple-touch-icon" href="app-web.ico">
+
+    <!-- JSON-LD Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "WebP Image Converter",
+        "description": "Convert and optimize images to WebP format with advanced cropping, batch processing, and custom presets.",
+        "url": "https://webp.projectgalatine.com",
+        "applicationCategory": "Multimedia",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        },
+        "creator": {
+            "@type": "Person",
+            "name": "Flash Galatine",
+            "url": "https://github.com/FlashGalatine",
+            "sameAs": [
+                "https://x.com/AsheJunius",
+                "https://github.com/FlashGalatine",
+                "https://www.twitch.tv/flashgalatine",
+                "https://discord.gg/5VUSKTZCe5",
+                "https://bsky.app/profile/projectgalatine.com",
+                "https://www.patreon.com/ProjectGalatine"
+            ]
+        }
+    }
+    </script>
+
+    <!-- CDN Dependencies -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef, useMemo, useCallback } = React;
+
+        // Preset configurations
+        const BUILT_IN_PRESETS = {
+            "Freestyle": null,
+            "Square (1:1)": 1,
+            "16:9 Landscape": 16/9,
+            "9:16 Portrait": 9/16,
+            "4:3 Landscape": 4/3,
+            "3:4 Portrait": 3/4,
+            "21:9 Ultrawide": 21/9,
+            "Twitter Post": 16/9,
+            "Twitter Header": 3/1,
+            "Instagram Square": 1,
+            "Instagram Portrait": 4/5,
+            "Instagram Landscape": 1.91/1,
+            "Facebook Post": 1.91/1,
+            "YouTube Thumbnail": 16/9,
+            "Discord Avatar": 1,
+            "Pinterest Pin": 2/3
+        };
+
+        // UI/Canvas Constants
+        const CANVAS_PADDING = 40;
+        const CROP_HANDLE_SIZE = 10;
+        const HANDLE_TOLERANCE = 5;
+        const MIN_CROP_SIZE = 10;
+        const ZOOM_MIN = 0.1;
+        const ZOOM_MAX = 10;
+        const ZOOM_INITIAL_DELAY = 100;
+        const TRANSITION_DELAY = 500;
+
+        // Image Processing Constants
+        const MIN_BLUR_RADIUS = 0.5;
+        const BLUR_THRESHOLD = 0.3;
+        const GAUSSIAN_KERNEL_MULTIPLIER = 3;
+        const LANCZOS_WINDOW_SIZE = 3;
+        const SIGNIFICANT_DOWNSAMPLE_THRESHOLD = 0.67;
+        const ASPECT_RATIO_TOLERANCE = 0.1; // For detecting square images
+
+        // Cursor map for canvas interactions
+        const CURSOR_MAP = {
+            'nw': 'nwse-resize',
+            'se': 'nwse-resize',
+            'ne': 'nesw-resize',
+            'sw': 'nesw-resize',
+            'n': 'ns-resize',
+            's': 'ns-resize',
+            'e': 'ew-resize',
+            'w': 'ew-resize'
+        };
+
+        function WebPConverter() {
+            // Image state
+            const [image, setImage] = useState(null);
+            const [imageData, setImageData] = useState(null);
+
+            // Queue state
+            const [imageQueue, setImageQueue] = useState([]);
+            const [currentImageIndex, setCurrentImageIndex] = useState(-1);
+            const [processedImages, setProcessedImages] = useState(new Set());
+            const [removeAfterConvert, setRemoveAfterConvert] = useState(false);
+
+            // Canvas state
+            const [canvasWidth, setCanvasWidth] = useState(1200);
+            const [canvasHeight, setCanvasHeight] = useState(800);
+            const [zoomLevel, setZoomLevel] = useState(1);
+            const [panX, setPanX] = useState(0);
+            const [panY, setPanY] = useState(0);
+            
+            // Crop state
+            const [cropX, setCropX] = useState(0);
+            const [cropY, setCropY] = useState(0);
+            const [cropWidth, setCropWidth] = useState(0);
+            const [cropHeight, setCropHeight] = useState(0);
+            const [aspectRatio, setAspectRatio] = useState(null);
+            const [isFreestyleMode, setIsFreestyleMode] = useState(false);
+
+            // Settings state
+            const [selectedPreset, setSelectedPreset] = useState("16:9 Landscape");
+            const [quality, setQuality] = useState(95);
+            const [lossless, setLossless] = useState(false);
+            const [maxWidth, setMaxWidth] = useState('');
+            const [maxHeight, setMaxHeight] = useState('');
+            const [linkDimensions, setLinkDimensions] = useState(true);
+            const [webOptimize, setWebOptimize] = useState(false);
+            const [targetSize, setTargetSize] = useState('10');
+            const [resamplingMethod, setResamplingMethod] = useState('bicubic');
+            const [isOptimizing, setIsOptimizing] = useState(false);
+            const [optimizingProgress, setOptimizingProgress] = useState(0);
+            const [optimizingStatus, setOptimizingStatus] = useState('');
+            
+            // Preset state
+            const [useCustomPresets, setUseCustomPresets] = useState(false);
+            const [customPresets, setCustomPresets] = useState({});
+            const [customPresetsRaw, setCustomPresetsRaw] = useState({});
+            const [customPresetsFileName, setCustomPresetsFileName] = useState('');
+            
+            // Interaction state
+            const [isDragging, setIsDragging] = useState(false);
+            const [dragType, setDragType] = useState(null); // 'pan', 'move', 'resize-nw', etc.
+            const [dragStartX, setDragStartX] = useState(0);
+            const [dragStartY, setDragStartY] = useState(0);
+            const [dragStartCropX, setDragStartCropX] = useState(0);
+            const [dragStartCropY, setDragStartCropY] = useState(0);
+            const [dragStartCropWidth, setDragStartCropWidth] = useState(0);
+            const [dragStartCropHeight, setDragStartCropHeight] = useState(0);
+            const [dragStartPanX, setDragStartPanX] = useState(0);
+            const [dragStartPanY, setDragStartPanY] = useState(0);
+            const [cursorStyle, setCursorStyle] = useState('default');
+            
+            const canvasRef = useRef(null);
+            const fileInputRef = useRef(null);
+            const presetFileInputRef = useRef(null);
+            const containerRef = useRef(null);
+            
+            // Load image
+            const loadImage = (file, skipAutoPreset = false) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        try {
+                            setImage(img);
+                            setImageData(e.target.result);
+
+                            // Auto-select preset based on image dimensions (if using custom presets and not skipping)
+                            let presetToUse = selectedPreset;
+                            if (!skipAutoPreset && useCustomPresets && customPresetsRaw) {
+                                const aspectRatio = img.width / img.height;
+                                let targetSelection = null;
+
+                                // Determine image orientation
+                                if (Math.abs(aspectRatio - 1) < ASPECT_RATIO_TOLERANCE) {
+                                    targetSelection = 'Square';
+                                } else if (aspectRatio > 1) {
+                                    targetSelection = 'Landscape';
+                                } else {
+                                    targetSelection = 'Portrait';
+                                }
+
+                                // Find preset with matching default-selection
+                                for (const [name, config] of Object.entries(customPresetsRaw)) {
+                                    if (config['default-selection'] === targetSelection) {
+                                        presetToUse = name;
+                                        setSelectedPreset(name);
+                                        console.log(`[Presets] Auto-selected "${name}" for ${targetSelection} image (${img.width}x${img.height})`);
+                                        break;
+                                    }
+                                }
+                            }
+
+                            // Initialize crop to full image
+                            const ratio = getCurrentPresets()[presetToUse];
+                            initializeCrop(img.width, img.height, ratio);
+
+                            // Auto zoom to fit on load
+                            setTimeout(() => {
+                                if (canvasWidth && canvasHeight) {
+                                    const zoomX = (canvasWidth - CANVAS_PADDING) / img.width;
+                                    const zoomY = (canvasHeight - CANVAS_PADDING) / img.height;
+                                    const newZoom = Math.min(zoomX, zoomY);
+                                    setZoomLevel(Math.max(ZOOM_MIN, Math.min(newZoom, ZOOM_MAX)));
+                                    setPanX(0);
+                                    setPanY(0);
+                                }
+                            }, ZOOM_INITIAL_DELAY);
+                        } catch (error) {
+                            console.error('[Error] Failed to load image:', error);
+                        }
+                    };
+                    img.onerror = () => {
+                        console.error('[Error] Failed to decode image file. Make sure it is a valid image.');
+                    };
+                    img.src = e.target.result;
+                };
+                reader.onerror = () => {
+                    console.error('[Error] Failed to read file');
+                };
+                reader.readAsDataURL(file);
+            };
+            
+            // Get current preset collection (built-in or custom) - memoized to avoid unnecessary recalculations
+            const currentPresets = useMemo(() => {
+                return useCustomPresets ? customPresets : BUILT_IN_PRESETS;
+            }, [useCustomPresets, customPresets]);
+
+            const getCurrentPresets = () => currentPresets;
+
+            // Parse aspect ratio from string (e.g., "16/9" or "1.777") or number
+            const parseAspectRatio = (value) => {
+                if (value === null || value === undefined || value === '') {
+                    return null;
+                }
+
+                // If it's a number, return it directly
+                if (typeof value === 'number') {
+                    return value;
+                }
+
+                // Convert to string if it isn't already
+                const strValue = String(value).trim();
+
+                // Check if it's a ratio format (e.g., "16/9")
+                if (strValue.includes('/')) {
+                    const parts = strValue.split('/');
+                    if (parts.length === 2) {
+                        const numerator = parseFloat(parts[0].trim());
+                        const denominator = parseFloat(parts[1].trim());
+
+                        // Validate that both are valid numbers and denominator is not zero
+                        if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
+                            return numerator / denominator;
+                        }
+                    }
+                    // If ratio format is invalid, return null
+                    return null;
+                }
+
+                // Otherwise, try to parse as decimal number
+                const numValue = parseFloat(strValue);
+                if (!isNaN(numValue) && numValue > 0) {
+                    return numValue;
+                }
+
+                return null;
+            };
+
+            // Load custom presets from JSON file
+            const loadCustomPresets = (file) => {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const jsonData = JSON.parse(e.target.result);
+                        setCustomPresetsRaw(jsonData);
+                        
+                        // Convert JSON presets to internal format
+                        const converted = {};
+                        for (const [name, config] of Object.entries(jsonData)) {
+                            if (config['crop-ratio']) {
+                                // Parse crop-ratio using the parseAspectRatio function
+                                converted[name] = parseAspectRatio(config['crop-ratio']);
+                            } else if (config['max-width'] && config['max-height']) {
+                                // Calculate crop-ratio from max dimensions if crop-ratio not defined
+                                converted[name] = config['max-width'] / config['max-height'];
+                            } else {
+                                converted[name] = null; // Freestyle
+                            }
+                        }
+                        
+                        setCustomPresets(converted);
+                        setCustomPresetsFileName(file.name);
+                        setUseCustomPresets(true);
+                        
+                        // Reset to first preset
+                        const firstPreset = Object.keys(converted)[0];
+                        setSelectedPreset(firstPreset);
+                        
+                    } catch (error) {
+                        alert(`Error loading preset file: ${error.message}`);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            
+            // Apply preset-specific settings (from custom presets)
+            const applyPresetSettings = (presetName) => {
+                if (useCustomPresets && customPresetsRaw[presetName]) {
+                    const config = customPresetsRaw[presetName];
+                    
+                    // Apply max dimensions
+                    if (config['max-width']) {
+                        setMaxWidth(config['max-width'].toString());
+                    } else {
+                        setMaxWidth('');
+                    }
+                    
+                    if (config['max-height']) {
+                        setMaxHeight(config['max-height'].toString());
+                    } else {
+                        setMaxHeight('');
+                    }
+                    
+                    // Apply target file size
+                    if (config['max-filesize']) {
+                        const size = config['max-filesize'];
+                        const unit = config['max-filesize-unit'] || 'MB';
+                        
+                        // Convert to MB
+                        let sizeInMB = size;
+                        if (unit === 'KB') {
+                            sizeInMB = size / 1024;
+                        } else if (unit === 'GB') {
+                            sizeInMB = size * 1024;
+                        }
+                        
+                        setTargetSize(sizeInMB.toString());
+                        setWebOptimize(true);
+                    }
+                }
+            };
+            
+            // Queue management functions
+            const addImagesToQueue = (files) => {
+                const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
+                
+                if (imageFiles.length === 0) {
+                    alert('No valid image files found');
+                    return;
+                }
+                
+                // Create queue items with metadata
+                const newQueueItems = imageFiles.map((file, index) => ({
+                    id: Date.now() + index,
+                    file: file,
+                    name: file.name,
+                    size: file.size,
+                    type: file.type
+                }));
+                
+                const wasEmpty = imageQueue.length === 0;
+                setImageQueue(prev => [...prev, ...newQueueItems]);
+                
+                // If no image is currently loaded, load the first one
+                if (wasEmpty && newQueueItems.length > 0) {
+                    // Use setTimeout to ensure state is updated
+                    setTimeout(() => {
+                        setCurrentImageIndex(0);
+                        loadImage(newQueueItems[0].file);
+                    }, 0);
+                }
+            };
+            
+            const loadImageFromQueue = (index) => {
+                if (index < 0 || index >= imageQueue.length) return;
+
+                const queueItem = imageQueue[index];
+                setCurrentImageIndex(index);
+                loadImage(queueItem.file, true); // Skip auto-preset selection when navigating queue
+            };
+            
+            const loadNextImage = () => {
+                if (currentImageIndex < imageQueue.length - 1) {
+                    loadImageFromQueue(currentImageIndex + 1);
+                }
+            };
+            
+            const loadPreviousImage = () => {
+                if (currentImageIndex > 0) {
+                    loadImageFromQueue(currentImageIndex - 1);
+                }
+            };
+            
+            const markImageAsProcessed = () => {
+                if (currentImageIndex >= 0) {
+                    setProcessedImages(prev => new Set([...prev, currentImageIndex]));
+                }
+            };
+            
+            const removeImageFromQueue = (index) => {
+                console.log('[Queue] removeImageFromQueue called with index:', index);
+                console.log('[Queue] Current queue length:', imageQueue.length);
+                
+                const newQueue = imageQueue.filter((_, i) => i !== index);
+                console.log('[Queue] New queue length:', newQueue.length);
+                
+                // Update processed images set
+                const newProcessed = new Set();
+                processedImages.forEach(i => {
+                    if (i < index) newProcessed.add(i);
+                    else if (i > index) newProcessed.add(i - 1);
+                });
+                setProcessedImages(newProcessed);
+                
+                // Determine what to load next BEFORE updating state
+                let shouldLoadNext = false;
+                let nextIndex = -1;
+                let nextItem = null;
+                
+                if (currentImageIndex === index) {
+                    // Current image is being removed
+                    if (newQueue.length > 0) {
+                        nextIndex = Math.min(index, newQueue.length - 1);
+                        nextItem = newQueue[nextIndex];
+                        shouldLoadNext = true;
+                        console.log('[Queue] Will load next image at index:', nextIndex, nextItem.name);
+                    } else {
+                        console.log('[Queue] Queue will be empty after removal');
+                    }
+                }
+                
+                // Update queue state
+                setImageQueue(newQueue);
+                
+                // Handle loading after state update
+                if (currentImageIndex === index) {
+                    if (shouldLoadNext && nextItem) {
+                        // Load the next image
+                        console.log('[Queue] Loading next image:', nextItem.name);
+                        setCurrentImageIndex(nextIndex);
+                        loadImage(nextItem.file, true); // Skip auto-preset selection when removing image from queue
+                    } else {
+                        // Queue is now empty
+                        console.log('[Queue] Clearing queue state');
+                        setCurrentImageIndex(-1);
+                        setImage(null);
+                        setImageData(null);
+                    }
+                } else if (currentImageIndex > index) {
+                    // Adjust index if we removed an earlier image
+                    console.log('[Queue] Adjusting current index from', currentImageIndex, 'to', currentImageIndex - 1);
+                    setCurrentImageIndex(currentImageIndex - 1);
+                }
+            };
+            
+            const clearQueue = () => {
+                setImageQueue([]);
+                setCurrentImageIndex(-1);
+                setProcessedImages(new Set());
+                setImage(null);
+                setImageData(null);
+            };
+
+            // Initialize crop based on aspect ratio
+            const initializeCrop = (imgWidth, imgHeight, ratio) => {
+                if (!ratio) {
+                    setCropX(0);
+                    setCropY(0);
+                    setCropWidth(imgWidth);
+                    setCropHeight(imgHeight);
+                } else {
+                    const imgRatio = imgWidth / imgHeight;
+                    let w, h;
+                    
+                    if (ratio > imgRatio) {
+                        w = imgWidth;
+                        h = imgWidth / ratio;
+                    } else {
+                        h = imgHeight;
+                        w = imgHeight * ratio;
+                    }
+                    
+                    setCropX((imgWidth - w) / 2);
+                    setCropY((imgHeight - h) / 2);
+                    setCropWidth(w);
+                    setCropHeight(h);
+                }
+            };
+            
+            // Handle preset change
+            useEffect(() => {
+                const currentPresets = getCurrentPresets();
+                const ratio = currentPresets[selectedPreset];
+                setAspectRatio(ratio);
+                if (image) {
+                    initializeCrop(image.width, image.height, ratio);
+                }
+                
+                // Apply preset-specific settings (from custom presets)
+                applyPresetSettings(selectedPreset);
+            }, [selectedPreset, useCustomPresets]);
+            
+            // Draw on canvas
+            useEffect(() => {
+                const canvas = canvasRef.current;
+                if (!canvas || !image) return;
+                
+                const ctx = canvas.getContext('2d');
+                const canvasWidth = canvas.width;
+                const canvasHeight = canvas.height;
+                
+                // Clear canvas
+                ctx.fillStyle = '#2b2b2b';
+                ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+                
+                // Calculate display dimensions
+                const displayWidth = image.width * zoomLevel;
+                const displayHeight = image.height * zoomLevel;
+                
+                // Calculate image position (centered + pan)
+                const imgX = (canvasWidth - displayWidth) / 2 + panX;
+                const imgY = (canvasHeight - displayHeight) / 2 + panY;
+                
+                // Draw image
+                ctx.drawImage(image, imgX, imgY, displayWidth, displayHeight);
+                
+                // Draw crop overlay if image is loaded and crop area has been initialized
+                if (cropWidth > 0 && cropHeight > 0) {
+                    // Calculate crop coordinates in display space
+                    const cropDisplayX = imgX + cropX * zoomLevel;
+                    const cropDisplayY = imgY + cropY * zoomLevel;
+                    const cropDisplayWidth = cropWidth * zoomLevel;
+                    const cropDisplayHeight = cropHeight * zoomLevel;
+                    
+                    // Draw darkened overlay outside crop
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                    ctx.fillRect(0, 0, canvasWidth, cropDisplayY); // Top
+                    ctx.fillRect(0, cropDisplayY, cropDisplayX, cropDisplayHeight); // Left
+                    ctx.fillRect(cropDisplayX + cropDisplayWidth, cropDisplayY, canvasWidth, cropDisplayHeight); // Right
+                    ctx.fillRect(0, cropDisplayY + cropDisplayHeight, canvasWidth, canvasHeight); // Bottom
+                    
+                    // Draw crop border
+                    ctx.strokeStyle = '#fbbf24';
+                    ctx.lineWidth = 2;
+                    ctx.strokeRect(cropDisplayX, cropDisplayY, cropDisplayWidth, cropDisplayHeight);
+                    
+                    // Draw rule of thirds grid
+                    ctx.strokeStyle = 'rgba(251, 191, 36, 0.5)';
+                    ctx.lineWidth = 1;
+                    
+                    // Vertical lines
+                    const third1X = cropDisplayX + cropDisplayWidth / 3;
+                    const third2X = cropDisplayX + (2 * cropDisplayWidth) / 3;
+                    ctx.beginPath();
+                    ctx.moveTo(third1X, cropDisplayY);
+                    ctx.lineTo(third1X, cropDisplayY + cropDisplayHeight);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(third2X, cropDisplayY);
+                    ctx.lineTo(third2X, cropDisplayY + cropDisplayHeight);
+                    ctx.stroke();
+                    
+                    // Horizontal lines
+                    const third1Y = cropDisplayY + cropDisplayHeight / 3;
+                    const third2Y = cropDisplayY + (2 * cropDisplayHeight) / 3;
+                    ctx.beginPath();
+                    ctx.moveTo(cropDisplayX, third1Y);
+                    ctx.lineTo(cropDisplayX + cropDisplayWidth, third1Y);
+                    ctx.stroke();
+                    ctx.beginPath();
+                    ctx.moveTo(cropDisplayX, third2Y);
+                    ctx.lineTo(cropDisplayX + cropDisplayWidth, third2Y);
+                    ctx.stroke();
+                    
+                    // Draw resize handles
+                    ctx.fillStyle = '#ffffff';
+                    ctx.strokeStyle = '#000000';
+                    ctx.lineWidth = 1;
+                    
+                    const handles = [
+                        { x: cropDisplayX, y: cropDisplayY }, // NW
+                        { x: cropDisplayX + cropDisplayWidth / 2, y: cropDisplayY }, // N
+                        { x: cropDisplayX + cropDisplayWidth, y: cropDisplayY }, // NE
+                        { x: cropDisplayX + cropDisplayWidth, y: cropDisplayY + cropDisplayHeight / 2 }, // E
+                        { x: cropDisplayX + cropDisplayWidth, y: cropDisplayY + cropDisplayHeight }, // SE
+                        { x: cropDisplayX + cropDisplayWidth / 2, y: cropDisplayY + cropDisplayHeight }, // S
+                        { x: cropDisplayX, y: cropDisplayY + cropDisplayHeight }, // SW
+                        { x: cropDisplayX, y: cropDisplayY + cropDisplayHeight / 2 } // W
+                    ];
+                    
+                    handles.forEach(handle => {
+                        ctx.fillRect(handle.x - CROP_HANDLE_SIZE / 2, handle.y - CROP_HANDLE_SIZE / 2, CROP_HANDLE_SIZE, CROP_HANDLE_SIZE);
+                        ctx.strokeRect(handle.x - CROP_HANDLE_SIZE / 2, handle.y - CROP_HANDLE_SIZE / 2, CROP_HANDLE_SIZE, CROP_HANDLE_SIZE);
+                    });
+                }
+            }, [image, zoomLevel, panX, panY, cropX, cropY, cropWidth, cropHeight, aspectRatio, isFreestyleMode, canvasWidth, canvasHeight]);
+            
+            // Get cursor position relative to canvas
+            const getCursorPos = (e) => {
+                const canvas = canvasRef.current;
+                const rect = canvas.getBoundingClientRect();
+                return {
+                    x: e.clientX - rect.left,
+                    y: e.clientY - rect.top
+                };
+            };
+            
+            // Convert canvas coordinates to image coordinates
+            const canvasToImage = (canvasX, canvasY) => {
+                const canvas = canvasRef.current;
+                const displayWidth = image.width * zoomLevel;
+                const displayHeight = image.height * zoomLevel;
+                const imgX = (canvas.width - displayWidth) / 2 + panX;
+                const imgY = (canvas.height - displayHeight) / 2 + panY;
+                
+                return {
+                    x: (canvasX - imgX) / zoomLevel,
+                    y: (canvasY - imgY) / zoomLevel
+                };
+            };
+            
+            // Detect which handle is being hovered/clicked
+            const detectHandle = (canvasX, canvasY) => {
+                if (!image || cropWidth <= 0 || cropHeight <= 0) return null;
+                
+                const canvas = canvasRef.current;
+                const displayWidth = image.width * zoomLevel;
+                const displayHeight = image.height * zoomLevel;
+                const imgX = (canvas.width - displayWidth) / 2 + panX;
+                const imgY = (canvas.height - displayHeight) / 2 + panY;
+                
+                const cropDisplayX = imgX + cropX * zoomLevel;
+                const cropDisplayY = imgY + cropY * zoomLevel;
+                const cropDisplayWidth = cropWidth * zoomLevel;
+                const cropDisplayHeight = cropHeight * zoomLevel;
+                
+                const handles = {
+                    'nw': { x: cropDisplayX, y: cropDisplayY },
+                    'n': { x: cropDisplayX + cropDisplayWidth / 2, y: cropDisplayY },
+                    'ne': { x: cropDisplayX + cropDisplayWidth, y: cropDisplayY },
+                    'e': { x: cropDisplayX + cropDisplayWidth, y: cropDisplayY + cropDisplayHeight / 2 },
+                    'se': { x: cropDisplayX + cropDisplayWidth, y: cropDisplayY + cropDisplayHeight },
+                    's': { x: cropDisplayX + cropDisplayWidth / 2, y: cropDisplayY + cropDisplayHeight },
+                    'sw': { x: cropDisplayX, y: cropDisplayY + cropDisplayHeight },
+                    'w': { x: cropDisplayX, y: cropDisplayY + cropDisplayHeight / 2 }
+                };
+
+                for (const [key, handle] of Object.entries(handles)) {
+                    if (Math.abs(canvasX - handle.x) <= CROP_HANDLE_SIZE / 2 + HANDLE_TOLERANCE &&
+                        Math.abs(canvasY - handle.y) <= CROP_HANDLE_SIZE / 2 + HANDLE_TOLERANCE) {
+                        return key;
+                    }
+                }
+                
+                return null;
+            };
+            
+            // Check if cursor is inside crop rectangle
+            const isInsideCrop = (canvasX, canvasY) => {
+                if (!image) return false;
+                
+                const canvas = canvasRef.current;
+                const displayWidth = image.width * zoomLevel;
+                const displayHeight = image.height * zoomLevel;
+                const imgX = (canvas.width - displayWidth) / 2 + panX;
+                const imgY = (canvas.height - displayHeight) / 2 + panY;
+                
+                const cropDisplayX = imgX + cropX * zoomLevel;
+                const cropDisplayY = imgY + cropY * zoomLevel;
+                const cropDisplayWidth = cropWidth * zoomLevel;
+                const cropDisplayHeight = cropHeight * zoomLevel;
+                
+                return canvasX >= cropDisplayX && canvasX <= cropDisplayX + cropDisplayWidth &&
+                       canvasY >= cropDisplayY && canvasY <= cropDisplayY + cropDisplayHeight;
+            };
+            
+            // Mouse down handler
+            const handleMouseDown = (e) => {
+                if (!image) return;
+
+                const pos = getCursorPos(e);
+                const handle = detectHandle(pos.x, pos.y);
+
+                if (handle) {
+                    setDragType(`resize-${handle}`);
+                    setDragStartCropX(cropX);
+                    setDragStartCropY(cropY);
+                    setDragStartCropWidth(cropWidth);
+                    setDragStartCropHeight(cropHeight);
+                    // Keep the resize cursor during drag
+                    setCursorStyle(CURSOR_MAP[handle] || 'default');
+                } else if (isInsideCrop(pos.x, pos.y)) {
+                    setDragType('move');
+                    setDragStartCropX(cropX);
+                    setDragStartCropY(cropY);
+                    setCursorStyle('move');
+                } else {
+                    setDragType('pan');
+                    setDragStartPanX(panX);
+                    setDragStartPanY(panY);
+                    setCursorStyle('grabbing');
+                }
+
+                setIsDragging(true);
+                setDragStartX(pos.x);
+                setDragStartY(pos.y);
+            };
+            
+            // Update cursor based on hover position
+            const updateCursor = (e) => {
+                if (isDragging || !image) return;
+
+                const pos = getCursorPos(e);
+                const handle = detectHandle(pos.x, pos.y);
+
+                if (handle) {
+                    // Set cursor based on resize handle direction
+                    setCursorStyle(CURSOR_MAP[handle] || 'default');
+                } else if (isInsideCrop(pos.x, pos.y)) {
+                    setCursorStyle('move');
+                } else {
+                    setCursorStyle('grab');
+                }
+            };
+
+            // Mouse move handler
+            const handleMouseMove = (e) => {
+                // Update cursor on hover
+                if (!isDragging) {
+                    updateCursor(e);
+                }
+
+                if (!isDragging || !image) return;
+
+                const pos = getCursorPos(e);
+                const dx = pos.x - dragStartX;
+                const dy = pos.y - dragStartY;
+                
+                if (dragType === 'pan') {
+                    setPanX(dragStartPanX + dx);
+                    setPanY(dragStartPanY + dy);
+                } else if (dragType === 'move') {
+                    const dxImg = dx / zoomLevel;
+                    const dyImg = dy / zoomLevel;
+                    
+                    let newX = dragStartCropX + dxImg;
+                    let newY = dragStartCropY + dyImg;
+                    
+                    // Constrain to image bounds
+                    newX = Math.max(0, Math.min(newX, image.width - cropWidth));
+                    newY = Math.max(0, Math.min(newY, image.height - cropHeight));
+                    
+                    setCropX(newX);
+                    setCropY(newY);
+                } else if (dragType.startsWith('resize-')) {
+                    const direction = dragType.split('-')[1];
+                    const dxImg = dx / zoomLevel;
+                    const dyImg = dy / zoomLevel;
+                    
+                    let newX = dragStartCropX;
+                    let newY = dragStartCropY;
+                    let newWidth = dragStartCropWidth;
+                    let newHeight = dragStartCropHeight;
+                    
+                    // Handle resize based on direction
+                    if (direction.includes('w')) {
+                        newX = dragStartCropX + dxImg;
+                        newWidth = dragStartCropWidth - dxImg;
+                    }
+                    if (direction.includes('e')) {
+                        newWidth = dragStartCropWidth + dxImg;
+                    }
+                    if (direction.includes('n')) {
+                        newY = dragStartCropY + dyImg;
+                        newHeight = dragStartCropHeight - dyImg;
+                    }
+                    if (direction.includes('s')) {
+                        newHeight = dragStartCropHeight + dyImg;
+                    }
+                    
+                    // Maintain aspect ratio if set (and Freestyle mode is disabled)
+                    if (aspectRatio && !isFreestyleMode) {
+                        if (direction.includes('e') || direction.includes('w')) {
+                            newHeight = newWidth / aspectRatio;
+                            if (direction.includes('n')) {
+                                newY = dragStartCropY + dragStartCropHeight - newHeight;
+                            }
+                        } else {
+                            newWidth = newHeight * aspectRatio;
+                            if (direction.includes('w')) {
+                                newX = dragStartCropX + dragStartCropWidth - newWidth;
+                            }
+                        }
+                    }
+                    
+                    // Constrain to image bounds
+                    if (newX < 0) {
+                        newWidth += newX;
+                        newX = 0;
+                    }
+                    if (newY < 0) {
+                        newHeight += newY;
+                        newY = 0;
+                    }
+                    if (newX + newWidth > image.width) {
+                        newWidth = image.width - newX;
+                    }
+                    if (newY + newHeight > image.height) {
+                        newHeight = image.height - newY;
+                    }
+                    
+                    // Minimum size
+                    if (newWidth > MIN_CROP_SIZE && newHeight > MIN_CROP_SIZE) {
+                        setCropX(newX);
+                        setCropY(newY);
+                        setCropWidth(newWidth);
+                        setCropHeight(newHeight);
+                    }
+                }
+            };
+            
+            // Mouse up handler
+            const handleMouseUp = (e) => {
+                const wasDragging = isDragging;
+                setIsDragging(false);
+                setDragType(null);
+                // Update cursor after drag ends
+                if (wasDragging && e && image) {
+                    setTimeout(() => updateCursor(e), 0);
+                }
+            };
+
+            // Mouse leave handler
+            const handleMouseLeave = () => {
+                setIsDragging(false);
+                setDragType(null);
+                setCursorStyle('default');
+            };
+            
+            // Wheel handler for zoom
+            const handleWheel = (e) => {
+                e.preventDefault();
+                if (!image) return;
+                
+                const delta = e.deltaY;
+                const zoomFactor = delta > 0 ? 0.9 : 1.1;
+                const newZoom = Math.max(0.1, Math.min(zoomLevel * zoomFactor, 10));
+                setZoomLevel(newZoom);
+            };
+            
+            // Zoom controls
+            const handleZoomIn = () => {
+                setZoomLevel(Math.min(zoomLevel * 1.1, 10));
+            };
+            
+            const handleZoomOut = () => {
+                setZoomLevel(Math.max(zoomLevel * 0.9, 0.1));
+            };
+            
+            const handleZoomReset = () => {
+                setZoomLevel(1);
+                setPanX(0);
+                setPanY(0);
+            };
+            
+            const handleZoomToFit = () => {
+                if (!image) return;
+
+                const zoomX = (canvasWidth - CANVAS_PADDING) / image.width;
+                const zoomY = (canvasHeight - CANVAS_PADDING) / image.height;
+                const newZoom = Math.min(zoomX, zoomY);
+
+                setZoomLevel(Math.max(ZOOM_MIN, Math.min(newZoom, ZOOM_MAX)));
+                setPanX(0);
+                setPanY(0);
+            };
+            
+            // File upload handlers
+            const handleFileSelect = (e) => {
+                const files = e.target.files;
+                if (files && files.length > 0) {
+                    if (files.length === 1) {
+                        // Single file - load directly
+                        loadImage(files[0]);
+                    } else {
+                        // Multiple files - add to queue
+                        addImagesToQueue(files);
+                    }
+                }
+            };
+            
+            const handleDrop = (e) => {
+                e.preventDefault();
+                const files = e.dataTransfer.files;
+                if (files && files.length > 0) {
+                    if (files.length === 1 && files[0].type.startsWith('image/')) {
+                        // Single file - load directly
+                        loadImage(files[0]);
+                    } else {
+                        // Multiple files - add to queue
+                        addImagesToQueue(files);
+                    }
+                }
+            };
+            
+            const handleDragOver = (e) => {
+                e.preventDefault();
+            };
+
+            // Clipboard paste handler
+            const handlePaste = async (e) => {
+                const items = e.clipboardData?.items;
+                if (!items) return;
+
+                for (let i = 0; i < items.length; i++) {
+                    const item = items[i];
+                    // Check if the item is an image
+                    if (item.type.startsWith('image/')) {
+                        e.preventDefault();
+
+                        try {
+                            const blob = item.getAsFile();
+                            if (blob) {
+                                // Convert blob to File object with a generated name
+                                const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+                                const fileName = `pasted-image-${timestamp}.${blob.type.split('/')[1]}`;
+                                const file = new File([blob], fileName, { type: blob.type });
+
+                                // If queue has images, add to queue; otherwise load directly
+                                if (imageQueue.length > 0) {
+                                    const newQueueItem = {
+                                        id: Date.now(),
+                                        file: file,
+                                        name: fileName,
+                                        size: blob.size,
+                                        type: blob.type
+                                    };
+                                    setImageQueue(prev => [...prev, newQueueItem]);
+                                    console.log('[Paste] Image added to queue:', fileName);
+                                } else {
+                                    loadImage(file);
+                                    console.log('[Paste] Image pasted from clipboard:', fileName);
+                                }
+                            }
+                        } catch (error) {
+                            console.error('[Paste] Error processing clipboard image:', error);
+                        }
+                        break; // Only process the first image
+                    }
+                }
+            };
+
+            // Gaussian blur for anti-aliasing pre-filter
+            const applyGaussianBlur = (sourceCanvas, radius) => {
+                if (radius < MIN_BLUR_RADIUS) return sourceCanvas; // Skip if radius too small
+
+                const srcCtx = sourceCanvas.getContext('2d');
+                const srcData = srcCtx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
+                const dstData = srcCtx.createImageData(sourceCanvas.width, sourceCanvas.height);
+
+                // Generate Gaussian kernel
+                const kernelSize = Math.ceil(radius * GAUSSIAN_KERNEL_MULTIPLIER) * 2 + 1; // N sigma on each side
+                const kernel = new Array(kernelSize);
+                const sigma = radius;
+                let kernelSum = 0;
+
+                const center = Math.floor(kernelSize / 2);
+                for (let i = 0; i < kernelSize; i++) {
+                    const x = i - center;
+                    kernel[i] = Math.exp(-(x * x) / (2 * sigma * sigma));
+                    kernelSum += kernel[i];
+                }
+
+                // Normalize kernel
+                for (let i = 0; i < kernelSize; i++) {
+                    kernel[i] /= kernelSum;
+                }
+
+                // Temporary buffer for horizontal pass
+                const tempData = new Uint8ClampedArray(srcData.data.length);
+
+                // Horizontal pass
+                for (let y = 0; y < sourceCanvas.height; y++) {
+                    for (let x = 0; x < sourceCanvas.width; x++) {
+                        let r = 0, g = 0, b = 0, a = 0;
+
+                        for (let k = 0; k < kernelSize; k++) {
+                            const px = Math.max(0, Math.min(sourceCanvas.width - 1, x + k - center));
+                            const idx = (y * sourceCanvas.width + px) * 4;
+                            const weight = kernel[k];
+
+                            r += srcData.data[idx] * weight;
+                            g += srcData.data[idx + 1] * weight;
+                            b += srcData.data[idx + 2] * weight;
+                            a += srcData.data[idx + 3] * weight;
+                        }
+
+                        const dstIdx = (y * sourceCanvas.width + x) * 4;
+                        tempData[dstIdx] = r;
+                        tempData[dstIdx + 1] = g;
+                        tempData[dstIdx + 2] = b;
+                        tempData[dstIdx + 3] = a;
+                    }
+                }
+
+                // Vertical pass
+                for (let y = 0; y < sourceCanvas.height; y++) {
+                    for (let x = 0; x < sourceCanvas.width; x++) {
+                        let r = 0, g = 0, b = 0, a = 0;
+
+                        for (let k = 0; k < kernelSize; k++) {
+                            const py = Math.max(0, Math.min(sourceCanvas.height - 1, y + k - center));
+                            const idx = (py * sourceCanvas.width + x) * 4;
+                            const weight = kernel[k];
+
+                            r += tempData[idx] * weight;
+                            g += tempData[idx + 1] * weight;
+                            b += tempData[idx + 2] * weight;
+                            a += tempData[idx + 3] * weight;
+                        }
+
+                        const dstIdx = (y * sourceCanvas.width + x) * 4;
+                        dstData.data[dstIdx] = r;
+                        dstData.data[dstIdx + 1] = g;
+                        dstData.data[dstIdx + 2] = b;
+                        dstData.data[dstIdx + 3] = a;
+                    }
+                }
+
+                // Create new canvas with blurred data
+                const blurredCanvas = document.createElement('canvas');
+                blurredCanvas.width = sourceCanvas.width;
+                blurredCanvas.height = sourceCanvas.height;
+                const blurredCtx = blurredCanvas.getContext('2d');
+                blurredCtx.putImageData(dstData, 0, 0);
+
+                return blurredCanvas;
+            };
+
+            // Resampling functions with adaptive anti-aliasing
+            const resampleImage = (sourceCanvas, targetWidth, targetHeight, method) => {
+                const targetCanvas = document.createElement('canvas');
+                targetCanvas.width = targetWidth;
+                targetCanvas.height = targetHeight;
+                const targetCtx = targetCanvas.getContext('2d');
+
+                // Calculate downsampling ratio
+                const scaleX = targetWidth / sourceCanvas.width;
+                const scaleY = targetHeight / sourceCanvas.height;
+                const minScale = Math.min(scaleX, scaleY);
+
+                // Apply anti-aliasing pre-filter if downsampling significantly
+                // Use adaptive radius based on downsampling ratio
+                let processedCanvas = sourceCanvas;
+                if (minScale < 1.0 && method !== 'nearest' && method !== 'browser') {
+                    // Calculate blur radius based on Nyquist frequency
+                    // For 2x downsampling (0.5 scale), radius ≈ 0.5
+                    // For 4x downsampling (0.25 scale), radius ≈ 1.5, etc.
+                    const blurRadius = Math.max(0, (1.0 / minScale - 1.0) * 0.5);
+
+                    if (blurRadius > BLUR_THRESHOLD) { // Only apply if meaningful
+                        processedCanvas = applyGaussianBlur(sourceCanvas, blurRadius);
+                    }
+                }
+
+                switch (method) {
+                    case 'nearest':
+                        return resampleNearestNeighbor(processedCanvas, targetCanvas);
+                    case 'bilinear':
+                        return resampleBilinear(processedCanvas, targetCanvas);
+                    case 'bicubic':
+                        return resampleBicubic(processedCanvas, targetCanvas);
+                    case 'lanczos':
+                        return resampleLanczos(processedCanvas, targetCanvas);
+                    default:
+                        // Fallback to browser's native resampling
+                        targetCtx.imageSmoothingEnabled = true;
+                        targetCtx.imageSmoothingQuality = 'high';
+                        targetCtx.drawImage(processedCanvas, 0, 0, targetWidth, targetHeight);
+                        return targetCanvas;
+                }
+            };
+
+            const resampleNearestNeighbor = (srcCanvas, dstCanvas) => {
+                const srcCtx = srcCanvas.getContext('2d');
+                const dstCtx = dstCanvas.getContext('2d');
+                const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height);
+                const dstData = dstCtx.createImageData(dstCanvas.width, dstCanvas.height);
+
+                const xRatio = srcCanvas.width / dstCanvas.width;
+                const yRatio = srcCanvas.height / dstCanvas.height;
+
+                for (let y = 0; y < dstCanvas.height; y++) {
+                    for (let x = 0; x < dstCanvas.width; x++) {
+                        const srcX = Math.floor(x * xRatio);
+                        const srcY = Math.floor(y * yRatio);
+                        const srcIdx = (srcY * srcCanvas.width + srcX) * 4;
+                        const dstIdx = (y * dstCanvas.width + x) * 4;
+
+                        dstData.data[dstIdx] = srcData.data[srcIdx];
+                        dstData.data[dstIdx + 1] = srcData.data[srcIdx + 1];
+                        dstData.data[dstIdx + 2] = srcData.data[srcIdx + 2];
+                        dstData.data[dstIdx + 3] = srcData.data[srcIdx + 3];
+                    }
+                }
+
+                dstCtx.putImageData(dstData, 0, 0);
+                return dstCanvas;
+            };
+
+            const resampleBilinear = (srcCanvas, dstCanvas) => {
+                const srcCtx = srcCanvas.getContext('2d');
+                const dstCtx = dstCanvas.getContext('2d');
+                const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height);
+                const dstData = dstCtx.createImageData(dstCanvas.width, dstCanvas.height);
+
+                const xRatio = (srcCanvas.width - 1) / dstCanvas.width;
+                const yRatio = (srcCanvas.height - 1) / dstCanvas.height;
+
+                for (let y = 0; y < dstCanvas.height; y++) {
+                    for (let x = 0; x < dstCanvas.width; x++) {
+                        const srcX = x * xRatio;
+                        const srcY = y * yRatio;
+                        const x1 = Math.floor(srcX);
+                        const y1 = Math.floor(srcY);
+                        const x2 = Math.min(x1 + 1, srcCanvas.width - 1);
+                        const y2 = Math.min(y1 + 1, srcCanvas.height - 1);
+                        const xWeight = srcX - x1;
+                        const yWeight = srcY - y1;
+
+                        const getPixel = (px, py) => {
+                            const idx = (py * srcCanvas.width + px) * 4;
+                            return [
+                                srcData.data[idx],
+                                srcData.data[idx + 1],
+                                srcData.data[idx + 2],
+                                srcData.data[idx + 3]
+                            ];
+                        };
+
+                        const p1 = getPixel(x1, y1);
+                        const p2 = getPixel(x2, y1);
+                        const p3 = getPixel(x1, y2);
+                        const p4 = getPixel(x2, y2);
+
+                        const dstIdx = (y * dstCanvas.width + x) * 4;
+                        for (let c = 0; c < 4; c++) {
+                            const top = p1[c] * (1 - xWeight) + p2[c] * xWeight;
+                            const bottom = p3[c] * (1 - xWeight) + p4[c] * xWeight;
+                            dstData.data[dstIdx + c] = top * (1 - yWeight) + bottom * yWeight;
+                        }
+                    }
+                }
+
+                dstCtx.putImageData(dstData, 0, 0);
+                return dstCanvas;
+            };
+
+            const resampleBicubic = (srcCanvas, dstCanvas) => {
+                const srcCtx = srcCanvas.getContext('2d');
+                const dstCtx = dstCanvas.getContext('2d');
+                const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height);
+                const dstData = dstCtx.createImageData(dstCanvas.width, dstCanvas.height);
+
+                const xRatio = srcCanvas.width / dstCanvas.width;
+                const yRatio = srcCanvas.height / dstCanvas.height;
+
+                const cubicInterpolate = (p, x) => {
+                    return p[1] + 0.5 * x * (p[2] - p[0] + x * (2.0 * p[0] - 5.0 * p[1] + 4.0 * p[2] - p[3] + x * (3.0 * (p[1] - p[2]) + p[3] - p[0])));
+                };
+
+                const getPixel = (x, y) => {
+                    x = Math.max(0, Math.min(Math.floor(x), srcCanvas.width - 1));
+                    y = Math.max(0, Math.min(Math.floor(y), srcCanvas.height - 1));
+                    const idx = (y * srcCanvas.width + x) * 4;
+                    return [
+                        srcData.data[idx],
+                        srcData.data[idx + 1],
+                        srcData.data[idx + 2],
+                        srcData.data[idx + 3]
+                    ];
+                };
+
+                for (let y = 0; y < dstCanvas.height; y++) {
+                    for (let x = 0; x < dstCanvas.width; x++) {
+                        const srcX = x * xRatio;
+                        const srcY = y * yRatio;
+                        const xFloor = Math.floor(srcX);
+                        const yFloor = Math.floor(srcY);
+                        const xFrac = srcX - xFloor;
+                        const yFrac = srcY - yFloor;
+
+                        const pixels = [];
+                        for (let dy = -1; dy <= 2; dy++) {
+                            const row = [];
+                            for (let dx = -1; dx <= 2; dx++) {
+                                row.push(getPixel(xFloor + dx, yFloor + dy));
+                            }
+                            pixels.push(row);
+                        }
+
+                        const dstIdx = (y * dstCanvas.width + x) * 4;
+                        for (let c = 0; c < 4; c++) {
+                            const col = [
+                                cubicInterpolate([pixels[0][0][c], pixels[0][1][c], pixels[0][2][c], pixels[0][3][c]], xFrac),
+                                cubicInterpolate([pixels[1][0][c], pixels[1][1][c], pixels[1][2][c], pixels[1][3][c]], xFrac),
+                                cubicInterpolate([pixels[2][0][c], pixels[2][1][c], pixels[2][2][c], pixels[2][3][c]], xFrac),
+                                cubicInterpolate([pixels[3][0][c], pixels[3][1][c], pixels[3][2][c], pixels[3][3][c]], xFrac)
+                            ];
+                            dstData.data[dstIdx + c] = Math.max(0, Math.min(255, cubicInterpolate(col, yFrac)));
+                        }
+                    }
+                }
+
+                dstCtx.putImageData(dstData, 0, 0);
+                return dstCanvas;
+            };
+
+            const resampleLanczos = (srcCanvas, dstCanvas) => {
+                const srcCtx = srcCanvas.getContext('2d');
+                const dstCtx = dstCanvas.getContext('2d');
+                const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height);
+                const dstData = dstCtx.createImageData(dstCanvas.width, dstCanvas.height);
+
+                const xRatio = srcCanvas.width / dstCanvas.width;
+                const yRatio = srcCanvas.height / dstCanvas.height;
+
+                const lanczos = (x) => {
+                    if (x === 0) return 1;
+                    if (Math.abs(x) >= LANCZOS_WINDOW_SIZE) return 0;
+                    return (LANCZOS_WINDOW_SIZE * Math.sin(Math.PI * x) * Math.sin(Math.PI * x / LANCZOS_WINDOW_SIZE)) / (Math.PI * Math.PI * x * x);
+                };
+
+                const getPixel = (x, y) => {
+                    x = Math.max(0, Math.min(Math.floor(x), srcCanvas.width - 1));
+                    y = Math.max(0, Math.min(Math.floor(y), srcCanvas.height - 1));
+                    const idx = (y * srcCanvas.width + x) * 4;
+                    return [
+                        srcData.data[idx],
+                        srcData.data[idx + 1],
+                        srcData.data[idx + 2],
+                        srcData.data[idx + 3]
+                    ];
+                };
+
+                for (let y = 0; y < dstCanvas.height; y++) {
+                    for (let x = 0; x < dstCanvas.width; x++) {
+                        const srcX = x * xRatio;
+                        const srcY = y * yRatio;
+                        const xFloor = Math.floor(srcX);
+                        const yFloor = Math.floor(srcY);
+
+                        let r = 0, g = 0, b = 0, alpha = 0, weight = 0;
+
+                        for (let dy = -LANCZOS_WINDOW_SIZE + 1; dy < LANCZOS_WINDOW_SIZE; dy++) {
+                            for (let dx = -LANCZOS_WINDOW_SIZE + 1; dx < LANCZOS_WINDOW_SIZE; dx++) {
+                                const pixel = getPixel(xFloor + dx, yFloor + dy);
+                                const w = lanczos(srcX - (xFloor + dx)) * lanczos(srcY - (yFloor + dy));
+                                r += pixel[0] * w;
+                                g += pixel[1] * w;
+                                b += pixel[2] * w;
+                                alpha += pixel[3] * w;
+                                weight += w;
+                            }
+                        }
+
+                        const dstIdx = (y * dstCanvas.width + x) * 4;
+                        dstData.data[dstIdx] = Math.max(0, Math.min(255, r / weight));
+                        dstData.data[dstIdx + 1] = Math.max(0, Math.min(255, g / weight));
+                        dstData.data[dstIdx + 2] = Math.max(0, Math.min(255, b / weight));
+                        dstData.data[dstIdx + 3] = Math.max(0, Math.min(255, alpha / weight));
+                    }
+                }
+
+                dstCtx.putImageData(dstData, 0, 0);
+                return dstCanvas;
+            };
+
+            // Helper function to handle post-conversion queue operations
+            const handlePostConversionQueue = () => {
+                if (currentImageIndex >= 0 && imageQueue.length > 0) {
+                    const indexToProcess = currentImageIndex;
+
+                    if (removeAfterConvert) {
+                        setTimeout(() => {
+                            removeImageFromQueue(indexToProcess);
+                        }, TRANSITION_DELAY);
+                    } else {
+                        markImageAsProcessed();
+                        setTimeout(() => {
+                            if (indexToProcess < imageQueue.length - 1) {
+                                loadNextImage();
+                            }
+                        }, TRANSITION_DELAY);
+                    }
+                }
+            };
+
+            // Convert and download
+            const handleConvert = async () => {
+                if (!image) return;
+                
+                setIsOptimizing(true);
+                setOptimizingProgress(0);
+                setOptimizingStatus('Cropping image...');
+                
+                // Create temporary canvas for cropping
+                let finalWidth = cropWidth;
+                let finalHeight = cropHeight;
+
+                // Apply max dimensions if specified
+                const maxW = maxWidth ? parseInt(maxWidth) : null;
+                const maxH = maxHeight ? parseInt(maxHeight) : null;
+
+                if (maxW && finalWidth > maxW && finalWidth > 0) {
+                    const ratio = maxW / finalWidth;
+                    finalWidth = maxW;
+                    finalHeight = finalHeight * ratio;
+                }
+
+                if (maxH && finalHeight > maxH && finalHeight > 0) {
+                    const ratio = maxH / finalHeight;
+                    finalHeight = maxH;
+                    finalWidth = finalWidth * ratio;
+                }
+
+                // First, create a canvas with the cropped region at original size
+                const cropCanvas = document.createElement('canvas');
+                cropCanvas.width = cropWidth;
+                cropCanvas.height = cropHeight;
+                const cropCtx = cropCanvas.getContext('2d');
+
+                // Draw the cropped portion at original size
+                cropCtx.drawImage(
+                    image,
+                    cropX, cropY, cropWidth, cropHeight,
+                    0, 0, cropWidth, cropHeight
+                );
+
+                // Now apply resampling if we're resizing
+                let tempCanvas;
+                const needsResampling = Math.round(finalWidth) !== cropWidth || Math.round(finalHeight) !== cropHeight;
+
+                if (needsResampling && resamplingMethod !== 'browser') {
+                    // Calculate downsampling ratio for status display
+                    const scaleRatio = Math.min(finalWidth / cropWidth, finalHeight / cropHeight);
+                    const isDownsampling = scaleRatio < 1.0;
+
+                    if (isDownsampling && scaleRatio < SIGNIFICANT_DOWNSAMPLE_THRESHOLD) {
+                        // Significant downsampling - anti-aliasing will be applied
+                        setOptimizingStatus(`Applying anti-aliasing and resampling with ${resamplingMethod}...`);
+                    } else {
+                        setOptimizingStatus(`Resampling with ${resamplingMethod}...`);
+                    }
+
+                    tempCanvas = resampleImage(cropCanvas, Math.round(finalWidth), Math.round(finalHeight), resamplingMethod);
+                } else {
+                    // Use browser's native resampling
+                    tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = Math.round(finalWidth);
+                    tempCanvas.height = Math.round(finalHeight);
+                    const ctx = tempCanvas.getContext('2d');
+                    ctx.imageSmoothingEnabled = true;
+                    ctx.imageSmoothingQuality = 'high';
+                    ctx.drawImage(cropCanvas, 0, 0, Math.round(finalWidth), Math.round(finalHeight));
+                }
+                
+                // Determine quality and optimization
+                let finalQuality = quality;
+                let usedLossless = lossless;
+                
+                // Web optimization
+                if (webOptimize && !lossless) {
+                    setOptimizingStatus('Testing lossless compression...');
+                    setOptimizingProgress(0);
+                    
+                    const targetSizeBytes = parseFloat(targetSize) * 1024 * 1024;
+                    
+                    // Try lossless first
+                    const losslessBlob = await new Promise(resolve => {
+                        tempCanvas.toBlob(resolve, 'image/webp', 1);
+                    });
+                    
+                    if (losslessBlob.size <= targetSizeBytes) {
+                        setOptimizingStatus('✓ Lossless fits within target!');
+                        setOptimizingProgress(100);
+                        usedLossless = true;
+
+                        // Download
+                        await new Promise(resolve => setTimeout(resolve, 800));
+                        downloadBlob(losslessBlob, tempCanvas.width, tempCanvas.height, 'LL');
+
+                        // Handle queue after conversion
+                        console.log('[Queue] Post-conversion (lossless):', {
+                            removeAfterConvert,
+                            currentImageIndex,
+                            queueLength: imageQueue.length
+                        });
+                        handlePostConversionQueue();
+
+                        setIsOptimizing(false);
+                        return;
+                    }
+                    
+                    // Try quality levels from 100 down to 1
+                    setOptimizingStatus('Finding optimal quality level...');
+                    let foundQuality = null;
+                    
+                    for (let q = 100; q >= 1; q--) {
+                        setOptimizingProgress(((100 - q) / 100) * 100);
+                        setOptimizingStatus(`Testing quality ${q}... (${100 - q + 1}/100)`);
+                        
+                        const blob = await new Promise(resolve => {
+                            tempCanvas.toBlob(resolve, 'image/webp', q / 100);
+                        });
+                        
+                        if (blob.size <= targetSizeBytes) {
+                            foundQuality = q;
+                            setOptimizingStatus(`✓ Quality ${q} achieves ${(blob.size / 1024 / 1024).toFixed(2)}MB`);
+                            setOptimizingProgress(100);
+
+                            // Download
+                            await new Promise(resolve => setTimeout(resolve, 1000));
+                            downloadBlob(blob, tempCanvas.width, tempCanvas.height, q);
+
+                            // Handle queue after conversion
+                            console.log('[Queue] Post-conversion (quality optimized):', {
+                                removeAfterConvert,
+                                currentImageIndex,
+                                queueLength: imageQueue.length
+                            });
+                            handlePostConversionQueue();
+
+                            setIsOptimizing(false);
+                            return;
+                        }
+                    }
+                    
+                    // If we get here, even quality 1 is too large
+                    setOptimizingStatus('⚠ Could not meet target size. Using quality 1.');
+                    finalQuality = 1;
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                }
+                
+                // Standard conversion
+                setOptimizingStatus('Converting to WebP...');
+                const mimeType = 'image/webp';
+                const qualityValue = usedLossless ? 1 : finalQuality / 100;
+                
+                tempCanvas.toBlob((blob) => {
+                    downloadBlob(blob, tempCanvas.width, tempCanvas.height, usedLossless ? 'LL' : finalQuality);
+                    
+                    // Handle queue after conversion
+                    console.log('[Queue] Post-conversion:', {
+                        removeAfterConvert,
+                        currentImageIndex,
+                        queueLength: imageQueue.length
+                    });
+                    handlePostConversionQueue();
+                    
+                    setIsOptimizing(false);
+                }, mimeType, qualityValue);
+            };
+            
+            // Helper function to download blob
+            const downloadBlob = (blob, width, height, qualityValue) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                const date = new Date().toISOString().split('T')[0];
+                const resolution = `${Math.round(width)}x${Math.round(height)}px`;
+                const qualityStr = qualityValue === 'LL' ? 'qLL' : `q${qualityValue}`;
+                a.download = `image-${date}-${resolution}-${qualityStr}.webp`;
+                a.href = url;
+                a.click();
+                // Delay revocation to ensure download completes
+                setTimeout(() => URL.revokeObjectURL(url), 100);
+            };
+            
+            // Keyboard shortcuts
+            useEffect(() => {
+                const handleKeyDown = (e) => {
+                    if (e.ctrlKey || e.metaKey) {
+                        if (e.key === '=' || e.key === '+') {
+                            e.preventDefault();
+                            handleZoomIn();
+                        } else if (e.key === '-') {
+                            e.preventDefault();
+                            handleZoomOut();
+                        } else if (e.key === '0') {
+                            e.preventDefault();
+                            handleZoomReset();
+                        } else if (e.key === 'f' || e.key === 'F') {
+                            e.preventDefault();
+                            handleZoomToFit();
+                        }
+                    }
+                };
+
+                window.addEventListener('keydown', handleKeyDown);
+                return () => window.removeEventListener('keydown', handleKeyDown);
+            }, [image, zoomLevel, canvasWidth, canvasHeight]);
+
+            // Clipboard paste handler
+            useEffect(() => {
+                window.addEventListener('paste', handlePaste);
+                return () => window.removeEventListener('paste', handlePaste);
+            }, [imageQueue]);
+
+            // Dynamic canvas sizing
+            useEffect(() => {
+                const updateCanvasSize = () => {
+                    if (containerRef.current) {
+                        const container = containerRef.current;
+                        const rect = container.getBoundingClientRect();
+                        // Use container size with some padding
+                        setCanvasWidth(Math.max(800, rect.width - CANVAS_PADDING));
+                        setCanvasHeight(Math.max(600, rect.height - CANVAS_PADDING));
+                    }
+                };
+
+                // Initial size
+                updateCanvasSize();
+
+                // Update on window resize
+                window.addEventListener('resize', updateCanvasSize);
+
+                // Also update after a short delay to ensure container is fully rendered
+                const timer = setTimeout(updateCanvasSize, 100);
+
+                return () => {
+                    window.removeEventListener('resize', updateCanvasSize);
+                    clearTimeout(timer);
+                };
+            }, []);
+
+            // Auto-load presets.json on mount
+            useEffect(() => {
+                const loadPresetsFromFile = async () => {
+                    try {
+                        const response = await fetch('./presets.json');
+                        if (response.ok) {
+                            const jsonData = await response.json();
+                            console.log('[Presets] Auto-loaded presets.json');
+                            setCustomPresetsRaw(jsonData);
+
+                            // Convert JSON presets to internal format
+                            const converted = {};
+                            for (const [name, config] of Object.entries(jsonData)) {
+                                if (config['crop-ratio']) {
+                                    // Parse ratio (supports "16/9", "1.777", etc.)
+                                    converted[name] = parseAspectRatio(config['crop-ratio']);
+                                } else if (config['max-width'] && config['max-height']) {
+                                    // Calculate crop-ratio from max dimensions if crop-ratio not defined
+                                    converted[name] = config['max-width'] / config['max-height'];
+                                } else {
+                                    converted[name] = null; // Freestyle
+                                }
+                            }
+
+                            setCustomPresets(converted);
+                            setUseCustomPresets(true);
+                            setCustomPresetsFileName('presets.json (auto-loaded)');
+
+                            // Auto-select first preset from custom presets
+                            const firstPresetName = Object.keys(converted)[0];
+                            if (firstPresetName) {
+                                setSelectedPreset(firstPresetName);
+                            }
+                        }
+                    } catch (error) {
+                        console.log('[Presets] No presets.json found or failed to load, using built-in presets');
+                    }
+                };
+
+                loadPresetsFromFile();
+            }, []);
+
+            return (
+                <div className="flex h-screen bg-gray-900 text-gray-100">
+                    {/* Left Panel - Controls */}
+                    <div className="w-80 bg-gray-800 p-4 overflow-y-auto">
+                        <div className="mb-6">
+                            <h1 className="text-2xl font-bold text-amber-400">WebP Converter</h1>
+                            <a href="https://github.com/FlashGalatine/webp-converter" target="_blank" rel="noopener noreferrer" className="text-sm text-blue-400 hover:text-blue-300 mt-2 inline-flex items-center gap-1">
+                                <span>GitHub Repository</span>
+                                <span>↗</span>
+                            </a>
+                        </div>
+                        
+                        {/* File Selection */}
+                        <div className="mb-6">
+                            <h2 className="text-sm font-semibold mb-2 text-gray-300">Load Image(s)</h2>
+                            <input
+                                ref={fileInputRef}
+                                type="file"
+                                accept="image/*"
+                                multiple
+                                onChange={handleFileSelect}
+                                className="hidden"
+                            />
+                            <button
+                                onClick={() => fileInputRef.current.click()}
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded"
+                            >
+                                Select Image(s)
+                            </button>
+                            <p className="text-xs text-gray-400 mt-2">
+                                Single or multiple files • Drag & drop • Ctrl+V to paste
+                            </p>
+                        </div>
+                        
+                        {/* Image Queue */}
+                        {imageQueue.length > 0 && (
+                            <div className="mb-6">
+                                <div className="flex items-center justify-between mb-2">
+                                    <h2 className="text-sm font-semibold text-gray-300">
+                                        Image Queue ({processedImages.size}/{imageQueue.length})
+                                    </h2>
+                                    <button
+                                        onClick={clearQueue}
+                                        className="text-xs text-red-400 hover:text-red-300"
+                                    >
+                                        Clear All
+                                    </button>
+                                </div>
+                                
+                                <div className="bg-gray-700 rounded-lg p-3 mb-3">
+                                    <div className="max-h-48 overflow-y-auto space-y-1.5">
+                                        {imageQueue.map((item, index) => (
+                                            <div
+                                                key={item.id}
+                                                onClick={() => loadImageFromQueue(index)}
+                                                className={`
+                                                    flex items-center justify-between p-2 rounded cursor-pointer
+                                                    ${index === currentImageIndex ? 'bg-amber-600 text-white' : 'bg-gray-600 hover:bg-gray-500'}
+                                                `}
+                                            >
+                                                <div className="flex items-center gap-2 flex-1 min-w-0">
+                                                    {processedImages.has(index) && (
+                                                        <span className="text-green-400 flex-shrink-0">✓</span>
+                                                    )}
+                                                    {index === currentImageIndex && (
+                                                        <span className="flex-shrink-0">▶</span>
+                                                    )}
+                                                    <span className="text-xs truncate">{item.name}</span>
+                                                </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        removeImageFromQueue(index);
+                                                    }}
+                                                    className="ml-2 text-red-300 hover:text-red-200 flex-shrink-0"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                                
+                                {/* Queue Navigation */}
+                                <div className="grid grid-cols-2 gap-2">
+                                    <button
+                                        onClick={loadPreviousImage}
+                                        disabled={currentImageIndex <= 0}
+                                        className="bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed text-white py-2 px-3 rounded text-sm"
+                                    >
+                                        ← Previous
+                                    </button>
+                                    <button
+                                        onClick={loadNextImage}
+                                        disabled={currentImageIndex >= imageQueue.length - 1}
+                                        className="bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed text-white py-2 px-3 rounded text-sm"
+                                    >
+                                        Next →
+                                    </button>
+                                </div>
+                                
+                                {/* Queue Options */}
+                                <div className="mt-3 pt-3 border-t border-gray-600">
+                                    <label className="flex items-center cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={removeAfterConvert}
+                                            onChange={(e) => {
+                                                console.log('[Queue] Toggle changed to:', e.target.checked);
+                                                setRemoveAfterConvert(e.target.checked);
+                                            }}
+                                            className="mr-2 w-4 h-4 cursor-pointer"
+                                        />
+                                        <span className="text-xs text-gray-300">
+                                            Remove from queue after converting
+                                        </span>
+                                    </label>
+                                    <p className="text-xs text-gray-500 mt-1 ml-6">
+                                        When enabled, images are removed instead of marked with ✓
+                                    </p>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {/* Custom Preset Loader */}
+                        <div className="mb-6">
+                            <div className="flex justify-between items-center mb-2">
+                                <h2 className="text-sm font-semibold text-gray-300">Preset Source</h2>
+                                <a href="preset-editor.html" className="text-xs bg-blue-600 hover:bg-blue-700 text-white py-1 px-2 rounded" title="Create and manage custom presets">
+                                    ⚙️ Preset Editor
+                                </a>
+                            </div>
+                            <input
+                                ref={presetFileInputRef}
+                                type="file"
+                                accept=".json"
+                                onChange={(e) => {
+                                    if (e.target.files && e.target.files[0]) {
+                                        loadCustomPresets(e.target.files[0]);
+                                    }
+                                }}
+                                className="hidden"
+                            />
+                            
+                            {!useCustomPresets ? (
+                                <div>
+                                    <button
+                                        onClick={() => presetFileInputRef.current.click()}
+                                        className="w-full bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded"
+                                    >
+                                        Load Custom Presets
+                                    </button>
+                                    <p className="text-xs text-gray-400 mt-2">Using built-in presets</p>
+                                </div>
+                            ) : (
+                                <div>
+                                    <div className="bg-gray-700 p-3 rounded mb-2">
+                                        <p className="text-xs text-amber-400 font-semibold mb-1">Custom Presets Loaded</p>
+                                        <p className="text-xs text-gray-300 break-all">{customPresetsFileName}</p>
+                                        <p className="text-xs text-gray-400 mt-1">{Object.keys(customPresets).length} presets available</p>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <button
+                                            onClick={() => presetFileInputRef.current.click()}
+                                            className="bg-purple-600 hover:bg-purple-700 text-white py-1.5 px-3 rounded text-sm"
+                                        >
+                                            Load Different
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setUseCustomPresets(false);
+                                                setSelectedPreset("16:9 Landscape");
+                                                setCustomPresets({});
+                                                setCustomPresetsRaw({});
+                                                setCustomPresetsFileName('');
+                                            }}
+                                            className="bg-gray-600 hover:bg-gray-500 text-white py-1.5 px-3 rounded text-sm"
+                                        >
+                                            Use Built-in
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                        
+                        {/* Preset Selection */}
+                        <div className="mb-6">
+                            <h2 className="text-sm font-semibold mb-2 text-gray-300">Crop Preset</h2>
+                            <select
+                                value={selectedPreset}
+                                onChange={(e) => setSelectedPreset(e.target.value)}
+                                className="w-full bg-gray-700 text-white py-2 px-3 rounded"
+                            >
+                                {Object.keys(getCurrentPresets()).map(preset => (
+                                    <option key={preset} value={preset}>{preset}</option>
+                                ))}
+                            </select>
+                            {useCustomPresets && customPresetsRaw[selectedPreset] && (
+                                <div className="mt-2 text-xs text-amber-400 bg-gray-700 p-2 rounded">
+                                    <p className="font-semibold mb-1">📋 Preset includes:</p>
+                                    {customPresetsRaw[selectedPreset]['max-width'] && (
+                                        <p>• Max width: {customPresetsRaw[selectedPreset]['max-width']}px</p>
+                                    )}
+                                    {customPresetsRaw[selectedPreset]['max-height'] && (
+                                        <p>• Max height: {customPresetsRaw[selectedPreset]['max-height']}px</p>
+                                    )}
+                                    {customPresetsRaw[selectedPreset]['max-filesize'] && (
+                                        <p>• Target size: {customPresetsRaw[selectedPreset]['max-filesize']}{customPresetsRaw[selectedPreset]['max-filesize-unit'] || 'MB'}</p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Freestyle Toggle */}
+                        <div className="mb-6">
+                            <label className="flex items-center cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={isFreestyleMode}
+                                    onChange={(e) => setIsFreestyleMode(e.target.checked)}
+                                    className="mr-3 w-4 h-4"
+                                />
+                                <span className="text-sm font-semibold text-gray-300">🎨 Freestyle Mode</span>
+                            </label>
+                            <p className="text-xs text-gray-400 mt-1 ml-7">Disable aspect ratio constraints for free cropping</p>
+                        </div>
+
+                        {/* WebP Options */}
+                        <div className="mb-6">
+                            <h2 className="text-sm font-semibold mb-3 text-gray-300">WebP Options</h2>
+                            
+                            <div className="mb-3">
+                                <label className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        checked={!lossless}
+                                        onChange={() => setLossless(false)}
+                                        className="mr-2"
+                                    />
+                                    <span>Lossy</span>
+                                </label>
+                                <label className="flex items-center">
+                                    <input
+                                        type="radio"
+                                        checked={lossless}
+                                        onChange={() => setLossless(true)}
+                                        className="mr-2"
+                                    />
+                                    <span>Lossless</span>
+                                </label>
+                            </div>
+                            
+                            {!lossless && (
+                                <div>
+                                    <div className="flex justify-between mb-1">
+                                        <span className="text-sm">Quality:</span>
+                                        <span className="text-sm font-semibold text-amber-400">{quality}%</span>
+                                    </div>
+                                    <input
+                                        type="range"
+                                        min="1"
+                                        max="100"
+                                        value={quality}
+                                        onChange={(e) => setQuality(parseInt(e.target.value))}
+                                        className="w-full"
+                                    />
+                                </div>
+                            )}
+                            
+                            {/* Web Optimization */}
+                            <div className="mt-4">
+                                <label className="flex items-center mb-2">
+                                    <input
+                                        type="checkbox"
+                                        checked={webOptimize}
+                                        onChange={(e) => setWebOptimize(e.target.checked)}
+                                        className="mr-2"
+                                    />
+                                    <span>Optimize for Web</span>
+                                </label>
+                                
+                                {webOptimize && (
+                                    <div className="flex items-center gap-2 ml-6">
+                                        <label className="text-sm">Target Size:</label>
+                                        <input
+                                            type="number"
+                                            value={targetSize}
+                                            onChange={(e) => setTargetSize(e.target.value)}
+                                            className="w-16 bg-gray-700 text-white py-1 px-2 rounded"
+                                            min="0.1"
+                                            step="0.5"
+                                        />
+                                        <span className="text-sm">MB</span>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        
+                        {/* Max Dimensions */}
+                        <div className="mb-6">
+                            <div className="flex items-center justify-between mb-2">
+                                <h2 className="text-sm font-semibold text-gray-300">Max Dimensions (optional)</h2>
+                                <button
+                                    onClick={() => setLinkDimensions(!linkDimensions)}
+                                    disabled={isFreestyleMode}
+                                    title={isFreestyleMode ? "Link disabled in Freestyle Mode" : linkDimensions ? "Click to unlink dimensions" : "Click to link dimensions"}
+                                    className={`text-lg transition-all ${
+                                        isFreestyleMode
+                                            ? 'opacity-50 cursor-not-allowed text-gray-500'
+                                            : linkDimensions
+                                                ? 'text-blue-400 hover:text-blue-300'
+                                                : 'text-gray-400 hover:text-gray-300'
+                                    }`}
+                                >
+                                    {isFreestyleMode ? '⛓️' : linkDimensions ? '🔗' : '⛓️‍💥'}
+                                </button>
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <label className="text-sm w-20">Max Width:</label>
+                                    <input
+                                        type="number"
+                                        value={maxWidth}
+                                        onChange={(e) => {
+                                            const newWidth = e.target.value;
+                                            setMaxWidth(newWidth);
+
+                                            // Auto-calculate height if linked and crop has dimensions
+                                            if (linkDimensions && !isFreestyleMode && newWidth && cropWidth > 0 && cropHeight > 0) {
+                                                const cropAspectRatio = cropWidth / cropHeight;
+                                                const newHeight = Math.round(parseInt(newWidth) / cropAspectRatio);
+                                                setMaxHeight(newHeight.toString());
+                                            }
+                                        }}
+                                        placeholder="pixels"
+                                        className={`flex-1 bg-gray-700 text-white py-1 px-2 rounded ${linkDimensions && !isFreestyleMode ? 'ring-1 ring-blue-400' : ''}`}
+                                    />
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <label className="text-sm w-20">Max Height:</label>
+                                    <input
+                                        type="number"
+                                        value={maxHeight}
+                                        onChange={(e) => {
+                                            const newHeight = e.target.value;
+                                            setMaxHeight(newHeight);
+
+                                            // Auto-calculate width if linked and crop has dimensions
+                                            if (linkDimensions && !isFreestyleMode && newHeight && cropWidth > 0 && cropHeight > 0) {
+                                                const cropAspectRatio = cropWidth / cropHeight;
+                                                const newWidth = Math.round(parseInt(newHeight) * cropAspectRatio);
+                                                setMaxWidth(newWidth.toString());
+                                            }
+                                        }}
+                                        placeholder="pixels"
+                                        className={`flex-1 bg-gray-700 text-white py-1 px-2 rounded ${linkDimensions && !isFreestyleMode ? 'ring-1 ring-blue-400' : ''}`}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Resampling Method */}
+                        <div className="mb-6">
+                            <h2 className="text-sm font-semibold mb-2 text-gray-300">Resampling Method</h2>
+                            <select
+                                value={resamplingMethod}
+                                onChange={(e) => setResamplingMethod(e.target.value)}
+                                className="w-full bg-gray-700 text-white py-2 px-3 rounded"
+                            >
+                                <option value="bicubic">Bicubic (Recommended)</option>
+                                <option value="lanczos">Lanczos (Highest Quality)</option>
+                                <option value="bilinear">Bilinear (Faster)</option>
+                                <option value="nearest">Nearest Neighbor (Fastest)</option>
+                                <option value="browser">Browser Default</option>
+                            </select>
+                            <p className="text-xs text-gray-400 mt-1">
+                                Used when resizing images. Lanczos provides the best quality for downscaling.
+                            </p>
+                        </div>
+
+                        {/* Zoom Controls */}
+                        <div className="mb-6">
+                            <h2 className="text-sm font-semibold mb-3 text-gray-300">Zoom Controls</h2>
+                            
+                            <button
+                                onClick={handleZoomToFit}
+                                className="w-full bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded mb-2"
+                            >
+                                Zoom to Fit
+                            </button>
+                            
+                            <div className="grid grid-cols-3 gap-2">
+                                <button
+                                    onClick={handleZoomIn}
+                                    className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded"
+                                >
+                                    Zoom In
+                                </button>
+                                <button
+                                    onClick={handleZoomReset}
+                                    className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded"
+                                >
+                                    Reset
+                                </button>
+                                <button
+                                    onClick={handleZoomOut}
+                                    className="bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded"
+                                >
+                                    Zoom Out
+                                </button>
+                            </div>
+                            
+                            <p className="text-xs text-gray-400 mt-2">
+                                Ctrl+F (fit) • Ctrl+0 (reset) • Wheel (zoom)
+                            </p>
+                        </div>
+                        
+                        {/* Info */}
+                        {image && (
+                            <div className="mb-6 text-xs text-gray-400">
+                                <div>Image: {image.width} × {image.height}px</div>
+                                <div>Crop: {Math.round(cropWidth)} × {Math.round(cropHeight)}px</div>
+                                {(maxWidth || maxHeight) && (() => {
+                                    let finalW = cropWidth;
+                                    let finalH = cropHeight;
+                                    const maxW = maxWidth ? parseInt(maxWidth) : null;
+                                    const maxH = maxHeight ? parseInt(maxHeight) : null;
+                                    
+                                    if (maxW && finalW > maxW) {
+                                        const ratio = maxW / finalW;
+                                        finalW = maxW;
+                                        finalH = finalH * ratio;
+                                    }
+                                    if (maxH && finalH > maxH) {
+                                        const ratio = maxH / finalH;
+                                        finalH = maxH;
+                                        finalW = finalW * ratio;
+                                    }
+                                    
+                                    return <div className="text-amber-400">Output: {Math.round(finalW)} × {Math.round(finalH)}px</div>;
+                                })()}
+                                <div>Zoom: {(zoomLevel * 100).toFixed(0)}%</div>
+                            </div>
+                        )}
+                        
+                        {/* Convert Button */}
+                        <button
+                            onClick={handleConvert}
+                            disabled={!image || isOptimizing}
+                            className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 px-4 rounded font-semibold"
+                        >
+                            {isOptimizing 
+                                ? 'Converting...' 
+                                : imageQueue.length > 0 
+                                    ? `Convert & Download (${currentImageIndex + 1}/${imageQueue.length})` 
+                                    : 'Convert & Download'
+                            }
+                        </button>
+                        
+                        {imageQueue.length > 0 && !isOptimizing && (
+                            <p className="text-xs text-gray-400 mt-2 text-center">
+                                {processedImages.has(currentImageIndex) 
+                                    ? '✓ This image has been processed' 
+                                    : `${imageQueue.length - processedImages.size} remaining`
+                                }
+                            </p>
+                        )}
+                        
+                        {/* Optimization Progress */}
+                        {isOptimizing && (
+                            <div className="mt-4">
+                                <div className="text-sm text-gray-300 mb-2">{optimizingStatus}</div>
+                                <div className="w-full bg-gray-700 rounded-full h-2">
+                                    <div
+                                        className="bg-amber-400 h-2 rounded-full transition-all duration-300"
+                                        style={{ width: `${optimizingProgress}%` }}
+                                    ></div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Attribution */}
+                        <div className="mt-6 pt-6 border-t border-gray-700">
+                            <div className="text-xs text-gray-500 text-center">
+                                <p className="mb-1">Created by <span className="text-gray-400 font-semibold">Flash Galatine</span></p>
+                                <div className="flex flex-wrap justify-center gap-2 mt-2">
+                                    <a href="https://github.com/FlashGalatine" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">GitHub</a>
+                                    <span className="text-gray-600">•</span>
+                                    <a href="https://x.com/AsheJunius" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">X/Twitter</a>
+                                    <span className="text-gray-600">•</span>
+                                    <a href="https://www.twitch.tv/flashgalatine" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">Twitch</a>
+                                    <span className="text-gray-600">•</span>
+                                    <a href="https://discord.gg/5VUSKTZCe5" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">Discord</a>
+                                </div>
+                                <div className="flex flex-wrap justify-center gap-2 mt-1">
+                                    <a href="https://bsky.app/profile/projectgalatine.com" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">BlueSky</a>
+                                    <span className="text-gray-600">•</span>
+                                    <a href="https://www.patreon.com/ProjectGalatine" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">Patreon</a>
+                                    <span className="text-gray-600">•</span>
+                                    <a href="https://blog.projectgalatine.com/" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:text-blue-300">Blog</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {/* Right Panel - Canvas */}
+                    <div
+                        ref={containerRef}
+                        className="flex-1 flex flex-col items-center justify-center bg-gray-900"
+                        onDrop={handleDrop}
+                        onDragOver={handleDragOver}
+                    >
+                        {!image ? (
+                            <div className="text-center text-gray-500">
+                                <svg className="w-24 h-24 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                <p className="text-xl mb-2">No image loaded</p>
+                                <p className="text-sm">Click "Select Image" or drag & drop here</p>
+                            </div>
+                        ) : (
+                            <canvas
+                                ref={canvasRef}
+                                width={canvasWidth}
+                                height={canvasHeight}
+                                onMouseDown={handleMouseDown}
+                                onMouseMove={handleMouseMove}
+                                onMouseUp={handleMouseUp}
+                                onMouseLeave={handleMouseLeave}
+                                onWheel={handleWheel}
+                                className="border-2 border-gray-700"
+                                style={{ maxWidth: '100%', maxHeight: '100%', cursor: cursorStyle }}
+                                role="img"
+                                aria-label={image ? `Image crop preview: ${Math.round(cropWidth)}x${Math.round(cropHeight)} pixels at ${(zoomLevel * 100).toFixed(0)}% zoom` : "Image crop preview area"}
+                            />
+                        )}
+
+                        {/* Image Navigation Buttons */}
+                        {image && (
+                            <div className="flex gap-2 mt-4 w-full px-4">
+                                <button
+                                    onClick={loadPreviousImage}
+                                    disabled={imageQueue.length === 0 || currentImageIndex <= 0 || isOptimizing}
+                                    className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white py-2 px-4 rounded"
+                                >
+                                    ← Previous
+                                </button>
+                                <button
+                                    onClick={loadNextImage}
+                                    disabled={imageQueue.length === 0 || currentImageIndex >= imageQueue.length - 1 || isOptimizing}
+                                    className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white py-2 px-4 rounded"
+                                >
+                                    Next →
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        ReactDOM.render(<WebPConverter />, document.getElementById('root'));
+    </script>
+</body>
+</html>

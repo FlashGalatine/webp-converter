@@ -2,18 +2,42 @@
 
 ## Quick Start
 
-- **WebP Converter**: Simply open `index.html` in your browser to start converting images!
-- **Preset Editor**: Open `preset-editor.html` to create and manage custom presets
+### Development
+
+1. Install dependencies:
+   ```bash
+   npm install
+   ```
+
+2. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+3. Open your browser to the URL shown (typically `http://localhost:5173`)
+
+### Production Build
+
+1. Build for production:
+   ```bash
+   npm run build
+   ```
+
+2. The built files will be in the `dist/` directory
+
+3. Preview the production build:
+   ```bash
+   npm run preview
+   ```
 
 ## Version Information
 
-This project has **THREE tools**:
+This project has been refactored to use **Vite + TypeScript + React**:
 
-- **🟢 WebP Converter STABLE v2.6.1** (`index.html`) - Production-ready image conversion tool - **Default version**
-- **🟠 WebP Converter EXPERIMENTAL** (`webp-conv-experimental.html`) - Testing bleeding-edge features
-- **⚙️ Preset Editor** (`preset-editor.html`) - Create and manage custom presets with ease
+- **🟢 WebP Converter** - Main image conversion tool (route: `/`)
+- **⚙️ Preset Editor** - Create and manage custom presets (route: `/preset-editor`)
 
-**The default `index.html` is the STABLE version.** Use EXPERIMENTAL if you want to test new features early.
+**Note:** The old HTML files have been archived in the `archived/` directory. The project now uses a modern build system with TypeScript and React components.
 
 See `CHANGELOG.md` for detailed version history.
 
