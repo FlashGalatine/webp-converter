@@ -73,13 +73,8 @@ export default function WebPConverter() {
       const currentPresets = presets.getCurrentPresets();
       const ratio = (currentPresets as Record<string, number | null>)[presetToUse] ?? null;
       canvas.initializeCrop(img.width, img.height, ratio);
-
-      // Auto zoom to fit on load - wait for canvas to be ready
-      setTimeout(() => {
-        if (canvas.canvasWidth && canvas.canvasHeight && img.width && img.height) {
-          canvas.handleZoomToFit();
-        }
-      }, ZOOM_INITIAL_DELAY);
+      
+      // Note: Zoom to fit is handled by useEffect that watches image and canvas dimensions
     } catch (error) {
       console.error('[Error] Failed to load image:', error);
       alert(error instanceof Error ? error.message : 'Failed to load image');
@@ -141,6 +136,20 @@ export default function WebPConverter() {
     lastUseCustomPresetsRef.current = presets.useCustomPresets;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPreset, presets.useCustomPresets]);
+
+  // Auto zoom to fit when image loads and canvas is ready
+  useEffect(() => {
+    if (!image || !canvas.canvasWidth || !canvas.canvasHeight) return;
+    
+    // Wait a bit for canvas to be fully rendered
+    const timer = setTimeout(() => {
+      if (image.width && image.height && canvas.canvasWidth && canvas.canvasHeight) {
+        canvas.handleZoomToFit();
+      }
+    }, ZOOM_INITIAL_DELAY);
+    
+    return () => clearTimeout(timer);
+  }, [image, canvas.canvasWidth, canvas.canvasHeight, canvas.handleZoomToFit]);
 
   // File upload handlers
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
