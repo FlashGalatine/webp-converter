@@ -11,6 +11,86 @@ describe('loadImageFromFile', () => {
     expect(result.imageData).toContain('data:image')
   })
 
+  it('should reject when image fails to decode', async () => {
+    // Mock Image to trigger onerror
+    const OriginalImage = global.Image
+    class FailingImage {
+      private _src = ''
+      width = 0
+      height = 0
+      onload: (() => void) | null = null
+      onerror: ((error: Event | string) => void) | null = null
+
+      get src() {
+        return this._src
+      }
+
+      set src(value: string) {
+        this._src = value
+        // Trigger onerror instead of onload
+        setTimeout(() => {
+          if (this.onerror) this.onerror(new Event('error'))
+        }, 0)
+      }
+    }
+    global.Image = FailingImage as unknown as typeof Image
+
+    const mockFile = new File(['invalid'], 'bad.png', { type: 'image/png' })
+
+    await expect(loadImageFromFile(mockFile)).rejects.toThrow(
+      'Failed to decode image file. Make sure it is a valid image.'
+    )
+
+    global.Image = OriginalImage
+  })
+
+  it('should reject when FileReader fails to read file', async () => {
+    // Mock FileReader to trigger onerror
+    const OriginalFileReader = global.FileReader
+    class FailingFileReader {
+      result: string | ArrayBuffer | null = null
+      error: DOMException | null = null
+      readyState: number = 0
+      onload: ((event: ProgressEvent<FileReader>) => void) | null = null
+      onerror: ((event: ProgressEvent<FileReader>) => void) | null = null
+      onloadstart: ((event: ProgressEvent<FileReader>) => void) | null = null
+      onloadend: ((event: ProgressEvent<FileReader>) => void) | null = null
+      onprogress: ((event: ProgressEvent<FileReader>) => void) | null = null
+      onabort: ((event: ProgressEvent<FileReader>) => void) | null = null
+
+      abort = vi.fn()
+
+      readAsDataURL() {
+        this.readyState = 1
+        setTimeout(() => {
+          this.readyState = 2
+          this.error = new DOMException('Read error', 'NotReadableError')
+          if (this.onerror) {
+            this.onerror({ target: this } as unknown as ProgressEvent<FileReader>)
+          }
+        }, 0)
+      }
+
+      addEventListener = vi.fn()
+      removeEventListener = vi.fn()
+      dispatchEvent = vi.fn(() => true)
+
+      static readonly EMPTY = 0
+      static readonly LOADING = 1
+      static readonly DONE = 2
+      readonly EMPTY = 0
+      readonly LOADING = 1
+      readonly DONE = 2
+    }
+    global.FileReader = FailingFileReader as unknown as typeof FileReader
+
+    const mockFile = new File(['test'], 'test.png', { type: 'image/png' })
+
+    await expect(loadImageFromFile(mockFile)).rejects.toThrow('Failed to read file')
+
+    global.FileReader = OriginalFileReader
+  })
+
   it('should return image with correct dimensions from mock', async () => {
     const mockFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' })
 

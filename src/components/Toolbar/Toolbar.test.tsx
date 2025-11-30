@@ -84,6 +84,21 @@ describe('Toolbar Component', () => {
       expect(button).toHaveClass('bg-blue-600')
     })
 
+    it('should trigger file input click when button is clicked', async () => {
+      const user = userEvent.setup()
+      const { container } = render(<Toolbar {...defaultProps} />)
+
+      // Get the actual file input element from the DOM and spy on its click
+      const fileInput = container.querySelector('input[accept="image/*"]') as HTMLInputElement
+      const clickSpy = vi.spyOn(fileInput, 'click')
+
+      const button = screen.getByRole('button', { name: /Select Image/i })
+      await user.click(button)
+
+      expect(clickSpy).toHaveBeenCalledTimes(1)
+      clickSpy.mockRestore()
+    })
+
     it('should call onFileSelect when file is selected', async () => {
       const onFileSelect = vi.fn()
       const { container } = render(<Toolbar {...defaultProps} onFileSelect={onFileSelect} />)

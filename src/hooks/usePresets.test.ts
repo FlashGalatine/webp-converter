@@ -341,5 +341,199 @@ describe('usePresets', () => {
       expect(result.current.customPresetsFileName).toBe('presets.json (auto-loaded)')
       expect(result.current.customPresets['Auto Preset']).toBeCloseTo(1.333, 2)
     })
+
+    it('should auto-load preset with only max dimensions (no crop-ratio)', async () => {
+      const customPresetsJson = {
+        'Dimensions Only': {
+          'max-width': 1920,
+          'max-height': 1080
+        }
+      }
+
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(customPresetsJson)
+        })
+      ) as typeof fetch
+
+      const { result } = renderHook(() => usePresets())
+
+      await waitFor(() => {
+        expect(result.current.useCustomPresets).toBe(true)
+      })
+
+      // Crop ratio should be calculated from max-width/max-height
+      expect(result.current.customPresets['Dimensions Only']).toBeCloseTo(1.7778, 2)
+    })
+
+    it('should auto-load preset with no crop-ratio or dimensions (null)', async () => {
+      const customPresetsJson = {
+        'Empty Preset': {
+          // No crop-ratio, no max-width/max-height
+        }
+      }
+
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(customPresetsJson)
+        })
+      ) as typeof fetch
+
+      const { result } = renderHook(() => usePresets())
+
+      await waitFor(() => {
+        expect(result.current.useCustomPresets).toBe(true)
+      })
+
+      // Should be null (freestyle mode)
+      expect(result.current.customPresets['Empty Preset']).toBeNull()
+    })
+
+    it('should not auto-load when fetch returns not ok', async () => {
+      global.fetch = vi.fn(() =>
+        Promise.resolve({
+          ok: false,
+          json: () => Promise.resolve({})
+        })
+      ) as typeof fetch
+
+      const { result } = renderHook(() => usePresets())
+
+      // Wait a bit to ensure the effect runs
+      await new Promise(resolve => setTimeout(resolve, 100))
+
+      expect(result.current.useCustomPresets).toBe(false)
+    })
+  })
+
+  describe('loadCustomPresets edge cases', () => {
+    it('should handle preset with no crop-ratio and no dimensions (null)', async () => {
+      const { result } = renderHook(() => usePresets())
+
+      const customPresetsJson = JSON.stringify({
+        'Freestyle Preset': {
+          // No crop-ratio, no max-width/max-height - should be null
+          'max-filesize': 5,
+          'max-filesize-unit': 'MB'
+        }
+      })
+
+      const file = new File([customPresetsJson], 'presets.json', { type: 'application/json' })
+
+      const originalFileReader = global.FileReader
+      class TestFileReader {
+        result: string | ArrayBuffer | null = null
+        onload: ((event: ProgressEvent<FileReader>) => void) | null = null
+
+        readAsText() {
+          setTimeout(() => {
+            this.result = customPresetsJson
+            if (this.onload) {
+              this.onload({ target: this } as unknown as ProgressEvent<FileReader>)
+            }
+          }, 0)
+        }
+      }
+      global.FileReader = TestFileReader as unknown as typeof FileReader
+
+      act(() => {
+        result.current.loadCustomPresets(file)
+      })
+
+      await waitFor(() => {
+        expect(result.current.useCustomPresets).toBe(true)
+      })
+
+      // Crop ratio should be null (freestyle mode)
+      expect(result.current.customPresets['Freestyle Preset']).toBeNull()
+
+      global.FileReader = originalFileReader
+    })
+
+    it('should show error alert for invalid JSON', async () => {
+      const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {})
+      const { result } = renderHook(() => usePresets())
+
+      const invalidJson = 'not valid json {'
+
+      const file = new File([invalidJson], 'presets.json', { type: 'application/json' })
+
+      const originalFileReader = global.FileReader
+      class TestFileReader {
+        result: string | ArrayBuffer | null = null
+        onload: ((event: ProgressEvent<FileReader>) => void) | null = null
+
+        readAsText() {
+          setTimeout(() => {
+            this.result = invalidJson
+            if (this.onload) {
+              this.onload({ target: this } as unknown as ProgressEvent<FileReader>)
+            }
+          }, 0)
+        }
+      }
+      global.FileReader = TestFileReader as unknown as typeof FileReader
+
+      act(() => {
+        result.current.loadCustomPresets(file)
+      })
+
+      await waitFor(() => {
+        expect(alertMock).toHaveBeenCalled()
+      })
+
+      expect(alertMock.mock.calls[0][0]).toContain('Error loading preset file')
+
+      global.FileReader = originalFileReader
+      alertMock.mockRestore()
+    })
+
+    it('should handle preset with default MB unit when no unit specified', async () => {
+      const { result } = renderHook(() => usePresets())
+
+      const customPresetsJson = JSON.stringify({
+        'Test Preset': {
+          'crop-ratio': '1/1',
+          'max-filesize': 5
+          // No max-filesize-unit - should default to MB
+        }
+      })
+
+      const file = new File([customPresetsJson], 'presets.json', { type: 'application/json' })
+
+      const originalFileReader = global.FileReader
+      class TestFileReader {
+        result: string | ArrayBuffer | null = null
+        onload: ((event: ProgressEvent<FileReader>) => void) | null = null
+
+        readAsText() {
+          setTimeout(() => {
+            this.result = customPresetsJson
+            if (this.onload) {
+              this.onload({ target: this } as unknown as ProgressEvent<FileReader>)
+            }
+          }, 0)
+        }
+      }
+      global.FileReader = TestFileReader as unknown as typeof FileReader
+
+      act(() => {
+        result.current.loadCustomPresets(file)
+      })
+
+      await waitFor(() => {
+        expect(result.current.useCustomPresets).toBe(true)
+      })
+
+      const settings = result.current.applyPresetSettings('Test Preset')
+
+      // Should be 5 MB (default unit)
+      expect(settings.targetSize).toBe('5')
+      expect(settings.webOptimize).toBe(true)
+
+      global.FileReader = originalFileReader
+    })
   })
 })

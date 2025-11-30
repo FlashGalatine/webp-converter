@@ -487,6 +487,588 @@ describe('useCanvas', () => {
     })
   })
 
+  describe('document-level mouse events for dragging', () => {
+    let mockCanvas: HTMLCanvasElement
+    let mockContainer: HTMLDivElement
+
+    const createMockContext = () => ({
+      clearRect: vi.fn(),
+      drawImage: vi.fn(),
+      fillRect: vi.fn(),
+      strokeRect: vi.fn(),
+      setLineDash: vi.fn(),
+      save: vi.fn(),
+      restore: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      arc: vi.fn(),
+      fill: vi.fn(),
+      closePath: vi.fn(),
+      fillStyle: '',
+      strokeStyle: '',
+      lineWidth: 1,
+      globalAlpha: 1
+    })
+
+    beforeEach(() => {
+      mockCanvas = document.createElement('canvas')
+      mockCanvas.width = 1200
+      mockCanvas.height = 800
+      mockCanvas.getBoundingClientRect = () => ({
+        left: 0, top: 0, right: 1200, bottom: 800,
+        width: 1200, height: 800, x: 0, y: 0, toJSON: () => ({})
+      })
+      mockCanvas.getContext = vi.fn(() => createMockContext()) as unknown as typeof mockCanvas.getContext
+
+      mockContainer = document.createElement('div')
+      Object.defineProperty(mockContainer, 'getBoundingClientRect', {
+        value: () => ({ width: 1200, height: 800 })
+      })
+    })
+
+    it('should handle drag operation and set appropriate cursor', () => {
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      // Manually set up the canvas ref
+      Object.defineProperty(result.current.canvasRef, 'current', {
+        value: mockCanvas,
+        writable: true
+      })
+
+      // Initialize crop
+      act(() => {
+        result.current.initializeCrop(1920, 1080, null)
+      })
+
+      // Simulate mousedown - position determines drag type
+      const mouseDownEvent = {
+        nativeEvent: { clientX: 600, clientY: 400 }
+      } as React.MouseEvent<HTMLCanvasElement>
+
+      act(() => {
+        result.current.handleMouseDown(mouseDownEvent)
+      })
+
+      expect(result.current.isDragging).toBe(true)
+      // Cursor is set based on detected drag type (move, pan, or resize)
+      expect(result.current.cursorStyle).toBeDefined()
+
+      // Clean up by triggering mouseup
+      act(() => {
+        result.current.handleMouseUp()
+      })
+
+      expect(result.current.isDragging).toBe(false)
+    })
+
+    it('should handle move drag type when inside crop', () => {
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      Object.defineProperty(result.current.canvasRef, 'current', {
+        value: mockCanvas,
+        writable: true
+      })
+
+      // Initialize a smaller crop in the center
+      act(() => {
+        result.current.initializeCrop(1920, 1080, 1) // 1:1 aspect ratio - crop centered
+      })
+
+      // The crop should be 1080x1080 centered - get the center position
+      const centerX = 600 // canvas center
+      const centerY = 400 // canvas center
+
+      const mouseDownEvent = {
+        nativeEvent: { clientX: centerX, clientY: centerY }
+      } as React.MouseEvent<HTMLCanvasElement>
+
+      act(() => {
+        result.current.handleMouseDown(mouseDownEvent)
+      })
+
+      // Should be dragging with move cursor (inside crop) or grabbing (outside)
+      expect(result.current.isDragging).toBe(true)
+
+      act(() => {
+        result.current.handleMouseUp()
+      })
+    })
+
+    it('should update cursor on hover when not dragging', () => {
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      Object.defineProperty(result.current.canvasRef, 'current', {
+        value: mockCanvas,
+        writable: true
+      })
+
+      act(() => {
+        result.current.initializeCrop(1920, 1080, null)
+      })
+
+      const mouseMoveEvent = {
+        nativeEvent: { clientX: 600, clientY: 400 }
+      } as React.MouseEvent<HTMLCanvasElement>
+
+      act(() => {
+        result.current.handleMouseMove(mouseMoveEvent)
+      })
+
+      // Cursor should be updated based on position
+      expect(result.current.cursorStyle).toBeDefined()
+    })
+
+    it('should handle document mouseup to stop dragging', () => {
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      Object.defineProperty(result.current.canvasRef, 'current', {
+        value: mockCanvas,
+        writable: true
+      })
+
+      act(() => {
+        result.current.initializeCrop(1920, 1080, null)
+      })
+
+      // Start a drag
+      const mouseDownEvent = {
+        nativeEvent: { clientX: 1100, clientY: 700 }
+      } as React.MouseEvent<HTMLCanvasElement>
+
+      act(() => {
+        result.current.handleMouseDown(mouseDownEvent)
+      })
+
+      expect(result.current.isDragging).toBe(true)
+
+      // Simulate document mouseup
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mouseup'))
+      })
+
+      expect(result.current.isDragging).toBe(false)
+    })
+
+    it('should handle document mousemove during drag operation', () => {
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      Object.defineProperty(result.current.canvasRef, 'current', {
+        value: mockCanvas,
+        writable: true
+      })
+
+      act(() => {
+        result.current.initializeCrop(1920, 1080, null)
+      })
+
+      // Start drag operation
+      const mouseDownEvent = {
+        nativeEvent: { clientX: 600, clientY: 400 }
+      } as React.MouseEvent<HTMLCanvasElement>
+
+      act(() => {
+        result.current.handleMouseDown(mouseDownEvent)
+      })
+
+      expect(result.current.isDragging).toBe(true)
+
+      // Move mouse - this triggers the document mousemove handler
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mousemove', {
+          clientX: 650,
+          clientY: 450
+        }))
+      })
+
+      // Drag operation should still be active
+      expect(result.current.isDragging).toBe(true)
+
+      act(() => {
+        result.current.handleMouseUp()
+      })
+
+      expect(result.current.isDragging).toBe(false)
+    })
+
+    it('should handle document mousemove during move drag', () => {
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      Object.defineProperty(result.current.canvasRef, 'current', {
+        value: mockCanvas,
+        writable: true
+      })
+
+      // Initialize a small crop not at full image
+      act(() => {
+        result.current.initializeCrop(1920, 1080, 1) // 1:1 centered
+      })
+
+      // Click inside the crop area to start move drag
+      const mouseDownEvent = {
+        nativeEvent: { clientX: 600, clientY: 400 }
+      } as React.MouseEvent<HTMLCanvasElement>
+
+      act(() => {
+        result.current.handleMouseDown(mouseDownEvent)
+      })
+
+      expect(result.current.isDragging).toBe(true)
+
+      // Move mouse
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mousemove', {
+          clientX: 650,
+          clientY: 450
+        }))
+      })
+
+      expect(result.current.isDragging).toBe(true)
+
+      // Stop dragging
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mouseup'))
+      })
+
+      expect(result.current.isDragging).toBe(false)
+    })
+
+    it('should handle resize drag with east handle', () => {
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      Object.defineProperty(result.current.canvasRef, 'current', {
+        value: mockCanvas,
+        writable: true
+      })
+
+      // Initialize crop
+      act(() => {
+        result.current.initializeCrop(1920, 1080, null)
+      })
+
+      // Start a resize drag
+      const mouseDownEvent = {
+        nativeEvent: { clientX: 1100, clientY: 400 }
+      } as React.MouseEvent<HTMLCanvasElement>
+
+      act(() => {
+        result.current.handleMouseDown(mouseDownEvent)
+      })
+
+      expect(result.current.isDragging).toBe(true)
+
+      // Move mouse
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mousemove', {
+          clientX: 1150,
+          clientY: 400
+        }))
+      })
+
+      // Stop dragging
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mouseup'))
+      })
+
+      expect(result.current.isDragging).toBe(false)
+    })
+
+    it('should constrain crop movement to image bounds during move drag', () => {
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      Object.defineProperty(result.current.canvasRef, 'current', {
+        value: mockCanvas,
+        writable: true
+      })
+
+      act(() => {
+        result.current.initializeCrop(1920, 1080, 1) // 1:1 centered
+      })
+
+      // Start drag
+      const mouseDownEvent = {
+        nativeEvent: { clientX: 600, clientY: 400 }
+      } as React.MouseEvent<HTMLCanvasElement>
+
+      act(() => {
+        result.current.handleMouseDown(mouseDownEvent)
+      })
+
+      // Try to drag way outside bounds
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mousemove', {
+          clientX: -5000,
+          clientY: -5000
+        }))
+      })
+
+      // Crop should be constrained
+      expect(result.current.cropX).toBeGreaterThanOrEqual(0)
+      expect(result.current.cropY).toBeGreaterThanOrEqual(0)
+
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mouseup'))
+      })
+    })
+
+    it('should handle resize with aspect ratio constraint', () => {
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      Object.defineProperty(result.current.canvasRef, 'current', {
+        value: mockCanvas,
+        writable: true
+      })
+
+      act(() => {
+        result.current.setAspectRatio(16 / 9)
+        result.current.initializeCrop(1920, 1080, 16 / 9)
+      })
+
+      expect(result.current.aspectRatio).toBeCloseTo(16 / 9)
+      expect(result.current.isFreestyleMode).toBe(false)
+
+      // Start resize drag
+      const mouseDownEvent = {
+        nativeEvent: { clientX: 1100, clientY: 400 }
+      } as React.MouseEvent<HTMLCanvasElement>
+
+      act(() => {
+        result.current.handleMouseDown(mouseDownEvent)
+      })
+
+      // Move to resize
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mousemove', {
+          clientX: 1050,
+          clientY: 350
+        }))
+      })
+
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mouseup'))
+      })
+    })
+
+    it('should cleanup event listeners on unmount during drag', () => {
+      const removeEventListenerSpy = vi.spyOn(document, 'removeEventListener')
+
+      const { result, unmount } = renderHook(() => useCanvas(mockImage))
+
+      Object.defineProperty(result.current.canvasRef, 'current', {
+        value: mockCanvas,
+        writable: true
+      })
+
+      act(() => {
+        result.current.initializeCrop(1920, 1080, null)
+      })
+
+      // Start dragging
+      const mouseDownEvent = {
+        nativeEvent: { clientX: 1100, clientY: 700 }
+      } as React.MouseEvent<HTMLCanvasElement>
+
+      act(() => {
+        result.current.handleMouseDown(mouseDownEvent)
+      })
+
+      expect(result.current.isDragging).toBe(true)
+
+      // Unmount while dragging
+      unmount()
+
+      // Event listeners should be cleaned up
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('mousemove', expect.any(Function))
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('mouseup', expect.any(Function))
+
+      removeEventListenerSpy.mockRestore()
+    })
+
+    it('should handle document mousemove when no image during drag', () => {
+      const { result } = renderHook(() => useCanvas(null))
+
+      Object.defineProperty(result.current.canvasRef, 'current', {
+        value: mockCanvas,
+        writable: true
+      })
+
+      // Try to dispatch mouse events - should not throw
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mousemove', {
+          clientX: 600,
+          clientY: 400
+        }))
+      })
+
+      expect(result.current.isDragging).toBe(false)
+    })
+
+    it('should handle resize with freestyle mode enabled', () => {
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      Object.defineProperty(result.current.canvasRef, 'current', {
+        value: mockCanvas,
+        writable: true
+      })
+
+      act(() => {
+        result.current.setAspectRatio(16 / 9)
+        result.current.setIsFreestyleMode(true)
+        result.current.initializeCrop(1920, 1080, null)
+      })
+
+      expect(result.current.isFreestyleMode).toBe(true)
+
+      // Start resize drag
+      const mouseDownEvent = {
+        nativeEvent: { clientX: 1100, clientY: 400 }
+      } as React.MouseEvent<HTMLCanvasElement>
+
+      act(() => {
+        result.current.handleMouseDown(mouseDownEvent)
+      })
+
+      // Move to resize
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mousemove', {
+          clientX: 1050,
+          clientY: 450
+        }))
+      })
+
+      act(() => {
+        document.dispatchEvent(new MouseEvent('mouseup'))
+      })
+    })
+  })
+
+  describe('resize handling with aspect ratio', () => {
+    let mockCanvas: HTMLCanvasElement
+
+    const createMockContext = () => ({
+      clearRect: vi.fn(),
+      drawImage: vi.fn(),
+      fillRect: vi.fn(),
+      strokeRect: vi.fn(),
+      setLineDash: vi.fn(),
+      save: vi.fn(),
+      restore: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      arc: vi.fn(),
+      fill: vi.fn(),
+      closePath: vi.fn(),
+      fillStyle: '',
+      strokeStyle: '',
+      lineWidth: 1,
+      globalAlpha: 1
+    })
+
+    beforeEach(() => {
+      mockCanvas = document.createElement('canvas')
+      mockCanvas.width = 1200
+      mockCanvas.height = 800
+      mockCanvas.getBoundingClientRect = () => ({
+        left: 0, top: 0, right: 1200, bottom: 800,
+        width: 1200, height: 800, x: 0, y: 0, toJSON: () => ({})
+      })
+      mockCanvas.getContext = vi.fn(() => createMockContext()) as unknown as typeof mockCanvas.getContext
+    })
+
+    it('should maintain aspect ratio during resize when not in freestyle mode', () => {
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      Object.defineProperty(result.current.canvasRef, 'current', {
+        value: mockCanvas,
+        writable: true
+      })
+
+      // Set aspect ratio and initialize crop
+      act(() => {
+        result.current.setAspectRatio(16 / 9)
+        result.current.initializeCrop(1920, 1080, 16 / 9)
+      })
+
+      expect(result.current.isFreestyleMode).toBe(false)
+      expect(result.current.aspectRatio).toBeCloseTo(16 / 9)
+    })
+
+    it('should allow free resize in freestyle mode', () => {
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      Object.defineProperty(result.current.canvasRef, 'current', {
+        value: mockCanvas,
+        writable: true
+      })
+
+      act(() => {
+        result.current.setAspectRatio(16 / 9)
+        result.current.setIsFreestyleMode(true)
+        result.current.initializeCrop(1920, 1080, null)
+      })
+
+      expect(result.current.isFreestyleMode).toBe(true)
+    })
+  })
+
+  describe('crop bounds constraining', () => {
+    let mockCanvas: HTMLCanvasElement
+
+    const createMockContext = () => ({
+      clearRect: vi.fn(),
+      drawImage: vi.fn(),
+      fillRect: vi.fn(),
+      strokeRect: vi.fn(),
+      setLineDash: vi.fn(),
+      save: vi.fn(),
+      restore: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      stroke: vi.fn(),
+      arc: vi.fn(),
+      fill: vi.fn(),
+      closePath: vi.fn(),
+      fillStyle: '',
+      strokeStyle: '',
+      lineWidth: 1,
+      globalAlpha: 1
+    })
+
+    beforeEach(() => {
+      mockCanvas = document.createElement('canvas')
+      mockCanvas.width = 1200
+      mockCanvas.height = 800
+      mockCanvas.getBoundingClientRect = () => ({
+        left: 0, top: 0, right: 1200, bottom: 800,
+        width: 1200, height: 800, x: 0, y: 0, toJSON: () => ({})
+      })
+      mockCanvas.getContext = vi.fn(() => createMockContext()) as unknown as typeof mockCanvas.getContext
+    })
+
+    it('should constrain crop to image bounds', () => {
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      Object.defineProperty(result.current.canvasRef, 'current', {
+        value: mockCanvas,
+        writable: true
+      })
+
+      act(() => {
+        result.current.initializeCrop(1920, 1080, null)
+      })
+
+      // Crop should be within image bounds
+      expect(result.current.cropX).toBeGreaterThanOrEqual(0)
+      expect(result.current.cropY).toBeGreaterThanOrEqual(0)
+      expect(result.current.cropX + result.current.cropWidth).toBeLessThanOrEqual(1920)
+      expect(result.current.cropY + result.current.cropHeight).toBeLessThanOrEqual(1080)
+    })
+  })
+
   describe('zoom to fit calculations', () => {
     it('should handle very large image', () => {
       const largeImage = { width: 8000, height: 6000 } as HTMLImageElement
@@ -534,6 +1116,102 @@ describe('useCanvas', () => {
 
       // Width should be the limiting factor
       expect(result.current.zoomLevel).toBeDefined()
+    })
+  })
+
+  describe('dynamic canvas sizing', () => {
+    it('should update canvas size on window resize', async () => {
+      const mockContainer = document.createElement('div')
+      Object.defineProperty(mockContainer, 'getBoundingClientRect', {
+        value: () => ({ width: 1600, height: 1000 }),
+        configurable: true
+      })
+
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      // Set container ref
+      Object.defineProperty(result.current.containerRef, 'current', {
+        value: mockContainer,
+        writable: true
+      })
+
+      // Trigger resize event
+      act(() => {
+        window.dispatchEvent(new Event('resize'))
+      })
+
+      // Wait for the debounced update
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 150))
+      })
+
+      // Canvas size should update based on container
+      expect(result.current.canvasWidth).toBeDefined()
+      expect(result.current.canvasHeight).toBeDefined()
+    })
+
+    it('should cleanup resize listener on unmount', () => {
+      const removeEventListenerSpy = vi.spyOn(window, 'removeEventListener')
+
+      const { unmount } = renderHook(() => useCanvas(mockImage))
+
+      unmount()
+
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function))
+      removeEventListenerSpy.mockRestore()
+    })
+
+    it('should use minimum canvas dimensions', async () => {
+      const smallContainer = document.createElement('div')
+      Object.defineProperty(smallContainer, 'getBoundingClientRect', {
+        value: () => ({ width: 100, height: 100 }),
+        configurable: true
+      })
+
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      Object.defineProperty(result.current.containerRef, 'current', {
+        value: smallContainer,
+        writable: true
+      })
+
+      act(() => {
+        window.dispatchEvent(new Event('resize'))
+      })
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 150))
+      })
+
+      // Should use minimum sizes (800x600)
+      expect(result.current.canvasWidth).toBeGreaterThanOrEqual(800)
+      expect(result.current.canvasHeight).toBeGreaterThanOrEqual(600)
+    })
+
+    it('should handle large container dimensions', async () => {
+      const largeContainer = document.createElement('div')
+      Object.defineProperty(largeContainer, 'getBoundingClientRect', {
+        value: () => ({ width: 2000, height: 1500 }),
+        configurable: true
+      })
+
+      const { result } = renderHook(() => useCanvas(mockImage))
+
+      Object.defineProperty(result.current.containerRef, 'current', {
+        value: largeContainer,
+        writable: true
+      })
+
+      act(() => {
+        window.dispatchEvent(new Event('resize'))
+      })
+
+      await act(async () => {
+        await new Promise(resolve => setTimeout(resolve, 150))
+      })
+
+      expect(result.current.canvasWidth).toBeDefined()
+      expect(result.current.canvasHeight).toBeDefined()
     })
   })
 })

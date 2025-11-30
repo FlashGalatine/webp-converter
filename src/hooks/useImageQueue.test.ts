@@ -344,6 +344,226 @@ describe('useImageQueue', () => {
       expect(result.current.imageQueue[0].name).toBe('image1.png')
       expect(result.current.imageQueue[1].name).toBe('image3.png')
     })
+
+    it('should adjust processed images indices when removing image before processed', async () => {
+      const onLoad = vi.fn().mockResolvedValue(undefined)
+      const { result } = renderHook(() => useImageQueue(mockOnImageLoad))
+
+      const mockFiles = createMockFileList([
+        new File(['test1'], 'image1.png', { type: 'image/png' }),
+        new File(['test2'], 'image2.png', { type: 'image/png' }),
+        new File(['test3'], 'image3.png', { type: 'image/png' })
+      ])
+
+      act(() => {
+        result.current.addImagesToQueue(mockFiles)
+      })
+
+      await waitFor(() => {
+        expect(result.current.currentImageIndex).toBe(0)
+      })
+
+      // Navigate to image 2 (index 1) and mark as processed
+      act(() => {
+        result.current.loadNextImage()
+      })
+
+      await waitFor(() => {
+        expect(result.current.currentImageIndex).toBe(1)
+      })
+
+      act(() => {
+        result.current.markImageAsProcessed()
+      })
+
+      expect(result.current.processedImages.has(1)).toBe(true)
+
+      // Navigate to image 3 (index 2) and mark as processed
+      act(() => {
+        result.current.loadNextImage()
+      })
+
+      await waitFor(() => {
+        expect(result.current.currentImageIndex).toBe(2)
+      })
+
+      act(() => {
+        result.current.markImageAsProcessed()
+      })
+
+      expect(result.current.processedImages.has(2)).toBe(true)
+
+      // Remove image 1 (index 0) - should adjust processed indices
+      act(() => {
+        result.current.removeImageFromQueue(0, onLoad)
+      })
+
+      // Processed index 1 should now be 0, processed index 2 should now be 1
+      expect(result.current.processedImages.has(0)).toBe(true)
+      expect(result.current.processedImages.has(1)).toBe(true)
+      expect(result.current.processedImages.has(2)).toBe(false)
+    })
+
+    it('should load next image when removing current image with more images in queue', async () => {
+      const onLoad = vi.fn().mockResolvedValue(undefined)
+      const { result } = renderHook(() => useImageQueue(mockOnImageLoad))
+
+      const mockFiles = createMockFileList([
+        new File(['test1'], 'image1.png', { type: 'image/png' }),
+        new File(['test2'], 'image2.png', { type: 'image/png' }),
+        new File(['test3'], 'image3.png', { type: 'image/png' })
+      ])
+
+      act(() => {
+        result.current.addImagesToQueue(mockFiles)
+      })
+
+      await waitFor(() => {
+        expect(result.current.currentImageIndex).toBe(0)
+      })
+
+      // Remove current image (index 0)
+      act(() => {
+        result.current.removeImageFromQueue(0, onLoad)
+      })
+
+      // Should load next image (now at index 0)
+      expect(result.current.currentImageIndex).toBe(0)
+      expect(result.current.imageQueue[0].name).toBe('image2.png')
+      expect(onLoad).toHaveBeenCalled()
+    })
+
+    it('should reset index when removing last remaining image', async () => {
+      const onLoad = vi.fn().mockResolvedValue(undefined)
+      const { result } = renderHook(() => useImageQueue(mockOnImageLoad))
+
+      const mockFiles = createMockFileList([
+        new File(['test1'], 'image1.png', { type: 'image/png' })
+      ])
+
+      act(() => {
+        result.current.addImagesToQueue(mockFiles)
+      })
+
+      await waitFor(() => {
+        expect(result.current.currentImageIndex).toBe(0)
+      })
+
+      // Remove the only image
+      act(() => {
+        result.current.removeImageFromQueue(0, onLoad)
+      })
+
+      // Queue should be empty, index should be -1
+      expect(result.current.imageQueue.length).toBe(0)
+      expect(result.current.currentImageIndex).toBe(-1)
+    })
+
+    it('should adjust currentImageIndex when removing image before current', async () => {
+      const onLoad = vi.fn().mockResolvedValue(undefined)
+      const { result } = renderHook(() => useImageQueue(mockOnImageLoad))
+
+      const mockFiles = createMockFileList([
+        new File(['test1'], 'image1.png', { type: 'image/png' }),
+        new File(['test2'], 'image2.png', { type: 'image/png' }),
+        new File(['test3'], 'image3.png', { type: 'image/png' })
+      ])
+
+      act(() => {
+        result.current.addImagesToQueue(mockFiles)
+      })
+
+      await waitFor(() => {
+        expect(result.current.currentImageIndex).toBe(0)
+      })
+
+      // Navigate to image 3 (index 2)
+      act(() => {
+        result.current.loadNextImage()
+      })
+      act(() => {
+        result.current.loadNextImage()
+      })
+
+      await waitFor(() => {
+        expect(result.current.currentImageIndex).toBe(2)
+      })
+
+      // Remove image 1 (index 0) - current index should decrease
+      act(() => {
+        result.current.removeImageFromQueue(0, onLoad)
+      })
+
+      // Current index should now be 1 (was 2, decreased by 1)
+      expect(result.current.currentImageIndex).toBe(1)
+    })
+
+    it('should keep processed indices before removed index', async () => {
+      const onLoad = vi.fn().mockResolvedValue(undefined)
+      const { result } = renderHook(() => useImageQueue(mockOnImageLoad))
+
+      const mockFiles = createMockFileList([
+        new File(['test1'], 'image1.png', { type: 'image/png' }),
+        new File(['test2'], 'image2.png', { type: 'image/png' }),
+        new File(['test3'], 'image3.png', { type: 'image/png' })
+      ])
+
+      act(() => {
+        result.current.addImagesToQueue(mockFiles)
+      })
+
+      await waitFor(() => {
+        expect(result.current.currentImageIndex).toBe(0)
+      })
+
+      // Mark first image as processed
+      act(() => {
+        result.current.markImageAsProcessed()
+      })
+
+      expect(result.current.processedImages.has(0)).toBe(true)
+
+      // Remove image 3 (index 2) - processed index 0 should remain
+      act(() => {
+        result.current.removeImageFromQueue(2, onLoad)
+      })
+
+      expect(result.current.processedImages.has(0)).toBe(true)
+    })
+
+    it('should handle removing last image when viewing it', async () => {
+      const onLoad = vi.fn().mockResolvedValue(undefined)
+      const { result } = renderHook(() => useImageQueue(mockOnImageLoad))
+
+      const mockFiles = createMockFileList([
+        new File(['test1'], 'image1.png', { type: 'image/png' }),
+        new File(['test2'], 'image2.png', { type: 'image/png' })
+      ])
+
+      act(() => {
+        result.current.addImagesToQueue(mockFiles)
+      })
+
+      await waitFor(() => {
+        expect(result.current.currentImageIndex).toBe(0)
+      })
+
+      // Navigate to last image
+      act(() => {
+        result.current.loadNextImage()
+      })
+
+      expect(result.current.currentImageIndex).toBe(1)
+
+      // Remove last image while viewing it
+      act(() => {
+        result.current.removeImageFromQueue(1, onLoad)
+      })
+
+      // Should load the new last image (index 0)
+      expect(result.current.currentImageIndex).toBe(0)
+      expect(result.current.imageQueue.length).toBe(1)
+    })
   })
 })
 

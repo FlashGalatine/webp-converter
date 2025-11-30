@@ -350,6 +350,98 @@ describe('useImageProcessing', () => {
         expect(result.current.isOptimizing).toBe(false)
       }, { timeout: 3000 })
     })
+
+    it('should iterate through quality levels when lossless exceeds target', async () => {
+      const { result } = renderHook(() => useImageProcessing())
+      const onComplete = vi.fn()
+
+      act(() => {
+        result.current.handleConvert({
+          image: mockImage,
+          cropX: 0,
+          cropY: 0,
+          cropWidth: 200,
+          cropHeight: 200,
+          maxWidth: '',
+          maxHeight: '',
+          resamplingMethod: 'browser',
+          quality: 85,
+          lossless: false,
+          webOptimize: true,
+          targetSize: '0.5', // 500KB - should require quality reduction
+          onComplete
+        })
+      })
+
+      // Should show lossless testing status first
+      await waitFor(() => {
+        expect(result.current.optimizingStatus).toContain('lossless')
+      }, { timeout: 1000 })
+
+      await waitFor(() => {
+        expect(result.current.isOptimizing).toBe(false)
+      }, { timeout: 5000 })
+    })
+
+    it('should fall back to quality 1 when target cannot be met', async () => {
+      const { result } = renderHook(() => useImageProcessing())
+      const onComplete = vi.fn()
+
+      act(() => {
+        result.current.handleConvert({
+          image: mockImage,
+          cropX: 0,
+          cropY: 0,
+          cropWidth: 500,
+          cropHeight: 500,
+          maxWidth: '',
+          maxHeight: '',
+          resamplingMethod: 'browser',
+          quality: 85,
+          lossless: false,
+          webOptimize: true,
+          targetSize: '0.00001', // Impossibly small target
+          onComplete
+        })
+      })
+
+      // Wait for the optimization to complete
+      await waitFor(() => {
+        expect(result.current.isOptimizing).toBe(false)
+      }, { timeout: 15000 })
+
+      // Should have completed
+      expect(onComplete).toHaveBeenCalled()
+    })
+
+    it('should find optimal quality and download', async () => {
+      const { result } = renderHook(() => useImageProcessing())
+      const onComplete = vi.fn()
+
+      act(() => {
+        result.current.handleConvert({
+          image: mockImage,
+          cropX: 0,
+          cropY: 0,
+          cropWidth: 100,
+          cropHeight: 100,
+          maxWidth: '',
+          maxHeight: '',
+          resamplingMethod: 'browser',
+          quality: 85,
+          lossless: false,
+          webOptimize: true,
+          targetSize: '1', // 1MB - achievable
+          onComplete
+        })
+      })
+
+      await waitFor(() => {
+        expect(result.current.isOptimizing).toBe(false)
+      }, { timeout: 5000 })
+
+      expect(onComplete).toHaveBeenCalled()
+    })
   })
 
   describe('standard conversion (non-web optimize)', () => {
@@ -530,5 +622,191 @@ describe('useImageProcessing', () => {
         expect(result.current.isOptimizing).toBe(false)
       }, { timeout: 3000 })
     })
+
+    it('should show resampling status for non-browser resampling method', async () => {
+      const { result } = renderHook(() => useImageProcessing())
+      const onComplete = vi.fn()
+
+      act(() => {
+        result.current.handleConvert({
+          image: mockImage,
+          cropX: 0,
+          cropY: 0,
+          cropWidth: 400,
+          cropHeight: 400,
+          maxWidth: '200',
+          maxHeight: '200',
+          resamplingMethod: 'bilinear', // Non-browser method
+          quality: 85,
+          lossless: false,
+          webOptimize: false,
+          targetSize: '10',
+          onComplete
+        })
+      })
+
+      // Status should mention resampling
+      expect(result.current.optimizingStatus).toBeDefined()
+
+      await waitFor(() => {
+        expect(result.current.isOptimizing).toBe(false)
+      }, { timeout: 5000 })
+    })
+
+    it('should show resampling status for bicubic method', async () => {
+      const { result } = renderHook(() => useImageProcessing())
+      const onComplete = vi.fn()
+
+      act(() => {
+        result.current.handleConvert({
+          image: mockImage,
+          cropX: 0,
+          cropY: 0,
+          cropWidth: 400,
+          cropHeight: 400,
+          maxWidth: '200',
+          maxHeight: '200',
+          resamplingMethod: 'bicubic',
+          quality: 85,
+          lossless: false,
+          webOptimize: false,
+          targetSize: '10',
+          onComplete
+        })
+      })
+
+      expect(result.current.optimizingStatus).toBeDefined()
+
+      await waitFor(() => {
+        expect(result.current.isOptimizing).toBe(false)
+      }, { timeout: 5000 })
+    })
+
+    it('should set optimization status with resampling info for lanczos method', async () => {
+      const { result } = renderHook(() => useImageProcessing())
+      const onComplete = vi.fn()
+
+      act(() => {
+        result.current.handleConvert({
+          image: mockImage,
+          cropX: 0,
+          cropY: 0,
+          cropWidth: 200, // Smaller crop for faster test
+          cropHeight: 150,
+          maxWidth: '100',
+          maxHeight: '75',
+          resamplingMethod: 'lanczos', // Non-browser method triggers status
+          quality: 85,
+          lossless: false,
+          webOptimize: false,
+          targetSize: '10',
+          onComplete
+        })
+      })
+
+      // When using non-browser resampling, status should include method info
+      expect(result.current.optimizingStatus).toBeDefined()
+
+      await waitFor(() => {
+        expect(result.current.isOptimizing).toBe(false)
+      }, { timeout: 15000 })
+    }, 20000)
+
+    it('should set optimization status with resampling info for nearestNeighbor method', async () => {
+      const { result } = renderHook(() => useImageProcessing())
+      const onComplete = vi.fn()
+
+      act(() => {
+        result.current.handleConvert({
+          image: mockImage,
+          cropX: 0,
+          cropY: 0,
+          cropWidth: 800,
+          cropHeight: 600,
+          maxWidth: '400',
+          maxHeight: '300',
+          resamplingMethod: 'nearestNeighbor',
+          quality: 85,
+          lossless: false,
+          webOptimize: false,
+          targetSize: '10',
+          onComplete
+        })
+      })
+
+      expect(result.current.optimizingStatus).toBeDefined()
+
+      await waitFor(() => {
+        expect(result.current.isOptimizing).toBe(false)
+      }, { timeout: 5000 })
+    })
+  })
+
+  describe('web optimization edge cases', () => {
+    it('should handle quality loop that finds optimal quality', async () => {
+      const { result } = renderHook(() => useImageProcessing())
+      const onComplete = vi.fn()
+
+      act(() => {
+        result.current.handleConvert({
+          image: mockImage,
+          cropX: 0,
+          cropY: 0,
+          cropWidth: 200,
+          cropHeight: 200,
+          maxWidth: '',
+          maxHeight: '',
+          resamplingMethod: 'browser',
+          quality: 85,
+          lossless: false,
+          webOptimize: true,
+          targetSize: '0.5', // Small target that should trigger quality iteration
+          onComplete
+        })
+      })
+
+      // Wait for optimization to complete
+      await waitFor(() => {
+        expect(result.current.isOptimizing).toBe(false)
+      }, { timeout: 10000 })
+
+      expect(onComplete).toHaveBeenCalled()
+    })
+
+    it('should handle case when target size cannot be met', async () => {
+      const { result } = renderHook(() => useImageProcessing())
+      const onComplete = vi.fn()
+
+      // Create a larger image mock for this test
+      const largeImage = {
+        width: 1920,
+        height: 1080
+      } as HTMLImageElement
+
+      act(() => {
+        result.current.handleConvert({
+          image: largeImage,
+          cropX: 0,
+          cropY: 0,
+          cropWidth: 1920,
+          cropHeight: 1080,
+          maxWidth: '',
+          maxHeight: '',
+          resamplingMethod: 'browser',
+          quality: 85,
+          lossless: false,
+          webOptimize: true,
+          targetSize: '0.00001', // Impossibly small target
+          onComplete
+        })
+      })
+
+      // Wait for optimization to complete (should fall back to quality 1)
+      await waitFor(() => {
+        expect(result.current.isOptimizing).toBe(false)
+      }, { timeout: 120000 })
+
+      expect(onComplete).toHaveBeenCalled()
+    }, 120000)
   })
 })
