@@ -2,6 +2,21 @@
 
 ## Current Releases
 
+### STABLE Build v2.6.3
+**File:** `index.html` (default)
+**Status:** Production Ready ✅
+**Date:** November 30, 2025
+
+**Latest Improvements:**
+- ✅ Added comprehensive testing infrastructure with Vitest
+- ✅ 305 tests covering utilities, hooks, and components
+- ✅ 83.41% statement coverage, 89.24% function coverage
+- ✅ Test setup with React Testing Library and jsdom
+
+See [Version History](#version-history) for detailed release notes.
+
+---
+
 ### STABLE Build v2.6.2
 **File:** `index.html` (default)
 **Status:** Production Ready ✅
@@ -35,13 +50,63 @@ See [Version History](#version-history) for detailed release notes.
 
 ### EXPERIMENTAL Build
 **File:** `webp-conv-experimental.html`
-**Status:** Testing & Development ⚠️ (Synchronized with STABLE v2.6.2)
+**Status:** Testing & Development ⚠️ (Synchronized with STABLE v2.6.3)
 
-For testing new features before they reach stable. Currently identical to STABLE v2.6.2.
+For testing new features before they reach stable. Currently identical to STABLE v2.6.3.
 
 ---
 
 ## Version History
+
+### v2.6.3-STABLE (November 30, 2025)
+**Testing Infrastructure & Quality Assurance**
+
+**New Features:**
+- **Comprehensive Testing Infrastructure** - Professional test suite with Vitest
+  - 305 passing tests across utilities, hooks, and components
+  - 83.41% statement coverage, 67.97% branch coverage
+  - 89.24% function coverage, 83.2% line coverage
+  - React Testing Library for component testing
+  - jsdom environment for DOM simulation
+
+**Test Coverage by Module:**
+- **Utils (100% coverage):**
+  - `parser.ts` - 31 tests for aspect ratio parsing
+  - `validation.ts` - 30 tests for crop ratio and preset name validation
+  - `interactions.ts` - 34 tests for canvas cursor and handle detection
+  - `downloads.ts` - 10 tests for blob download functionality
+  - `rendering.ts` - 19 tests for canvas rendering
+  - `conversion.ts` - 19 tests for image conversion preparation
+  - `resampling.ts` - 15 tests for all resampling methods
+
+- **Hooks (65-93% coverage):**
+  - `useCanvas.ts` - 38 tests for zoom, pan, crop initialization
+  - `useImageProcessing.ts` - 19 tests for conversion workflow
+  - `useImageQueue.ts` - 17 tests for queue management
+  - `usePresets.ts` - 11 tests for preset loading and application
+
+- **Components (100% coverage):**
+  - `Canvas.tsx` - 15 tests for rendering and interactions
+  - `QueuePanel.tsx` - 22 tests for queue UI and controls
+  - `Toolbar.tsx` - 14 tests for toolbar rendering
+
+**Test Configuration:**
+- `vitest.config.ts` - Vitest configuration with coverage thresholds
+- `src/test/setup.ts` - Global test setup with Canvas, FileReader, Image mocks
+- `src/test/helpers/renderWithProviders.tsx` - Custom render with BrowserRouter
+
+**New Development Commands:**
+- `npm run test` - Run tests in watch mode
+- `npm run test:run` - Single test run
+- `npm run test:coverage` - Run with coverage report
+- `npm run test:ui` - Visual test UI
+
+**Dependencies Added:**
+- vitest, @vitest/coverage-v8, @vitest/ui
+- @testing-library/react, @testing-library/jest-dom, @testing-library/user-event
+- jsdom
+
+---
 
 ### v2.6.2-STABLE (November 19, 2025)
 **Critical Bug Fixes - Crop Zone & Auto Zoom**
