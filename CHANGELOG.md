@@ -2,16 +2,16 @@
 
 ## Current Releases
 
-### STABLE Build v2.6.3
+### STABLE Build v2.6.4
 **File:** `index.html` (default)
 **Status:** Production Ready ✅
 **Date:** November 30, 2025
 
 **Latest Improvements:**
-- ✅ Added comprehensive testing infrastructure with Vitest
-- ✅ 305 tests covering utilities, hooks, and components
-- ✅ 83.41% statement coverage, 89.24% function coverage
-- ✅ Test setup with React Testing Library and jsdom
+- ✅ Improved test coverage from 83% to 93% statement coverage
+- ✅ 348 tests covering utilities, hooks, and components
+- ✅ 92.62% statement coverage, 98.92% function coverage
+- ✅ Added comprehensive edge case tests for all modules
 
 See [Version History](#version-history) for detailed release notes.
 
@@ -50,13 +50,52 @@ See [Version History](#version-history) for detailed release notes.
 
 ### EXPERIMENTAL Build
 **File:** `webp-conv-experimental.html`
-**Status:** Testing & Development ⚠️ (Synchronized with STABLE v2.6.3)
+**Status:** Testing & Development ⚠️ (Synchronized with STABLE v2.6.4)
 
-For testing new features before they reach stable. Currently identical to STABLE v2.6.3.
+For testing new features before they reach stable. Currently identical to STABLE v2.6.4.
 
 ---
 
 ## Version History
+
+### v2.6.4-STABLE (November 30, 2025)
+**Comprehensive Test Coverage Improvement**
+
+**Improvements:**
+- **Improved Statement Coverage** - From 83.41% to 92.62%
+  - 348 tests total (up from 305)
+  - 81.13% branch coverage
+  - 98.92% function coverage
+  - 92.59% line coverage
+
+**New Test Coverage:**
+- **Toolbar Component (100% coverage):**
+  - Added button click test that verifies file input is triggered
+
+- **useImageQueue Hook (100% coverage):**
+  - Added edge case tests for removeImageFromQueue
+  - Tests for processed image index adjustment
+  - Tests for removing current image with queue remaining
+  - Tests for removing image before current index
+
+- **useImageProcessing Hook (86% coverage):**
+  - Added tests for non-browser resampling methods (bilinear, bicubic, lanczos)
+  - Added tests for web optimization quality loop
+  - Tests for fallback to quality 1 when target cannot be met
+  - Tests for finding optimal quality level
+
+- **useCanvas Hook (72% coverage):**
+  - Added tests for document-level mouse event handlers
+  - Tests for move, pan, and resize drag operations
+  - Tests for aspect ratio constraint during resize
+  - Tests for crop bounds constraining
+  - Tests for dynamic canvas sizing on window resize
+
+- **Loaders (100% coverage):**
+  - Added tests for image decode error handling
+  - Added tests for FileReader error handling
+
+---
 
 ### v2.6.3-STABLE (November 30, 2025)
 **Testing Infrastructure & Quality Assurance**
