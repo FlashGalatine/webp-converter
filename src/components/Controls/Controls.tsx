@@ -294,9 +294,12 @@ export default function Controls({
                 onMaxWidthChange(newWidth);
 
                 if (linkDimensions && !isFreestyleModeActive && newWidth && cropWidth > 0 && cropHeight > 0) {
-                  const cropAspectRatio = cropWidth / cropHeight;
-                  const newHeight = Math.round(parseInt(newWidth) / cropAspectRatio);
-                  onMaxHeightChange(newHeight.toString());
+                  const parsed = parseInt(newWidth, 10);
+                  if (!isNaN(parsed) && parsed > 0) {
+                    const cropAspectRatio = cropWidth / cropHeight;
+                    const newHeight = Math.round(parsed / cropAspectRatio);
+                    onMaxHeightChange(newHeight.toString());
+                  }
                 }
               }}
               placeholder="pixels"
@@ -313,9 +316,12 @@ export default function Controls({
                 onMaxHeightChange(newHeight);
 
                 if (linkDimensions && !isFreestyleModeActive && newHeight && cropWidth > 0 && cropHeight > 0) {
-                  const cropAspectRatio = cropWidth / cropHeight;
-                  const newWidth = Math.round(parseInt(newHeight) * cropAspectRatio);
-                  onMaxWidthChange(newWidth.toString());
+                  const parsed = parseInt(newHeight, 10);
+                  if (!isNaN(parsed) && parsed > 0) {
+                    const cropAspectRatio = cropWidth / cropHeight;
+                    const newWidth = Math.round(parsed * cropAspectRatio);
+                    onMaxWidthChange(newWidth.toString());
+                  }
                 }
               }}
               placeholder="pixels"

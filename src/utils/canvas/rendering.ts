@@ -17,7 +17,11 @@ export interface RenderParams {
  */
 export function renderCanvas(params: RenderParams): void {
   const { canvas, image, zoomLevel, panX, panY, cropX, cropY, cropWidth, cropHeight } = params;
-  const ctx = canvas.getContext('2d')!;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    console.error('Failed to get 2D canvas context');
+    return;
+  }
   const canvasWidth = canvas.width;
   const canvasHeight = canvas.height;
 
@@ -48,8 +52,8 @@ export function renderCanvas(params: RenderParams): void {
     ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
     ctx.fillRect(0, 0, canvasWidth, cropDisplayY); // Top
     ctx.fillRect(0, cropDisplayY, cropDisplayX, cropDisplayHeight); // Left
-    ctx.fillRect(cropDisplayX + cropDisplayWidth, cropDisplayY, canvasWidth, cropDisplayHeight); // Right
-    ctx.fillRect(0, cropDisplayY + cropDisplayHeight, canvasWidth, canvasHeight); // Bottom
+    ctx.fillRect(cropDisplayX + cropDisplayWidth, cropDisplayY, canvasWidth - cropDisplayX - cropDisplayWidth, cropDisplayHeight); // Right
+    ctx.fillRect(0, cropDisplayY + cropDisplayHeight, canvasWidth, canvasHeight - cropDisplayY - cropDisplayHeight); // Bottom
 
     // Draw crop border
     ctx.strokeStyle = '#fbbf24';

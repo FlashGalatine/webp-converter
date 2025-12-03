@@ -5,7 +5,11 @@ import { ResamplingMethod } from '../../types';
 function applyGaussianBlur(sourceCanvas: HTMLCanvasElement, radius: number): HTMLCanvasElement {
   if (radius < MIN_BLUR_RADIUS) return sourceCanvas;
 
-  const srcCtx = sourceCanvas.getContext('2d')!;
+  const srcCtx = sourceCanvas.getContext('2d');
+  if (!srcCtx) {
+    console.error('Failed to get 2D canvas context for Gaussian blur');
+    return sourceCanvas;
+  }
   const srcData = srcCtx.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height);
   const dstData = srcCtx.createImageData(sourceCanvas.width, sourceCanvas.height);
 
@@ -70,7 +74,11 @@ function applyGaussianBlur(sourceCanvas: HTMLCanvasElement, radius: number): HTM
   const blurredCanvas = document.createElement('canvas');
   blurredCanvas.width = sourceCanvas.width;
   blurredCanvas.height = sourceCanvas.height;
-  const blurredCtx = blurredCanvas.getContext('2d')!;
+  const blurredCtx = blurredCanvas.getContext('2d');
+  if (!blurredCtx) {
+    console.error('Failed to get 2D canvas context for blurred canvas');
+    return sourceCanvas;
+  }
   blurredCtx.putImageData(dstData, 0, 0);
   return blurredCanvas;
 }
@@ -84,10 +92,18 @@ export function resampleImage(
   targetHeight: number,
   method: ResamplingMethod
 ): HTMLCanvasElement {
+  // Validate target dimensions to prevent division by zero and corrupted output
+  if (targetWidth <= 0 || targetHeight <= 0) {
+    throw new Error(`Target dimensions must be positive (received ${targetWidth}x${targetHeight})`);
+  }
+
   const targetCanvas = document.createElement('canvas');
   targetCanvas.width = targetWidth;
   targetCanvas.height = targetHeight;
-  const targetCtx = targetCanvas.getContext('2d')!;
+  const targetCtx = targetCanvas.getContext('2d');
+  if (!targetCtx) {
+    throw new Error('Failed to get 2D canvas context for target canvas');
+  }
 
   // Calculate downsampling ratio
   const scaleX = targetWidth / sourceCanvas.width;
@@ -127,8 +143,11 @@ export function resampleImage(
 }
 
 function resampleNearestNeighbor(srcCanvas: HTMLCanvasElement, dstCanvas: HTMLCanvasElement): HTMLCanvasElement {
-  const srcCtx = srcCanvas.getContext('2d')!;
-  const dstCtx = dstCanvas.getContext('2d')!;
+  const srcCtx = srcCanvas.getContext('2d');
+  const dstCtx = dstCanvas.getContext('2d');
+  if (!srcCtx || !dstCtx) {
+    throw new Error('Failed to get 2D canvas context for nearest neighbor resampling');
+  }
   const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height);
   const dstData = dstCtx.createImageData(dstCanvas.width, dstCanvas.height);
 
@@ -154,8 +173,11 @@ function resampleNearestNeighbor(srcCanvas: HTMLCanvasElement, dstCanvas: HTMLCa
 }
 
 function resampleBilinear(srcCanvas: HTMLCanvasElement, dstCanvas: HTMLCanvasElement): HTMLCanvasElement {
-  const srcCtx = srcCanvas.getContext('2d')!;
-  const dstCtx = dstCanvas.getContext('2d')!;
+  const srcCtx = srcCanvas.getContext('2d');
+  const dstCtx = dstCanvas.getContext('2d');
+  if (!srcCtx || !dstCtx) {
+    throw new Error('Failed to get 2D canvas context for bilinear resampling');
+  }
   const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height);
   const dstData = dstCtx.createImageData(dstCanvas.width, dstCanvas.height);
 
@@ -202,8 +224,11 @@ function resampleBilinear(srcCanvas: HTMLCanvasElement, dstCanvas: HTMLCanvasEle
 }
 
 function resampleBicubic(srcCanvas: HTMLCanvasElement, dstCanvas: HTMLCanvasElement): HTMLCanvasElement {
-  const srcCtx = srcCanvas.getContext('2d')!;
-  const dstCtx = dstCanvas.getContext('2d')!;
+  const srcCtx = srcCanvas.getContext('2d');
+  const dstCtx = dstCanvas.getContext('2d');
+  if (!srcCtx || !dstCtx) {
+    throw new Error('Failed to get 2D canvas context for bicubic resampling');
+  }
   const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height);
   const dstData = dstCtx.createImageData(dstCanvas.width, dstCanvas.height);
 
@@ -262,8 +287,11 @@ function resampleBicubic(srcCanvas: HTMLCanvasElement, dstCanvas: HTMLCanvasElem
 }
 
 function resampleLanczos(srcCanvas: HTMLCanvasElement, dstCanvas: HTMLCanvasElement): HTMLCanvasElement {
-  const srcCtx = srcCanvas.getContext('2d')!;
-  const dstCtx = dstCanvas.getContext('2d')!;
+  const srcCtx = srcCanvas.getContext('2d');
+  const dstCtx = dstCanvas.getContext('2d');
+  if (!srcCtx || !dstCtx) {
+    throw new Error('Failed to get 2D canvas context for Lanczos resampling');
+  }
   const srcData = srcCtx.getImageData(0, 0, srcCanvas.width, srcCanvas.height);
   const dstData = dstCtx.createImageData(dstCanvas.width, dstCanvas.height);
 
