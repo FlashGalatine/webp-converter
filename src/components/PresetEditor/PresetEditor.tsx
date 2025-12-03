@@ -222,6 +222,7 @@ export default function PresetEditor() {
     }
 
     const exportData: CustomPresetsRaw = {};
+    const excludedPresets: string[] = [];
     presets.forEach(preset => {
       const config: any = {};
 
@@ -246,8 +247,20 @@ export default function PresetEditor() {
 
       if (Object.keys(config).length > 0) {
         exportData[preset.name] = config;
+      } else if (preset.name.trim() !== '') {
+        excludedPresets.push(preset.name);
       }
     });
+
+    // Warn user if any presets were excluded due to having no configuration
+    if (excludedPresets.length > 0) {
+      const proceed = confirm(
+        `The following preset(s) have no configuration and will be excluded from the export:\n\n${excludedPresets.map(name => `• "${name}"`).join('\n')}\n\nDo you want to continue?`
+      );
+      if (!proceed) {
+        return;
+      }
+    }
 
     const jsonString = JSON.stringify(exportData, null, 2);
     const blob = new Blob([jsonString], { type: 'application/json' });

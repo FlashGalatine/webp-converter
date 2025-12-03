@@ -5,20 +5,28 @@ export function loadImageFromFile(file: File): Promise<{ image: HTMLImageElement
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = (e) => {
+      const result = e.target?.result;
+      if (typeof result !== 'string' || !result) {
+        reject(new Error('Failed to read file: result is empty or invalid'));
+        return;
+      }
       const img = new Image();
       img.onload = () => {
         resolve({
           image: img,
-          imageData: e.target?.result as string
+          imageData: result
         });
       };
       img.onerror = () => {
         reject(new Error('Failed to decode image file. Make sure it is a valid image.'));
       };
-      img.src = e.target?.result as string;
+      img.src = result;
     };
     reader.onerror = () => {
       reject(new Error('Failed to read file'));
+    };
+    reader.onabort = () => {
+      reject(new Error('File reading was aborted'));
     };
     reader.readAsDataURL(file);
   });

@@ -712,7 +712,7 @@ describe('useImageProcessing', () => {
       }, { timeout: 15000 })
     }, 20000)
 
-    it('should set optimization status with resampling info for nearestNeighbor method', async () => {
+    it('should set optimization status with resampling info for nearest neighbor method', async () => {
       const { result } = renderHook(() => useImageProcessing())
       const onComplete = vi.fn()
 
@@ -725,7 +725,7 @@ describe('useImageProcessing', () => {
           cropHeight: 600,
           maxWidth: '400',
           maxHeight: '300',
-          resamplingMethod: 'nearestNeighbor',
+          resamplingMethod: 'nearest',
           quality: 85,
           lossless: false,
           webOptimize: false,

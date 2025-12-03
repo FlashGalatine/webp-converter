@@ -1,3 +1,5 @@
+import { useCallback } from 'react';
+import { useDebouncedCallback } from '../../hooks/useDebouncedCallback';
 import type { ResamplingMethod } from '../../types';
 import type { CustomPresetsRaw } from '../../types';
 
@@ -115,6 +117,43 @@ export default function Controls({
   optimizingProgress,
   optimizingStatus
 }: ControlsProps) {
+  // Debounced callbacks for linked dimension updates to prevent laggy input experience
+  const debouncedUpdateHeight = useDebouncedCallback((newHeight: string) => {
+    onMaxHeightChange(newHeight);
+  }, 150);
+
+  const debouncedUpdateWidth = useDebouncedCallback((newWidth: string) => {
+    onMaxWidthChange(newWidth);
+  }, 150);
+
+  // Handle width change with optional linked height update
+  const handleWidthChange = useCallback((newWidth: string) => {
+    onMaxWidthChange(newWidth);
+
+    if (linkDimensions && !isFreestyleModeActive && newWidth && cropWidth > 0 && cropHeight > 0) {
+      const parsed = parseInt(newWidth, 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        const cropAspectRatio = cropWidth / cropHeight;
+        const newHeight = Math.round(parsed / cropAspectRatio);
+        debouncedUpdateHeight(newHeight.toString());
+      }
+    }
+  }, [linkDimensions, isFreestyleModeActive, cropWidth, cropHeight, onMaxWidthChange, debouncedUpdateHeight]);
+
+  // Handle height change with optional linked width update
+  const handleHeightChange = useCallback((newHeight: string) => {
+    onMaxHeightChange(newHeight);
+
+    if (linkDimensions && !isFreestyleModeActive && newHeight && cropWidth > 0 && cropHeight > 0) {
+      const parsed = parseInt(newHeight, 10);
+      if (!isNaN(parsed) && parsed > 0) {
+        const cropAspectRatio = cropWidth / cropHeight;
+        const newWidth = Math.round(parsed * cropAspectRatio);
+        debouncedUpdateWidth(newWidth.toString());
+      }
+    }
+  }, [linkDimensions, isFreestyleModeActive, cropWidth, cropHeight, onMaxHeightChange, debouncedUpdateWidth]);
+
   return (
     <>
       {/* Custom Preset Loader UI */}
@@ -289,19 +328,7 @@ export default function Controls({
             <input
               type="number"
               value={maxWidth}
-              onChange={(e) => {
-                const newWidth = e.target.value;
-                onMaxWidthChange(newWidth);
-
-                if (linkDimensions && !isFreestyleModeActive && newWidth && cropWidth > 0 && cropHeight > 0) {
-                  const parsed = parseInt(newWidth, 10);
-                  if (!isNaN(parsed) && parsed > 0) {
-                    const cropAspectRatio = cropWidth / cropHeight;
-                    const newHeight = Math.round(parsed / cropAspectRatio);
-                    onMaxHeightChange(newHeight.toString());
-                  }
-                }
-              }}
+              onChange={(e) => handleWidthChange(e.target.value)}
               placeholder="pixels"
               className={`flex-1 bg-gray-700 text-white py-1 px-2 rounded ${linkDimensions && !isFreestyleModeActive ? 'ring-1 ring-blue-400' : ''}`}
             />
@@ -311,19 +338,7 @@ export default function Controls({
             <input
               type="number"
               value={maxHeight}
-              onChange={(e) => {
-                const newHeight = e.target.value;
-                onMaxHeightChange(newHeight);
-
-                if (linkDimensions && !isFreestyleModeActive && newHeight && cropWidth > 0 && cropHeight > 0) {
-                  const parsed = parseInt(newHeight, 10);
-                  if (!isNaN(parsed) && parsed > 0) {
-                    const cropAspectRatio = cropWidth / cropHeight;
-                    const newWidth = Math.round(parsed * cropAspectRatio);
-                    onMaxWidthChange(newWidth.toString());
-                  }
-                }
-              }}
+              onChange={(e) => handleHeightChange(e.target.value)}
               placeholder="pixels"
               className={`flex-1 bg-gray-700 text-white py-1 px-2 rounded ${linkDimensions && !isFreestyleModeActive ? 'ring-1 ring-blue-400' : ''}`}
             />
