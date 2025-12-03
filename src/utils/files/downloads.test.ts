@@ -7,15 +7,13 @@ describe('downloadBlob', () => {
     href: string
     click: ReturnType<typeof vi.fn>
   }
-  let createElementSpy: ReturnType<typeof vi.spyOn>
-
   beforeEach(() => {
     mockAnchor = {
       download: '',
       href: '',
       click: vi.fn()
     }
-    createElementSpy = vi.spyOn(document, 'createElement').mockReturnValue(mockAnchor as unknown as HTMLAnchorElement)
+    vi.spyOn(document, 'createElement').mockReturnValue(mockAnchor as unknown as HTMLAnchorElement)
     vi.useFakeTimers()
   })
 

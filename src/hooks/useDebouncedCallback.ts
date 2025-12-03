@@ -9,7 +9,7 @@ import { useRef, useCallback, useEffect } from 'react';
  * @param delay - The delay in milliseconds (default: 150ms)
  * @returns A debounced version of the callback
  */
-export function useDebouncedCallback<T extends (...args: unknown[]) => void>(
+export function useDebouncedCallback<T extends (...args: never[]) => void>(
   callback: T,
   delay: number = 150
 ): T {

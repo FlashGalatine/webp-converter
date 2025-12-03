@@ -1,5 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { loadImageFromFile, createFileFromBlob } from './loaders'
+
+declare const global: typeof globalThis;
 
 describe('loadImageFromFile', () => {
   it('should load an image from a file', async () => {

@@ -3,6 +3,8 @@ import { renderHook, act, waitFor } from '@testing-library/react'
 import { usePresets } from './usePresets'
 import { BUILT_IN_PRESETS } from '../constants/presets'
 
+declare const global: typeof globalThis;
+
 describe('usePresets', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -107,7 +109,7 @@ describe('usePresets', () => {
         result: string | ArrayBuffer | null = null
         onload: ((event: ProgressEvent<FileReader>) => void) | null = null
 
-        readAsText(blob: Blob) {
+        readAsText(_blob: Blob) {
           setTimeout(() => {
             this.result = customPresetsJson
             if (this.onload) {
@@ -330,7 +332,7 @@ describe('usePresets', () => {
           ok: true,
           json: () => Promise.resolve(customPresetsJson)
         })
-      ) as typeof fetch
+      ) as unknown as typeof fetch
 
       const { result } = renderHook(() => usePresets())
 
@@ -355,7 +357,7 @@ describe('usePresets', () => {
           ok: true,
           json: () => Promise.resolve(customPresetsJson)
         })
-      ) as typeof fetch
+      ) as unknown as typeof fetch
 
       const { result } = renderHook(() => usePresets())
 
@@ -379,7 +381,7 @@ describe('usePresets', () => {
           ok: true,
           json: () => Promise.resolve(customPresetsJson)
         })
-      ) as typeof fetch
+      ) as unknown as typeof fetch
 
       const { result } = renderHook(() => usePresets())
 
@@ -397,7 +399,7 @@ describe('usePresets', () => {
           ok: false,
           json: () => Promise.resolve({})
         })
-      ) as typeof fetch
+      ) as unknown as typeof fetch
 
       const { result } = renderHook(() => usePresets())
 

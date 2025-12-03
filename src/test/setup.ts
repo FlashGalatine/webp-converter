@@ -1,5 +1,7 @@
 import '@testing-library/jest-dom'
-import { vi } from 'vitest'
+import { vi, afterEach } from 'vitest'
+
+declare const global: typeof globalThis;
 
 // Mock canvas context
 class MockCanvasRenderingContext2D {
@@ -30,7 +32,7 @@ class MockCanvasRenderingContext2D {
   clearRect = vi.fn()
   drawImage = vi.fn()
 
-  getImageData = vi.fn((x: number, y: number, width: number, height: number) => ({
+  getImageData = vi.fn((_x: number, _y: number, width: number, height: number) => ({
     data: new Uint8ClampedArray(width * height * 4),
     width,
     height,
@@ -123,7 +125,7 @@ HTMLCanvasElement.prototype.toBlob = vi.fn(function(
   this: HTMLCanvasElement,
   callback: BlobCallback,
   type?: string,
-  quality?: number
+  _quality?: number
 ) {
   const blob = new Blob(['test-image-data'], { type: type || 'image/webp' })
   setTimeout(() => callback(blob), 0)
@@ -131,17 +133,14 @@ HTMLCanvasElement.prototype.toBlob = vi.fn(function(
 
 HTMLCanvasElement.prototype.toDataURL = vi.fn(function(
   this: HTMLCanvasElement,
-  type?: string,
-  quality?: number
+  _type?: string,
+  _quality?: number
 ) {
   return 'data:image/png;base64,mockImageData'
 })
 
 // Mock URL.createObjectURL and revokeObjectURL
-const originalCreateObjectURL = URL.createObjectURL
-const originalRevokeObjectURL = URL.revokeObjectURL
-
-URL.createObjectURL = vi.fn((obj: Blob | MediaSource) => 'blob:mock-url-' + Math.random())
+URL.createObjectURL = vi.fn((_obj: Blob | MediaSource) => 'blob:mock-url-' + Math.random())
 URL.revokeObjectURL = vi.fn()
 
 // Mock FileReader
@@ -158,7 +157,7 @@ class MockFileReader {
 
   abort = vi.fn()
 
-  readAsDataURL(blob: Blob) {
+  readAsDataURL(_blob: Blob) {
     this.readyState = 1
     setTimeout(() => {
       this.readyState = 2
@@ -169,7 +168,7 @@ class MockFileReader {
     }, 0)
   }
 
-  readAsText(blob: Blob) {
+  readAsText(_blob: Blob) {
     this.readyState = 1
     setTimeout(() => {
       this.readyState = 2
@@ -180,7 +179,7 @@ class MockFileReader {
     }, 0)
   }
 
-  readAsArrayBuffer(blob: Blob) {
+  readAsArrayBuffer(_blob: Blob) {
     this.readyState = 1
     setTimeout(() => {
       this.readyState = 2
@@ -191,7 +190,7 @@ class MockFileReader {
     }, 0)
   }
 
-  readAsBinaryString(blob: Blob) {
+  readAsBinaryString(_blob: Blob) {
     this.readyState = 1
     setTimeout(() => {
       this.readyState = 2
