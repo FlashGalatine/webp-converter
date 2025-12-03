@@ -2,16 +2,18 @@
 
 ## Current Releases
 
-### STABLE Build v2.6.4
+### STABLE Build v2.6.5
 **File:** `index.html` (default)
 **Status:** Production Ready ✅
-**Date:** November 30, 2025
+**Date:** December 3, 2025
 
 **Latest Improvements:**
-- ✅ Improved test coverage from 83% to 93% statement coverage
-- ✅ 348 tests covering utilities, hooks, and components
-- ✅ 92.62% statement coverage, 98.92% function coverage
-- ✅ Added comprehensive edge case tests for all modules
+- ✅ Fixed critical canvas context null checks to prevent crashes
+- ✅ Fixed overlay drawing dimensions in crop preview
+- ✅ Fixed race conditions in image queue auto-load
+- ✅ Added validation for zero/negative dimensions and aspect ratios
+- ✅ Resolved all TypeScript build errors in test files
+- ✅ Improved code robustness with comprehensive error handling
 
 See [Version History](#version-history) for detailed release notes.
 
@@ -57,6 +59,42 @@ For testing new features before they reach stable. Currently identical to STABLE
 ---
 
 ## Version History
+
+### v2.6.5-STABLE (December 3, 2025)
+**Bug Fixes & Code Robustness**
+
+**Critical Bug Fixes:**
+- **Canvas Context Null Checks** - Added null checks for `canvas.getContext('2d')` in `rendering.ts` and `resampling.ts` to prevent crashes when context creation fails (headless environments, GPU exhaustion)
+- **Overlay Drawing Dimensions** - Fixed right and bottom overlay calculations in `renderCanvas()` that were using incorrect dimensions
+- **Zero/Negative Dimension Validation** - Added validation in `resampleImage()` to prevent division by zero and corrupted output
+- **NaN Validation** - Added radix parameter to `parseInt()` in `Controls.tsx` to prevent invalid dimension values
+
+**Medium Priority Fixes:**
+- **Stale Closure Fix** - Removed unused `onImageLoad` from `loadImageFromQueue` dependency array to prevent stale closure issues
+- **Preset Switching Edge Case** - `switchToBuiltIn()` now returns default preset name to avoid undefined behavior
+- **Race Condition Fix** - Added `pendingAutoLoadRef` to prevent double-loads when rapidly adding files to empty queue
+- **Memory Leak Prevention** - Added proper timeout cleanup on unmount in `WebPConverter` component
+- **Aspect Ratio Validation** - `initializeCrop()` now treats ratio ≤ 0 as null (full image crop)
+
+**TypeScript Build Fixes:**
+- Fixed `useDebouncedCallback` generic type to accept specific callback types
+- Added global type declarations for test files
+- Fixed unused variable warnings by prefixing with underscore
+- Fixed fetch mock type casting in test files
+- Removed unused imports across test files
+
+**Files Modified:**
+- `src/utils/canvas/rendering.ts`
+- `src/utils/imageProcessing/resampling.ts`
+- `src/components/Controls/Controls.tsx`
+- `src/hooks/useImageQueue.ts`
+- `src/hooks/usePresets.ts`
+- `src/hooks/useDebouncedCallback.ts`
+- `src/containers/WebPConverter.tsx`
+- `src/utils/canvas/crop.ts`
+- Multiple test files for TypeScript compliance
+
+---
 
 ### v2.6.4-STABLE (November 30, 2025)
 **Comprehensive Test Coverage Improvement**
