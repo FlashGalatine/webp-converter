@@ -3,6 +3,9 @@ import { BUILT_IN_PRESETS } from '../constants/presets';
 import { parseAspectRatio } from '../utils/presets/parser';
 import type { CustomPresetsRaw, CustomPresets } from '../types';
 
+// Default built-in preset to use when switching from custom presets
+export const DEFAULT_BUILT_IN_PRESET = '16:9 Landscape';
+
 export interface UsePresetsReturn {
   useCustomPresets: boolean;
   customPresets: CustomPresets;
@@ -11,7 +14,7 @@ export interface UsePresetsReturn {
   currentPresets: typeof BUILT_IN_PRESETS | CustomPresets;
   getCurrentPresets: () => typeof BUILT_IN_PRESETS | CustomPresets;
   loadCustomPresets: (file: File) => void;
-  switchToBuiltIn: () => void;
+  switchToBuiltIn: () => string; // Returns default preset name to reset to
   applyPresetSettings: (presetName: string) => {
     maxWidth: string;
     maxHeight: string;
@@ -61,11 +64,13 @@ export function usePresets(): UsePresetsReturn {
     reader.readAsText(file);
   }, []);
 
-  const switchToBuiltIn = useCallback(() => {
+  const switchToBuiltIn = useCallback((): string => {
     setUseCustomPresets(false);
     setCustomPresets({});
     setCustomPresetsRaw({});
     setCustomPresetsFileName('');
+    // Return the default preset name so parent can reset selectedPreset
+    return DEFAULT_BUILT_IN_PRESET;
   }, []);
 
   const applyPresetSettings = useCallback((presetName: string) => {

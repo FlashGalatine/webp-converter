@@ -84,6 +84,9 @@ export default function WebPConverter() {
   // Image queue hook
   const imageQueue = useImageQueue(loadImage);
 
+  // Ref to track timeout ID for cleanup
+  const blockPresetResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   // Update dragging ref when dragging state changes
   useEffect(() => {
     const wasDragging = isDraggingRef.current;
@@ -92,10 +95,22 @@ export default function WebPConverter() {
     // If dragging just ended, block preset reset for a short time
     if (wasDragging && !canvas.isDragging) {
       blockPresetResetRef.current = true;
-      setTimeout(() => {
+      // Clear any existing timeout
+      if (blockPresetResetTimeoutRef.current) {
+        clearTimeout(blockPresetResetTimeoutRef.current);
+      }
+      blockPresetResetTimeoutRef.current = setTimeout(() => {
         blockPresetResetRef.current = false;
+        blockPresetResetTimeoutRef.current = null;
       }, 100); // Small delay to prevent immediate reset
     }
+    
+    // Cleanup on unmount
+    return () => {
+      if (blockPresetResetTimeoutRef.current) {
+        clearTimeout(blockPresetResetTimeoutRef.current);
+      }
+    };
   }, [canvas.isDragging]);
 
   // Handle preset change - only when preset actually changes
@@ -353,7 +368,10 @@ export default function WebPConverter() {
           currentPresets={presets.currentPresets as Record<string, number | null>}
           onPresetChange={setSelectedPreset}
           onLoadCustomPresets={() => presetFileInputRef.current?.click()}
-          onSwitchToBuiltIn={presets.switchToBuiltIn}
+          onSwitchToBuiltIn={() => {
+            const defaultPreset = presets.switchToBuiltIn();
+            setSelectedPreset(defaultPreset);
+          }}
           customPresetsFileName={presets.customPresetsFileName}
           isFreestyleMode={canvas.isFreestyleMode}
           onFreestyleModeChange={canvas.setIsFreestyleMode}

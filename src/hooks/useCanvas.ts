@@ -79,7 +79,8 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
   }, [cropWidth, cropHeight]);
 
   const initializeCrop = useCallback((imgWidth: number, imgHeight: number, ratio: number | null) => {
-    if (!ratio) {
+    // Validate ratio - treat zero or negative as null (full image crop)
+    if (!ratio || ratio <= 0) {
       setCropX(0);
       setCropY(0);
       setCropWidth(imgWidth);

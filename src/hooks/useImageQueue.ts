@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import type { ImageQueueItem } from '../types';
 
 export interface UseImageQueueReturn {
@@ -23,6 +23,9 @@ export function useImageQueue(
   const [currentImageIndex, setCurrentImageIndex] = useState(-1);
   const [processedImages, setProcessedImages] = useState<Set<number>>(new Set());
   const [removeAfterConvert, setRemoveAfterConvert] = useState(false);
+  
+  // Ref to prevent race conditions when rapidly adding files
+  const pendingAutoLoadRef = useRef<boolean>(false);
 
   const addImagesToQueue = useCallback((files: FileList) => {
     const imageFiles = Array.from(files).filter(file => file.type.startsWith('image/'));
@@ -43,20 +46,24 @@ export function useImageQueue(
     const wasEmpty = imageQueue.length === 0;
     setImageQueue(prev => [...prev, ...newQueueItems]);
 
-    if (wasEmpty && newQueueItems.length > 0) {
+    // Use ref to prevent multiple auto-loads when rapidly adding files
+    if (wasEmpty && newQueueItems.length > 0 && !pendingAutoLoadRef.current) {
+      pendingAutoLoadRef.current = true;
       setTimeout(() => {
         setCurrentImageIndex(0);
         onImageLoad(newQueueItems[0].file);
+        pendingAutoLoadRef.current = false;
       }, 0);
     }
   }, [imageQueue.length, onImageLoad]);
 
+  // Bug #5: Removed onImageLoad from deps since onLoad parameter is used directly
   const loadImageFromQueue = useCallback((index: number, onLoad: (file: File) => Promise<void>) => {
     if (index < 0 || index >= imageQueue.length) return;
     const queueItem = imageQueue[index];
     setCurrentImageIndex(index);
     onLoad(queueItem.file);
-  }, [imageQueue, onImageLoad]);
+  }, [imageQueue]);
 
   const loadNextImage = useCallback(() => {
     if (currentImageIndex < imageQueue.length - 1) {
