@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { BUILT_IN_PRESETS } from '../constants/presets';
 import { parseAspectRatio } from '../utils/presets/parser';
-import type { CustomPresetsRaw, CustomPresets } from '../types';
+import type { CustomPresetsRaw, CustomPresets, ResamplingMethod } from '../types';
 
 // Default built-in preset to use when switching from custom presets
 export const DEFAULT_BUILT_IN_PRESET = '16:9 Landscape';
@@ -20,6 +20,8 @@ export interface UsePresetsReturn {
     maxHeight: string;
     targetSize: string;
     webOptimize: boolean;
+    resampling: ResamplingMethod | null;
+    lossless: boolean;
   };
 }
 
@@ -78,6 +80,8 @@ export function usePresets(): UsePresetsReturn {
     let maxHeight = '';
     let targetSize = '10';
     let webOptimize = false;
+    let resampling: ResamplingMethod | null = null;
+    let lossless = false;
 
     if (useCustomPresets && customPresetsRaw[presetName]) {
       const config = customPresetsRaw[presetName];
@@ -104,9 +108,16 @@ export function usePresets(): UsePresetsReturn {
         targetSize = sizeInMB.toString();
         webOptimize = true;
       }
+
+      if (config.export?.resampling) {
+        resampling = config.export.resampling;
+      }
+      if (config.export?.qualityMode === 'lossless') {
+        lossless = true;
+      }
     }
 
-    return { maxWidth, maxHeight, targetSize, webOptimize };
+    return { maxWidth, maxHeight, targetSize, webOptimize, resampling, lossless };
   }, [useCustomPresets, customPresetsRaw]);
 
   // Auto-load presets.json on mount

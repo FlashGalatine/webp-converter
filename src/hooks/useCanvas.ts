@@ -1,9 +1,14 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { CANVAS_PADDING, ZOOM_MIN, ZOOM_MAX, MIN_CROP_SIZE } from '../constants/canvas';
 import { renderCanvas } from '../utils/canvas/rendering';
-import { getCursorPos, detectHandle, isInsideCrop, getCursorStyle } from '../utils/canvas/interactions';
+import { renderCanvasMultiCrop } from '../utils/canvas/multiCropRendering';
+import {
+  getCursorPos,
+  detectHandleMulti,
+  detectZoneAtPoint,
+} from '../utils/canvas/interactions';
 import { CURSOR_MAP } from '../constants/cursors';
-import type { DragType } from '../types';
+import type { DragType, CropZone, CropBounds } from '../types';
 
 export interface UseCanvasReturn {
   canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -13,17 +18,13 @@ export interface UseCanvasReturn {
   zoomLevel: number;
   panX: number;
   panY: number;
+  // Active zone crop coordinates (derived from zones)
   cropX: number;
   cropY: number;
   cropWidth: number;
   cropHeight: number;
-  aspectRatio: number | null;
-  isFreestyleMode: boolean;
   cursorStyle: string;
   isDragging: boolean;
-  setAspectRatio: (ratio: number | null) => void;
-  setIsFreestyleMode: (value: boolean) => void;
-  initializeCrop: (imgWidth: number, imgHeight: number, ratio: number | null) => void;
   handleMouseDown: (e: React.MouseEvent<HTMLCanvasElement>) => void;
   handleMouseMove: (e: React.MouseEvent<HTMLCanvasElement>) => void;
   handleMouseUp: () => void;
@@ -35,27 +36,34 @@ export interface UseCanvasReturn {
   handleZoomToFit: () => void;
 }
 
-export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
+interface UseCanvasOptions {
+  zones: CropZone[];
+  activeZoneId: string | null;
+  onSelectZone: (id: string | null) => void;
+  onUpdateZoneRect: (id: string, rect: CropBounds) => void;
+}
+
+export function useCanvas(
+  image: HTMLImageElement | null,
+  options: UseCanvasOptions
+): UseCanvasReturn {
+  const { zones, activeZoneId, onSelectZone, onUpdateZoneRect } = options;
+
   const [canvasWidth, setCanvasWidth] = useState(1200);
   const [canvasHeight, setCanvasHeight] = useState(800);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [panX, setPanX] = useState(0);
   const [panY, setPanY] = useState(0);
-  const [cropX, setCropX] = useState(0);
-  const [cropY, setCropY] = useState(0);
-  const [cropWidth, setCropWidth] = useState(0);
-  const [cropHeight, setCropHeight] = useState(0);
-  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
-  const [isFreestyleMode, setIsFreestyleMode] = useState(false);
   const [cursorStyle, setCursorStyle] = useState('default');
   const [isDragging, setIsDragging] = useState(false);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  
-  // Use refs to store drag values and current crop to avoid effect re-runs during dragging
+
+  // Use refs to store drag values to avoid effect re-runs during dragging
   const dragStateRef = useRef({
     dragType: null as DragType,
+    dragZoneId: null as string | null,
     dragStartX: 0,
     dragStartY: 0,
     dragStartCropX: 0,
@@ -63,121 +71,113 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
     dragStartCropWidth: 0,
     dragStartCropHeight: 0,
     dragStartPanX: 0,
-    dragStartPanY: 0
+    dragStartPanY: 0,
+    dragZoneAspectRatio: null as number | null,
   });
-  
-  // Refs to track current crop dimensions for use in event handlers
-  const cropStateRef = useRef({
-    cropWidth: 0,
-    cropHeight: 0
-  });
-  
-  // Update crop refs when state changes
-  useEffect(() => {
-    cropStateRef.current.cropWidth = cropWidth;
-    cropStateRef.current.cropHeight = cropHeight;
-  }, [cropWidth, cropHeight]);
 
-  const initializeCrop = useCallback((imgWidth: number, imgHeight: number, ratio: number | null) => {
-    // Validate ratio - treat zero or negative as null (full image crop)
-    if (!ratio || ratio <= 0) {
-      setCropX(0);
-      setCropY(0);
-      setCropWidth(imgWidth);
-      setCropHeight(imgHeight);
-    } else {
-      const imgRatio = imgWidth / imgHeight;
-      let w: number, h: number;
-
-      if (ratio > imgRatio) {
-        w = imgWidth;
-        h = imgWidth / ratio;
-      } else {
-        h = imgHeight;
-        w = imgHeight * ratio;
-      }
-
-      setCropX((imgWidth - w) / 2);
-      setCropY((imgHeight - h) / 2);
-      setCropWidth(w);
-      setCropHeight(h);
-    }
-  }, []);
+  // Derive active zone crop coordinates
+  const activeZone = zones.find(z => z.id === activeZoneId);
+  const cropX = activeZone?.rect.x ?? 0;
+  const cropY = activeZone?.rect.y ?? 0;
+  const cropWidth = activeZone?.rect.width ?? 0;
+  const cropHeight = activeZone?.rect.height ?? 0;
 
   // Draw on canvas
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !image) return;
 
-    renderCanvas({
-      canvas,
-      image,
-      zoomLevel,
-      panX,
-      panY,
-      cropX,
-      cropY,
-      cropWidth,
-      cropHeight
-    });
-  }, [image, zoomLevel, panX, panY, cropX, cropY, cropWidth, cropHeight, canvasWidth, canvasHeight]);
+    if (zones.length === 0) {
+      // No zones — use single-crop renderer with zero crop (just show image)
+      renderCanvas({
+        canvas, image, zoomLevel, panX, panY,
+        cropX: 0, cropY: 0, cropWidth: 0, cropHeight: 0
+      });
+    } else {
+      renderCanvasMultiCrop({
+        canvas, image, zoomLevel, panX, panY, zones, activeZoneId,
+      });
+    }
+  }, [image, zoomLevel, panX, panY, zones, activeZoneId, canvasWidth, canvasHeight]);
 
   // Mouse handlers
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!image || !canvasRef.current) return;
 
     const pos = getCursorPos(e.nativeEvent, canvasRef.current);
-    const handle = detectHandle(
-      pos.x, pos.y, image, cropWidth, cropHeight, cropX, cropY,
+
+    // Check for handle hit on active zone
+    const handleHit = detectHandleMulti(
+      pos.x, pos.y, image, zones, activeZoneId,
       zoomLevel, panX, panY, canvasRef.current
     );
 
-    if (handle) {
-      const dragType = `resize-${handle}` as DragType;
+    if (handleHit) {
+      const zone = zones.find(z => z.id === handleHit.zoneId)!;
+      const dragType = `resize-${handleHit.handle}` as DragType;
       dragStateRef.current = {
         dragType,
+        dragZoneId: handleHit.zoneId,
         dragStartX: pos.x,
         dragStartY: pos.y,
-        dragStartCropX: cropX,
-        dragStartCropY: cropY,
-        dragStartCropWidth: cropWidth,
-        dragStartCropHeight: cropHeight,
+        dragStartCropX: zone.rect.x,
+        dragStartCropY: zone.rect.y,
+        dragStartCropWidth: zone.rect.width,
+        dragStartCropHeight: zone.rect.height,
         dragStartPanX: panX,
-        dragStartPanY: panY
+        dragStartPanY: panY,
+        dragZoneAspectRatio: zone.aspectRatio,
       };
-      setCursorStyle(CURSOR_MAP[handle] || 'default');
-    } else if (isInsideCrop(pos.x, pos.y, image, cropWidth, cropHeight, cropX, cropY, zoomLevel, panX, panY, canvasRef.current)) {
-      const dragType = 'move' as DragType;
-      dragStateRef.current = {
-        dragType,
-        dragStartX: pos.x,
-        dragStartY: pos.y,
-        dragStartCropX: cropX,
-        dragStartCropY: cropY,
-        dragStartCropWidth: cropWidth,
-        dragStartCropHeight: cropHeight,
-        dragStartPanX: panX,
-        dragStartPanY: panY
-      };
-      setCursorStyle('move');
-    } else {
-      const dragType = 'pan' as DragType;
-      dragStateRef.current = {
-        dragType,
-        dragStartX: pos.x,
-        dragStartY: pos.y,
-        dragStartCropX: cropX,
-        dragStartCropY: cropY,
-        dragStartCropWidth: cropWidth,
-        dragStartCropHeight: cropHeight,
-        dragStartPanX: panX,
-        dragStartPanY: panY
-      };
-      setCursorStyle('grabbing');
+      setCursorStyle(CURSOR_MAP[handleHit.handle] || 'default');
+      setIsDragging(true);
+      return;
     }
 
+    // Check for zone body hit
+    const hitZoneId = detectZoneAtPoint(
+      pos.x, pos.y, image, zones, activeZoneId,
+      zoomLevel, panX, panY, canvasRef.current
+    );
+
+    if (hitZoneId) {
+      const zone = zones.find(z => z.id === hitZoneId)!;
+      onSelectZone(hitZoneId);
+      dragStateRef.current = {
+        dragType: 'move',
+        dragZoneId: hitZoneId,
+        dragStartX: pos.x,
+        dragStartY: pos.y,
+        dragStartCropX: zone.rect.x,
+        dragStartCropY: zone.rect.y,
+        dragStartCropWidth: zone.rect.width,
+        dragStartCropHeight: zone.rect.height,
+        dragStartPanX: panX,
+        dragStartPanY: panY,
+        dragZoneAspectRatio: zone.aspectRatio,
+      };
+      setCursorStyle('move');
+      setIsDragging(true);
+      return;
+    }
+
+    // Empty area — pan
+    dragStateRef.current = {
+      dragType: 'pan',
+      dragZoneId: null,
+      dragStartX: pos.x,
+      dragStartY: pos.y,
+      dragStartCropX: 0,
+      dragStartCropY: 0,
+      dragStartCropWidth: 0,
+      dragStartCropHeight: 0,
+      dragStartPanX: panX,
+      dragStartPanY: panY,
+      dragZoneAspectRatio: null,
+    };
+    setCursorStyle('grabbing');
+    onSelectZone(null);
     setIsDragging(true);
-  }, [image, cropX, cropY, cropWidth, cropHeight, zoomLevel, panX, panY]);
+  }, [image, zones, activeZoneId, zoomLevel, panX, panY, onSelectZone]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!image || !canvasRef.current) return;
@@ -186,11 +186,23 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
 
     // Update cursor on hover (only when not dragging)
     if (!isDragging) {
-      const handle = detectHandle(pos.x, pos.y, image, cropWidth, cropHeight, cropX, cropY, zoomLevel, panX, panY, canvasRef.current);
-      const insideCrop = isInsideCrop(pos.x, pos.y, image, cropWidth, cropHeight, cropX, cropY, zoomLevel, panX, panY, canvasRef.current);
-      setCursorStyle(getCursorStyle(handle, insideCrop, false));
+      const handleHit = detectHandleMulti(
+        pos.x, pos.y, image, zones, activeZoneId,
+        zoomLevel, panX, panY, canvasRef.current
+      );
+
+      if (handleHit) {
+        setCursorStyle(CURSOR_MAP[handleHit.handle] || 'default');
+        return;
+      }
+
+      const hitZoneId = detectZoneAtPoint(
+        pos.x, pos.y, image, zones, activeZoneId,
+        zoomLevel, panX, panY, canvasRef.current
+      );
+      setCursorStyle(hitZoneId ? 'move' : 'grab');
     }
-  }, [isDragging, image, cropWidth, cropHeight, cropX, cropY, zoomLevel, panX, panY]);
+  }, [isDragging, image, zones, activeZoneId, zoomLevel, panX, panY]);
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
@@ -198,11 +210,10 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
   }, []);
 
   const handleMouseLeave = useCallback(() => {
-    // Don't stop dragging on mouse leave - allow dragging outside canvas
     setCursorStyle('default');
   }, []);
 
-  // Add document-level mouse event listeners for proper drag handling
+  // Document-level mouse event listeners for proper drag handling
   useEffect(() => {
     if (isDragging) {
       const handleDocumentMouseMove = (e: MouseEvent) => {
@@ -215,23 +226,23 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
         if (dragState.dragType === 'pan') {
           setPanX(dragState.dragStartPanX + dx);
           setPanY(dragState.dragStartPanY + dy);
-        } else if (dragState.dragType === 'move') {
+        } else if (dragState.dragType === 'move' && dragState.dragZoneId) {
           const dxImg = dx / zoomLevel;
           const dyImg = dy / zoomLevel;
 
           let newX = dragState.dragStartCropX + dxImg;
           let newY = dragState.dragStartCropY + dyImg;
 
-          // Use refs to get current crop dimensions
-          const currentCropWidth = cropStateRef.current.cropWidth;
-          const currentCropHeight = cropStateRef.current.cropHeight;
+          newX = Math.max(0, Math.min(newX, image.width - dragState.dragStartCropWidth));
+          newY = Math.max(0, Math.min(newY, image.height - dragState.dragStartCropHeight));
 
-          newX = Math.max(0, Math.min(newX, image.width - currentCropWidth));
-          newY = Math.max(0, Math.min(newY, image.height - currentCropHeight));
-
-          setCropX(newX);
-          setCropY(newY);
-        } else if (dragState.dragType && dragState.dragType.startsWith('resize-')) {
+          onUpdateZoneRect(dragState.dragZoneId, {
+            x: newX,
+            y: newY,
+            width: dragState.dragStartCropWidth,
+            height: dragState.dragStartCropHeight,
+          });
+        } else if (dragState.dragType?.startsWith('resize-') && dragState.dragZoneId) {
           const direction = dragState.dragType.split('-')[1] as string;
           const dxImg = dx / zoomLevel;
           const dyImg = dy / zoomLevel;
@@ -257,7 +268,8 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
           }
 
           // Maintain aspect ratio if set
-          if (aspectRatio && !isFreestyleMode) {
+          const aspectRatio = dragState.dragZoneAspectRatio;
+          if (aspectRatio) {
             if (direction.includes('e') || direction.includes('w')) {
               newHeight = newWidth / aspectRatio;
               if (direction.includes('n')) {
@@ -288,10 +300,12 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
           }
 
           if (newWidth > MIN_CROP_SIZE && newHeight > MIN_CROP_SIZE) {
-            setCropX(newX);
-            setCropY(newY);
-            setCropWidth(newWidth);
-            setCropHeight(newHeight);
+            onUpdateZoneRect(dragState.dragZoneId, {
+              x: newX,
+              y: newY,
+              width: newWidth,
+              height: newHeight,
+            });
           }
         }
       };
@@ -309,7 +323,7 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
         document.removeEventListener('mouseup', handleDocumentMouseUp);
       };
     }
-  }, [isDragging, image, zoomLevel, aspectRatio, isFreestyleMode]);
+  }, [isDragging, image, zoomLevel, onUpdateZoneRect]);
 
   const handleWheel = useCallback((e: React.WheelEvent<HTMLCanvasElement>) => {
     e.preventDefault();
@@ -378,13 +392,8 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
     cropY,
     cropWidth,
     cropHeight,
-    aspectRatio,
-    isFreestyleMode,
     cursorStyle,
     isDragging,
-    setAspectRatio,
-    setIsFreestyleMode,
-    initializeCrop,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,
@@ -393,7 +402,6 @@ export function useCanvas(image: HTMLImageElement | null): UseCanvasReturn {
     handleZoomIn,
     handleZoomOut,
     handleZoomReset,
-    handleZoomToFit
+    handleZoomToFit,
   };
 }
-

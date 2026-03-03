@@ -2,6 +2,27 @@
 
 ## Current Releases
 
+### STABLE Build v2.7.0
+**File:** `index.html` (default)
+**Status:** Production Ready ✅
+**Date:** March 2, 2026
+
+**New Features:**
+- **Multi-Crop Zone Export** — Extract multiple regions from a single image simultaneously
+  - Add multiple crop zones with individual presets or freestyle ratios
+  - Each zone has its own independent export settings (quality, format, max dimensions)
+  - One-click "Export All" bundles all zones into a convenient ZIP file
+
+**Latest Improvements:**
+- ✅ Consolidated Controls panel — removed redundant export options
+- ✅ CropZonePanel is now the single export path for all conversions
+- ✅ Removed legacy `useImageProcessing` pipeline
+- ✅ Preset changes now write export settings directly to active crop zone
+
+See [Version History](#version-history) for detailed release notes.
+
+---
+
 ### STABLE Build v2.6.5
 **File:** `index.html` (default)
 **Status:** Production Ready ✅
@@ -14,21 +35,6 @@
 - ✅ Added validation for zero/negative dimensions and aspect ratios
 - ✅ Resolved all TypeScript build errors in test files
 - ✅ Improved code robustness with comprehensive error handling
-
-See [Version History](#version-history) for detailed release notes.
-
----
-
-### STABLE Build v2.6.2
-**File:** `index.html` (default)
-**Status:** Production Ready ✅
-**Date:** November 19, 2025
-
-**Latest Improvements:**
-- ✅ Fixed crop zone interaction (can now move and resize without snapping back)
-- ✅ Fixed auto zoom-to-fit on image load
-- ✅ Improved drag state management using refs
-- ✅ Better synchronization between image loading and canvas rendering
 
 See [Version History](#version-history) for detailed release notes.
 

@@ -1,6 +1,7 @@
 import { CROP_HANDLE_SIZE, HANDLE_TOLERANCE } from '../../constants/canvas';
 import { CURSOR_MAP } from '../../constants/cursors';
 import { CursorHandle } from '../../types';
+import type { CropZone } from '../../types';
 
 export interface CanvasCoordinates {
   x: number;
@@ -47,6 +48,34 @@ export function canvasToImage(
 }
 
 /**
+ * Compute the display-space rect for a crop region.
+ * Shared helper to avoid duplicating the coordinate math.
+ */
+function computeDisplayRect(
+  image: HTMLImageElement,
+  cropX: number,
+  cropY: number,
+  cropWidth: number,
+  cropHeight: number,
+  zoomLevel: number,
+  panX: number,
+  panY: number,
+  canvas: HTMLCanvasElement
+) {
+  const displayWidth = image.width * zoomLevel;
+  const displayHeight = image.height * zoomLevel;
+  const imgX = (canvas.width - displayWidth) / 2 + panX;
+  const imgY = (canvas.height - displayHeight) / 2 + panY;
+
+  return {
+    cropDisplayX: imgX + cropX * zoomLevel,
+    cropDisplayY: imgY + cropY * zoomLevel,
+    cropDisplayWidth: cropWidth * zoomLevel,
+    cropDisplayHeight: cropHeight * zoomLevel,
+  };
+}
+
+/**
  * Detect which handle is being hovered/clicked
  */
 export function detectHandle(
@@ -64,15 +93,8 @@ export function detectHandle(
 ): CursorHandle | null {
   if (!image || cropWidth <= 0 || cropHeight <= 0) return null;
 
-  const displayWidth = image.width * zoomLevel;
-  const displayHeight = image.height * zoomLevel;
-  const imgX = (canvas.width - displayWidth) / 2 + panX;
-  const imgY = (canvas.height - displayHeight) / 2 + panY;
-
-  const cropDisplayX = imgX + cropX * zoomLevel;
-  const cropDisplayY = imgY + cropY * zoomLevel;
-  const cropDisplayWidth = cropWidth * zoomLevel;
-  const cropDisplayHeight = cropHeight * zoomLevel;
+  const { cropDisplayX, cropDisplayY, cropDisplayWidth, cropDisplayHeight } =
+    computeDisplayRect(image, cropX, cropY, cropWidth, cropHeight, zoomLevel, panX, panY, canvas);
 
   const handles: Record<CursorHandle, { x: number; y: number }> = {
     'nw': { x: cropDisplayX, y: cropDisplayY },
@@ -113,15 +135,8 @@ export function isInsideCrop(
 ): boolean {
   if (!image) return false;
 
-  const displayWidth = image.width * zoomLevel;
-  const displayHeight = image.height * zoomLevel;
-  const imgX = (canvas.width - displayWidth) / 2 + panX;
-  const imgY = (canvas.height - displayHeight) / 2 + panY;
-
-  const cropDisplayX = imgX + cropX * zoomLevel;
-  const cropDisplayY = imgY + cropY * zoomLevel;
-  const cropDisplayWidth = cropWidth * zoomLevel;
-  const cropDisplayHeight = cropHeight * zoomLevel;
+  const { cropDisplayX, cropDisplayY, cropDisplayWidth, cropDisplayHeight } =
+    computeDisplayRect(image, cropX, cropY, cropWidth, cropHeight, zoomLevel, panX, panY, canvas);
 
   return canvasX >= cropDisplayX && canvasX <= cropDisplayX + cropDisplayWidth &&
     canvasY >= cropDisplayY && canvasY <= cropDisplayY + cropDisplayHeight;
@@ -141,5 +156,98 @@ export function getCursorStyle(handle: CursorHandle | null, isInsideCrop: boolea
     return 'move';
   }
   return 'grab';
+}
+
+// ─── Multi-Zone Hit Testing ──────────────────────────────────────────────────
+
+export interface MultiZoneHandleHit {
+  zoneId: string;
+  handle: CursorHandle;
+}
+
+/**
+ * Detect which handle of which zone is being hovered/clicked.
+ * Only checks the selected zone for handles (non-selected zones don't show handles).
+ */
+export function detectHandleMulti(
+  canvasX: number,
+  canvasY: number,
+  image: HTMLImageElement | null,
+  zones: CropZone[],
+  activeZoneId: string | null,
+  zoomLevel: number,
+  panX: number,
+  panY: number,
+  canvas: HTMLCanvasElement
+): MultiZoneHandleHit | null {
+  if (!image || !activeZoneId) return null;
+
+  const activeZone = zones.find(z => z.id === activeZoneId);
+  if (!activeZone) return null;
+
+  const handle = detectHandle(
+    canvasX, canvasY, image,
+    activeZone.rect.width, activeZone.rect.height,
+    activeZone.rect.x, activeZone.rect.y,
+    zoomLevel, panX, panY, canvas
+  );
+
+  if (handle) {
+    return { zoneId: activeZoneId, handle };
+  }
+
+  return null;
+}
+
+/**
+ * Detect which zone body is at a given point.
+ *
+ * Priority:
+ * 1. The currently selected zone always wins (if the point is inside it).
+ * 2. Otherwise, iterate zones in reverse order (last-created = topmost).
+ *
+ * Returns the zone ID or null if no zone is hit.
+ */
+export function detectZoneAtPoint(
+  canvasX: number,
+  canvasY: number,
+  image: HTMLImageElement | null,
+  zones: CropZone[],
+  activeZoneId: string | null,
+  zoomLevel: number,
+  panX: number,
+  panY: number,
+  canvas: HTMLCanvasElement
+): string | null {
+  if (!image || zones.length === 0) return null;
+
+  // Priority 1: check active zone first
+  if (activeZoneId) {
+    const activeZone = zones.find(z => z.id === activeZoneId);
+    if (activeZone) {
+      const inside = isInsideCrop(
+        canvasX, canvasY, image,
+        activeZone.rect.width, activeZone.rect.height,
+        activeZone.rect.x, activeZone.rect.y,
+        zoomLevel, panX, panY, canvas
+      );
+      if (inside) return activeZoneId;
+    }
+  }
+
+  // Priority 2: iterate in reverse (topmost = last created)
+  for (let i = zones.length - 1; i >= 0; i--) {
+    const zone = zones[i];
+    if (zone.id === activeZoneId) continue; // already checked
+    const inside = isInsideCrop(
+      canvasX, canvasY, image,
+      zone.rect.width, zone.rect.height,
+      zone.rect.x, zone.rect.y,
+      zoomLevel, panX, panY, canvas
+    );
+    if (inside) return zone.id;
+  }
+
+  return null;
 }
 

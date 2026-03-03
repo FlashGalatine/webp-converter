@@ -3,14 +3,16 @@ import { ZOOM_INITIAL_DELAY, TRANSITION_DELAY } from '../../constants/canvas';
 import { ASPECT_RATIO_TOLERANCE } from '../../constants/processing';
 import { loadImageFromFile, createFileFromBlob } from '../../utils/files/loaders';
 import { useCanvas } from '../../hooks/useCanvas';
+import { useCropZones } from '../../hooks/useCropZones';
 import { useImageQueue } from '../../hooks/useImageQueue';
 import { usePresets } from '../../hooks/usePresets';
-import { useImageProcessing } from '../../hooks/useImageProcessing';
+import { useMultiCropExport } from '../../hooks/useMultiCropExport';
 import Canvas from '../Canvas/Canvas';
 import Controls from '../Controls/Controls';
 import QueuePanel from '../Queue/QueuePanel';
 import Toolbar from '../Toolbar/Toolbar';
-import type { ResamplingMethod } from '../../types';
+import CropZonePanel from '../CropZonePanel/CropZonePanel';
+import type { ExportSettings } from '../../types';
 
 export default function WebPConverter() {
   // Image state
@@ -21,30 +23,38 @@ export default function WebPConverter() {
   const isDraggingRef = useRef<boolean>(false);
   const blockPresetResetRef = useRef<boolean>(false);
 
-  // Settings state
-  const [quality, setQuality] = useState(95);
-  const [lossless, setLossless] = useState(false);
-  const [maxWidth, setMaxWidth] = useState('');
-  const [maxHeight, setMaxHeight] = useState('');
-  const [linkDimensions, setLinkDimensions] = useState(true);
-  const [webOptimize, setWebOptimize] = useState(false);
-  const [targetSize, setTargetSize] = useState('10');
-  const [resamplingMethod, setResamplingMethod] = useState<ResamplingMethod>('bicubic');
+
 
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
   const presetFileInputRef = useRef<HTMLInputElement>(null);
 
   // Hooks
-  const canvas = useCanvas(image);
+  const cropZones = useCropZones();
+  const canvas = useCanvas(image, {
+    zones: cropZones.zones,
+    activeZoneId: cropZones.activeZoneId,
+    onSelectZone: cropZones.selectZone,
+    onUpdateZoneRect: cropZones.updateZoneRect,
+  });
   const presets = usePresets();
-  const imageProcessing = useImageProcessing();
+  const multiCropExport = useMultiCropExport();
+
+  // Build preset options for the CropZonePanel dropdown
+  const presetOptions = useMemo(() => {
+    const currentPresets = presets.getCurrentPresets() as Record<string, number | null>;
+    return Object.entries(currentPresets).map(([name, ratio]) => ({
+      name,
+      ratio,
+    }));
+  }, [presets]);
 
   // Load image function
   const loadImage = useCallback(async (file: File, skipAutoPreset = false) => {
     try {
       const { image: img } = await loadImageFromFile(file);
       setImage(img);
+      cropZones.resetZones();
 
       // Auto-select preset based on image dimensions
       let presetToUse = selectedPreset;
@@ -69,17 +79,54 @@ export default function WebPConverter() {
         }
       }
 
-      // Initialize crop to full image
+      // Create initial crop zone covering the full image  
       const currentPresets = presets.getCurrentPresets();
       const ratio = (currentPresets as Record<string, number | null>)[presetToUse] ?? null;
-      canvas.initializeCrop(img.width, img.height, ratio);
-      
-      // Note: Zoom to fit is handled by useEffect that watches image and canvas dimensions
+
+      // Calculate initial crop bounds
+      let cropX = 0, cropY = 0, cropW = img.width, cropH = img.height;
+      if (ratio && ratio > 0) {
+        const imgRatio = img.width / img.height;
+        if (ratio > imgRatio) {
+          cropW = img.width;
+          cropH = img.width / ratio;
+        } else {
+          cropH = img.height;
+          cropW = img.height * ratio;
+        }
+        cropX = (img.width - cropW) / 2;
+        cropY = (img.height - cropH) / 2;
+      }
+
+      // Apply preset export settings
+      const presetSettings = presets.applyPresetSettings(presetToUse);
+      const exportSettings: Partial<ExportSettings> = {
+        maxWidth: presetSettings.maxWidth ? parseInt(presetSettings.maxWidth) : null,
+        maxHeight: presetSettings.maxHeight ? parseInt(presetSettings.maxHeight) : null,
+      };
+
+      if (presetSettings.resampling) {
+        exportSettings.resampling = presetSettings.resampling;
+      }
+
+      if (presetSettings.webOptimize) {
+        exportSettings.qualityMode = 'filesize';
+        exportSettings.maxFilesizeKb = parseFloat(presetSettings.targetSize) * 1024;
+      } else if (presetSettings.lossless) {
+        exportSettings.qualityMode = 'lossless';
+      }
+
+      cropZones.addZone(
+        { x: cropX, y: cropY, width: cropW, height: cropH },
+        presetToUse,
+        ratio,
+        exportSettings,
+      );
     } catch (error) {
       console.error('[Error] Failed to load image:', error);
       alert(error instanceof Error ? error.message : 'Failed to load image');
     }
-  }, [selectedPreset, presets, canvas]);
+  }, [selectedPreset, presets, cropZones]);
 
   // Image queue hook
   const imageQueue = useImageQueue(loadImage);
@@ -91,21 +138,18 @@ export default function WebPConverter() {
   useEffect(() => {
     const wasDragging = isDraggingRef.current;
     isDraggingRef.current = canvas.isDragging;
-    
-    // If dragging just ended, block preset reset for a short time
+
     if (wasDragging && !canvas.isDragging) {
       blockPresetResetRef.current = true;
-      // Clear any existing timeout
       if (blockPresetResetTimeoutRef.current) {
         clearTimeout(blockPresetResetTimeoutRef.current);
       }
       blockPresetResetTimeoutRef.current = setTimeout(() => {
         blockPresetResetRef.current = false;
         blockPresetResetTimeoutRef.current = null;
-      }, 100); // Small delay to prevent immediate reset
+      }, 100);
     }
-    
-    // Cleanup on unmount
+
     return () => {
       if (blockPresetResetTimeoutRef.current) {
         clearTimeout(blockPresetResetTimeoutRef.current);
@@ -113,56 +157,77 @@ export default function WebPConverter() {
     };
   }, [canvas.isDragging]);
 
-  // Handle preset change - only when preset actually changes
+  // Handle preset change
   useEffect(() => {
-    // Skip if preset hasn't actually changed
     const presetChanged = selectedPreset !== lastPresetRef.current;
     const customPresetsChanged = presets.useCustomPresets !== lastUseCustomPresetsRef.current;
-    
-    if (!presetChanged && !customPresetsChanged) {
-      return;
-    }
-    
-    // Don't reset crop if user is currently dragging or just finished dragging
+
+    if (!presetChanged && !customPresetsChanged) return;
+
     if (isDraggingRef.current || blockPresetResetRef.current) {
-      // Just update the refs, don't apply the preset yet
       lastPresetRef.current = selectedPreset;
       lastUseCustomPresetsRef.current = presets.useCustomPresets;
       return;
     }
-    
-    // Apply the new preset
-    const currentPresets = presets.getCurrentPresets();
-    const ratio = (currentPresets as Record<string, number | null>)[selectedPreset] ?? null;
-    canvas.setAspectRatio(ratio);
-    if (image) {
-      canvas.initializeCrop(image.width, image.height, ratio);
+
+    // Update the active zone's aspect ratio if there's an active zone
+    if (cropZones.activeZone && image) {
+      const currentPresets = presets.getCurrentPresets();
+      const ratio = (currentPresets as Record<string, number | null>)[selectedPreset] ?? null;
+
+      // Recalculate crop bounds for new aspect ratio
+      let cropX = 0, cropY = 0, cropW = image.width, cropH = image.height;
+      if (ratio && ratio > 0) {
+        const imgRatio = image.width / image.height;
+        if (ratio > imgRatio) {
+          cropW = image.width;
+          cropH = image.width / ratio;
+        } else {
+          cropH = image.height;
+          cropW = image.height * ratio;
+        }
+        cropX = (image.width - cropW) / 2;
+        cropY = (image.height - cropH) / 2;
+      }
+
+      cropZones.updateZoneRect(cropZones.activeZone.id, {
+        x: cropX, y: cropY, width: cropW, height: cropH,
+      });
+      cropZones.updateZonePreset(cropZones.activeZone.id, selectedPreset, ratio);
+
+      // Apply preset settings to the active zone's export settings
+      const settings = presets.applyPresetSettings(selectedPreset);
+      const zoneExportSettings: Partial<ExportSettings> = {
+        maxWidth: settings.maxWidth ? parseInt(settings.maxWidth) : null,
+        maxHeight: settings.maxHeight ? parseInt(settings.maxHeight) : null,
+      };
+      if (settings.resampling) {
+        zoneExportSettings.resampling = settings.resampling;
+      }
+      if (settings.webOptimize) {
+        zoneExportSettings.qualityMode = 'filesize';
+        zoneExportSettings.maxFilesizeKb = parseFloat(settings.targetSize) * 1024;
+      } else if (settings.lossless) {
+        zoneExportSettings.qualityMode = 'lossless';
+      }
+      cropZones.updateZoneExportSettings(cropZones.activeZone.id, zoneExportSettings);
     }
 
-    // Apply preset-specific settings
-    const settings = presets.applyPresetSettings(selectedPreset);
-    setMaxWidth(settings.maxWidth);
-    setMaxHeight(settings.maxHeight);
-    setTargetSize(settings.targetSize);
-    setWebOptimize(settings.webOptimize);
-    
-    // Update refs to track what was applied
     lastPresetRef.current = selectedPreset;
     lastUseCustomPresetsRef.current = presets.useCustomPresets;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPreset, presets.useCustomPresets]);
 
-  // Auto zoom to fit when image loads and canvas is ready
+  // Auto zoom to fit when image loads
   useEffect(() => {
     if (!image || !canvas.canvasWidth || !canvas.canvasHeight) return;
-    
-    // Wait a bit for canvas to be fully rendered
+
     const timer = setTimeout(() => {
       if (image.width && image.height && canvas.canvasWidth && canvas.canvasHeight) {
         canvas.handleZoomToFit();
       }
     }, ZOOM_INITIAL_DELAY);
-    
+
     return () => clearTimeout(timer);
   }, [image, canvas.canvasWidth, canvas.canvasHeight, canvas.handleZoomToFit]);
 
@@ -203,14 +268,11 @@ export default function WebPConverter() {
       const item = items[i];
       if (item.type.startsWith('image/')) {
         e.preventDefault();
-
         try {
           const blob = item.getAsFile();
           if (blob) {
             const file = createFileFromBlob(blob);
-
             if (imageQueue.imageQueue.length > 0) {
-              // Create a FileList-like object for addImagesToQueue
               const dataTransfer = new DataTransfer();
               dataTransfer.items.add(file);
               imageQueue.addImagesToQueue(dataTransfer.files);
@@ -226,7 +288,6 @@ export default function WebPConverter() {
     }
   }, [imageQueue, loadImage]);
 
-  // Clipboard paste handler
   useEffect(() => {
     window.addEventListener('paste', handlePaste);
     return () => window.removeEventListener('paste', handlePaste);
@@ -249,12 +310,41 @@ export default function WebPConverter() {
           e.preventDefault();
           canvas.handleZoomToFit();
         }
+        return;
+      }
+
+      // Zone shortcuts (only when not typing in an input)
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'SELECT' || target.tagName === 'TEXTAREA') return;
+
+      if (e.key === 'Delete' || e.key === 'Backspace') {
+        if (cropZones.activeZoneId) {
+          e.preventDefault();
+          cropZones.removeZone(cropZones.activeZoneId);
+        }
+      } else if (e.key === 'Escape') {
+        e.preventDefault();
+        cropZones.selectZone(null);
+      } else if (e.key === 'Tab') {
+        if (cropZones.zones.length > 0) {
+          e.preventDefault();
+          const currentIndex = cropZones.zones.findIndex(z => z.id === cropZones.activeZoneId);
+          if (e.shiftKey) {
+            // Previous zone
+            const prevIndex = currentIndex <= 0 ? cropZones.zones.length - 1 : currentIndex - 1;
+            cropZones.selectZone(cropZones.zones[prevIndex].id);
+          } else {
+            // Next zone
+            const nextIndex = currentIndex >= cropZones.zones.length - 1 ? 0 : currentIndex + 1;
+            cropZones.selectZone(cropZones.zones[nextIndex].id);
+          }
+        }
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [canvas]);
+  }, [canvas, cropZones]);
 
   // Helper function to handle post-conversion queue operations
   const handlePostConversionQueue = useCallback(() => {
@@ -265,7 +355,7 @@ export default function WebPConverter() {
         setTimeout(() => {
           imageQueue.removeImageFromQueue(indexToProcess, loadImage);
         }, TRANSITION_DELAY);
-            } else {
+      } else {
         imageQueue.markImageAsProcessed();
         setTimeout(() => {
           if (indexToProcess < imageQueue.imageQueue.length - 1) {
@@ -276,48 +366,62 @@ export default function WebPConverter() {
     }
   }, [imageQueue, loadImage]);
 
-  // Convert handler
-  const handleConvert = useCallback(async () => {
+
+
+  // Multi-crop export handler
+  const handleExportAll = useCallback(async () => {
+    if (!image || cropZones.zones.length === 0) return;
+    await multiCropExport.exportZones(image, cropZones.zones);
+    handlePostConversionQueue();
+  }, [image, cropZones.zones, multiCropExport, handlePostConversionQueue]);
+
+  // Add zone with preset from CropZonePanel
+  const handleAddZoneWithPreset = useCallback((presetName: string | null, ratio: number | null) => {
     if (!image) return;
 
-    await imageProcessing.handleConvert({
-      image,
-      cropX: canvas.cropX,
-      cropY: canvas.cropY,
-      cropWidth: canvas.cropWidth,
-      cropHeight: canvas.cropHeight,
-      maxWidth,
-      maxHeight,
-      resamplingMethod,
-      quality,
-      lossless,
-      webOptimize,
-      targetSize,
-      onComplete: handlePostConversionQueue
-    });
-  }, [image, canvas, maxWidth, maxHeight, resamplingMethod, quality, lossless, webOptimize, targetSize, imageProcessing, handlePostConversionQueue]);
-
-  // Calculate final output dimensions for display
-  const finalOutputDimensions = useMemo(() => {
-    if (!maxWidth && !maxHeight) return null;
-    let finalW = canvas.cropWidth;
-    let finalH = canvas.cropHeight;
-    const maxW = maxWidth ? parseInt(maxWidth) : null;
-    const maxH = maxHeight ? parseInt(maxHeight) : null;
-
-    if (maxW && finalW > maxW && finalW > 0) {
-      const ratio = maxW / finalW;
-      finalW = maxW;
-      finalH = finalH * ratio;
-    }
-    if (maxH && finalH > maxH && finalH > 0) {
-      const ratio = maxH / finalH;
-      finalH = maxH;
-      finalW = finalW * ratio;
+    // Calculate initial crop bounds for the new zone
+    let cropX = 0, cropY = 0, cropW = image.width, cropH = image.height;
+    if (ratio && ratio > 0) {
+      const imgRatio = image.width / image.height;
+      if (ratio > imgRatio) {
+        cropW = image.width;
+        cropH = image.width / ratio;
+      } else {
+        cropH = image.height;
+        cropW = image.height * ratio;
+      }
+      cropX = (image.width - cropW) / 2;
+      cropY = (image.height - cropH) / 2;
     }
 
-    return { width: Math.round(finalW), height: Math.round(finalH) };
-  }, [canvas.cropWidth, canvas.cropHeight, maxWidth, maxHeight]);
+    // Get export settings from preset
+    let exportSettings: Partial<ExportSettings> = {};
+    if (presetName) {
+      const settings = presets.applyPresetSettings(presetName);
+      exportSettings = {
+        maxWidth: settings.maxWidth ? parseInt(settings.maxWidth) : null,
+        maxHeight: settings.maxHeight ? parseInt(settings.maxHeight) : null,
+      };
+      if (settings.resampling) {
+        exportSettings.resampling = settings.resampling;
+      }
+      if (settings.webOptimize) {
+        exportSettings.qualityMode = 'filesize';
+        exportSettings.maxFilesizeKb = parseFloat(settings.targetSize) * 1024;
+      } else if (settings.lossless) {
+        exportSettings.qualityMode = 'lossless';
+      }
+    }
+
+    cropZones.addZone(
+      { x: cropX, y: cropY, width: cropW, height: cropH },
+      presetName,
+      ratio,
+      exportSettings,
+    );
+  }, [image, presets, cropZones]);
+
+
 
   // Preset file handler
   const handlePresetFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -355,11 +459,31 @@ export default function WebPConverter() {
           onClearQueue={() => {
             imageQueue.clearQueue();
             setImage(null);
+            cropZones.resetZones();
           }}
           onPrevious={imageQueue.loadPreviousImage}
           onNext={imageQueue.loadNextImage}
           onToggleRemoveAfterConvert={imageQueue.setRemoveAfterConvert}
         />
+
+        {/* Crop Zone Panel */}
+        {image && (
+          <div className="mb-4">
+            <CropZonePanel
+              zones={cropZones.zones}
+              activeZoneId={cropZones.activeZoneId}
+              presetOptions={presetOptions}
+              isExporting={multiCropExport.isExporting}
+              exportProgress={multiCropExport.exportProgress}
+              onSelectZone={cropZones.selectZone}
+              onRemoveZone={cropZones.removeZone}
+              onUpdateLabel={cropZones.updateZoneLabel}
+              onUpdateExportSettings={cropZones.updateZoneExportSettings}
+              onAddZoneWithPreset={handleAddZoneWithPreset}
+              onExportAll={handleExportAll}
+            />
+          </div>
+        )}
 
         <Controls
           useCustomPresets={presets.useCustomPresets}
@@ -373,27 +497,18 @@ export default function WebPConverter() {
             setSelectedPreset(defaultPreset);
           }}
           customPresetsFileName={presets.customPresetsFileName}
-          isFreestyleMode={canvas.isFreestyleMode}
-          onFreestyleModeChange={canvas.setIsFreestyleMode}
-          quality={quality}
-          lossless={lossless}
-          onQualityChange={setQuality}
-          onLosslessChange={setLossless}
-          webOptimize={webOptimize}
-          targetSize={targetSize}
-          onWebOptimizeChange={setWebOptimize}
-          onTargetSizeChange={setTargetSize}
-          maxWidth={maxWidth}
-          maxHeight={maxHeight}
-          linkDimensions={linkDimensions}
-          isFreestyleModeActive={canvas.isFreestyleMode}
-          cropWidth={canvas.cropWidth}
-          cropHeight={canvas.cropHeight}
-          onMaxWidthChange={setMaxWidth}
-          onMaxHeightChange={setMaxHeight}
-          onLinkDimensionsToggle={() => setLinkDimensions(!linkDimensions)}
-          resamplingMethod={resamplingMethod}
-          onResamplingMethodChange={setResamplingMethod}
+          isFreestyleMode={!cropZones.activeZone?.aspectRatio}
+          onFreestyleModeChange={() => {
+            // Toggle freestyle for active zone
+            if (cropZones.activeZone) {
+              const currentRatio = cropZones.activeZone.aspectRatio;
+              cropZones.updateZonePreset(
+                cropZones.activeZone.id,
+                cropZones.activeZone.presetName,
+                currentRatio ? null : 1, // toggle
+              );
+            }
+          }}
           onZoomToFit={canvas.handleZoomToFit}
           onZoomIn={canvas.handleZoomIn}
           onZoomReset={canvas.handleZoomReset}
@@ -402,15 +517,6 @@ export default function WebPConverter() {
           cropWidthDisplay={canvas.cropWidth}
           cropHeightDisplay={canvas.cropHeight}
           zoomLevel={canvas.zoomLevel}
-          finalOutputDimensions={finalOutputDimensions}
-          onConvert={handleConvert}
-          isOptimizing={imageProcessing.isOptimizing}
-          imageQueueLength={imageQueue.imageQueue.length}
-          currentImageIndex={imageQueue.currentImageIndex}
-          remainingCount={imageQueue.imageQueue.length - imageQueue.processedImages.size}
-          isCurrentProcessed={imageQueue.processedImages.has(imageQueue.currentImageIndex)}
-          optimizingProgress={imageProcessing.optimizingProgress}
-          optimizingStatus={imageProcessing.optimizingStatus}
         />
 
         {/* Attribution */}
@@ -450,8 +556,8 @@ export default function WebPConverter() {
           canvasHeight={canvas.canvasHeight}
           cursorStyle={canvas.cursorStyle}
           image={image}
-          cropWidth={canvas.cropWidth}
-          cropHeight={canvas.cropHeight}
+          zones={cropZones.zones}
+          activeZoneId={cropZones.activeZoneId}
           zoomLevel={canvas.zoomLevel}
           onMouseDown={canvas.handleMouseDown}
           onMouseMove={canvas.handleMouseMove}
@@ -465,14 +571,14 @@ export default function WebPConverter() {
           <div className="flex gap-2 mt-4 w-full px-4">
             <button
               onClick={imageQueue.loadPreviousImage}
-              disabled={imageQueue.imageQueue.length === 0 || imageQueue.currentImageIndex <= 0 || imageProcessing.isOptimizing}
+              disabled={imageQueue.imageQueue.length === 0 || imageQueue.currentImageIndex <= 0 || multiCropExport.isExporting}
               className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white py-2 px-4 rounded"
             >
               ← Previous
             </button>
             <button
               onClick={imageQueue.loadNextImage}
-              disabled={imageQueue.imageQueue.length === 0 || imageQueue.currentImageIndex >= imageQueue.imageQueue.length - 1 || imageProcessing.isOptimizing}
+              disabled={imageQueue.imageQueue.length === 0 || imageQueue.currentImageIndex >= imageQueue.imageQueue.length - 1 || multiCropExport.isExporting}
               className="flex-1 bg-gray-700 hover:bg-gray-600 disabled:bg-gray-800 disabled:cursor-not-allowed text-white py-2 px-4 rounded"
             >
               Next →

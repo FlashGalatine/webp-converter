@@ -1,41 +1,67 @@
 {
-  "Eorzea Collection Portrait": {
-    "crop-ratio": "34/57",
-    "max-height": 570,
+  "InstagramPortrait": {
+    "crop-ratio": "3/4",
+    "max-height": 1440,
     "max-filesize": 1,
     "max-filesize-unit": "MB",
-    "default-selection": "Portrait"
+    "export": {
+      "resampling": "lanczos",
+      "qualityMode": "filesize",
+      "maxFilesizeKb": 1024
+    }
   },
-  "Eorzea Collection 690w Slideshow": {
-    "crop-ratio": "23/19",
-    "max-height": 570,
+  "BSkyRight": {
+    "crop-ratio": "2/1",
+    "max-height": 1440,
     "max-filesize": 1,
     "max-filesize-unit": "MB",
-    "default-selection": "Square"
+    "export": {
+      "resampling": "lanczos",
+      "qualityMode": "filesize",
+      "maxFilesizeKb": 1024
+    }
   },
-  "Eorzea Collection 1040w Slideshow": {
-    "crop-ratio": "104/57",
-    "max-height": 570,
+  "Square": {
+    "crop-ratio": "1",
+    "max-height": 1440,
     "max-filesize": 1,
     "max-filesize-unit": "MB",
-    "default-selection": "Landscape"
+    "export": {
+      "resampling": "lanczos",
+      "qualityMode": "filesize",
+      "maxFilesizeKb": 1024
+    }
   },
-  "Eorzea Collection 340w Detail": {
-    "crop-ratio": "17/14",
-    "max-height": 280,
-    "max-filesize": 1,
-    "max-filesize-unit": "MB"
+  "ECPortrait": {
+    "max-width": 340,
+    "max-height": 570,
+    "export": {
+      "resampling": "lanczos",
+      "qualityMode": "lossless"
+    }
   },
-  "Eorzea Collection 515w Detail": {
-    "crop-ratio": "103/56",
-    "max-height": 280,
-    "max-filesize": 1,
-    "max-filesize-unit": "MB"
+  "ECWide": {
+    "max-width": 690,
+    "max-height": 570,
+    "export": {
+      "resampling": "lanczos",
+      "qualityMode": "lossless"
+    }
   },
-  "Eorzea Collection 690w Detail": {
-    "crop-ratio": "69/28",
+  "ECDetail": {
+    "max-width": 340,
     "max-height": 280,
-    "max-filesize": 1,
-    "max-filesize-unit": "MB"
+    "export": {
+      "resampling": "lanczos",
+      "qualityMode": "lossless"
+    }
+  },
+  "ECDetailWide": {
+    "max-width": 690,
+    "max-height": 280,
+    "export": {
+      "resampling": "lanczos",
+      "qualityMode": "lossless"
+    }
   }
 }

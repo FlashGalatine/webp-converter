@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { validateCropRatio, validatePresetName } from '../../utils/presets/validation';
-import type { PresetEditorPreset, DefaultSelection } from '../../types/presets';
+import type { PresetEditorPreset, DefaultSelection, EditorResampling, EditorQualityMode } from '../../types/presets';
 import type { CustomPresetsRaw } from '../../types';
 
 export default function PresetEditor() {
@@ -46,7 +46,11 @@ export default function PresetEditor() {
       maxHeight: '',
       maxFilesize: '',
       maxFilesizeUnit: 'MB',
-      defaultSelection: ''
+      defaultSelection: '',
+      resampling: '',
+      qualityMode: '',
+      quality: '',
+      exportMaxFilesizeKb: '',
     };
     setPresets([...presets, newPreset]);
   };
@@ -128,6 +132,7 @@ export default function PresetEditor() {
 
         const importedPresets: PresetEditorPreset[] = Object.entries(jsonData).map((entry, index) => {
           const [name, config] = entry;
+          const exportConfig = config.export;
           return {
             id: Date.now() + index,
             name: name,
@@ -136,7 +141,11 @@ export default function PresetEditor() {
             maxHeight: config['max-height'] ? String(config['max-height']) : '',
             maxFilesize: config['max-filesize'] ? String(config['max-filesize']) : '',
             maxFilesizeUnit: config['max-filesize-unit'] || 'MB',
-            defaultSelection: (config['default-selection'] as DefaultSelection) || ''
+            defaultSelection: (config['default-selection'] as DefaultSelection) || '',
+            resampling: (exportConfig?.resampling as EditorResampling) || '',
+            qualityMode: (exportConfig?.qualityMode as EditorQualityMode) || '',
+            quality: exportConfig?.quality != null ? String(exportConfig.quality) : '',
+            exportMaxFilesizeKb: exportConfig?.maxFilesizeKb != null ? String(exportConfig.maxFilesizeKb) : '',
           };
         });
 
@@ -245,6 +254,24 @@ export default function PresetEditor() {
         config['default-selection'] = preset.defaultSelection;
       }
 
+      // Export settings block
+      const exportBlock: Record<string, unknown> = {};
+      if (preset.resampling && preset.resampling.trim() !== '') {
+        exportBlock.resampling = preset.resampling;
+      }
+      if (preset.qualityMode && preset.qualityMode.trim() !== '') {
+        exportBlock.qualityMode = preset.qualityMode;
+      }
+      if (preset.quality.trim() !== '') {
+        exportBlock.quality = parseInt(preset.quality);
+      }
+      if (preset.exportMaxFilesizeKb.trim() !== '') {
+        exportBlock.maxFilesizeKb = parseInt(preset.exportMaxFilesizeKb);
+      }
+      if (Object.keys(exportBlock).length > 0) {
+        config.export = exportBlock;
+      }
+
       if (Object.keys(config).length > 0) {
         exportData[preset.name] = config;
       } else if (preset.name.trim() !== '') {
@@ -297,6 +324,24 @@ export default function PresetEditor() {
       }
       if (preset.defaultSelection && preset.defaultSelection.trim() !== '') {
         config['default-selection'] = preset.defaultSelection;
+      }
+
+      // Export settings block
+      const exportBlock: Record<string, unknown> = {};
+      if (preset.resampling && preset.resampling.trim() !== '') {
+        exportBlock.resampling = preset.resampling;
+      }
+      if (preset.qualityMode && preset.qualityMode.trim() !== '') {
+        exportBlock.qualityMode = preset.qualityMode;
+      }
+      if (preset.quality.trim() !== '') {
+        exportBlock.quality = parseInt(preset.quality);
+      }
+      if (preset.exportMaxFilesizeKb.trim() !== '') {
+        exportBlock.maxFilesizeKb = parseInt(preset.exportMaxFilesizeKb);
+      }
+      if (Object.keys(exportBlock).length > 0) {
+        config.export = exportBlock;
       }
       if (Object.keys(config).length > 0) {
         preview[preset.name] = config;
@@ -408,13 +453,12 @@ export default function PresetEditor() {
             {presets.map((preset, index) => (
               <div
                 key={preset.id}
-                className={`bg-gray-800 rounded-lg p-6 border border-gray-700 preset-card ${
-                  animatingPresetId === preset.id
+                className={`bg-gray-800 rounded-lg p-6 border border-gray-700 preset-card ${animatingPresetId === preset.id
                     ? animationDirection === 'up'
                       ? 'animate-move-up animate-highlight'
                       : 'animate-move-down animate-highlight'
                     : ''
-                }`}
+                  }`}
               >
                 {/* Preset Header */}
                 <div className="flex justify-between items-start mb-4">
@@ -441,11 +485,10 @@ export default function PresetEditor() {
                     <button
                       onClick={() => movePresetUp(preset.id)}
                       disabled={index === 0}
-                      className={`font-semibold py-2 px-3 rounded ${
-                        index === 0
+                      className={`font-semibold py-2 px-3 rounded ${index === 0
                           ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                           : 'bg-blue-600 hover:bg-blue-700 text-white'
-                      }`}
+                        }`}
                       title="Move up"
                     >
                       ↑
@@ -454,11 +497,10 @@ export default function PresetEditor() {
                     <button
                       onClick={() => movePresetDown(preset.id)}
                       disabled={index === presets.length - 1}
-                      className={`font-semibold py-2 px-3 rounded ${
-                        index === presets.length - 1
+                      className={`font-semibold py-2 px-3 rounded ${index === presets.length - 1
                           ? 'bg-gray-600 text-gray-400 cursor-not-allowed'
                           : 'bg-blue-600 hover:bg-blue-700 text-white'
-                      }`}
+                        }`}
                       title="Move down"
                     >
                       ↓
@@ -588,6 +630,86 @@ export default function PresetEditor() {
                     <p className="text-gray-500 text-xs mt-1">
                       Only one preset per type (Square, Landscape, Portrait)
                     </p>
+                  </div>
+
+                  {/* Export Settings */}
+                  <div className="md:col-span-2">
+                    <div className="border border-gray-600 rounded-lg p-4 bg-gray-750">
+                      <h4 className="text-sm font-semibold text-amber-400 mb-3">Export Settings (optional)</h4>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* Resampling */}
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-300 mb-1">
+                            Resampling
+                          </label>
+                          <select
+                            value={preset.resampling || ''}
+                            onChange={(e) => updatePreset(preset.id, 'resampling', e.target.value)}
+                            className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                          >
+                            <option value="">Default (Lanczos)</option>
+                            <option value="lanczos">Lanczos</option>
+                            <option value="bicubic">Bicubic</option>
+                            <option value="bilinear">Bilinear</option>
+                            <option value="nearest">Nearest Neighbor</option>
+                            <option value="browser">Browser Default</option>
+                          </select>
+                        </div>
+
+                        {/* Quality Mode */}
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-300 mb-1">
+                            Quality Mode
+                          </label>
+                          <select
+                            value={preset.qualityMode || ''}
+                            onChange={(e) => updatePreset(preset.id, 'qualityMode', e.target.value)}
+                            className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white focus:outline-none focus:border-blue-500"
+                          >
+                            <option value="">Default (Quality)</option>
+                            <option value="quality">Quality</option>
+                            <option value="filesize">Target Filesize</option>
+                            <option value="lossless">Lossless</option>
+                          </select>
+                        </div>
+
+                        {/* Quality (shown when qualityMode is quality or empty) */}
+                        {(!preset.qualityMode || preset.qualityMode === 'quality') && (
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-300 mb-1">
+                              Quality (1-100)
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              max="100"
+                              value={preset.quality}
+                              onChange={(e) => updatePreset(preset.id, 'quality', e.target.value)}
+                              placeholder="Default: 90"
+                              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                            />
+                          </div>
+                        )}
+
+                        {/* Export Max Filesize KB (shown when qualityMode is filesize) */}
+                        {preset.qualityMode === 'filesize' && (
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-300 mb-1">
+                              Target Filesize (KB)
+                            </label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={preset.exportMaxFilesizeKb}
+                              onChange={(e) => updatePreset(preset.id, 'exportMaxFilesizeKb', e.target.value)}
+                              placeholder="e.g., 1024"
+                              className="w-full bg-gray-700 border border-gray-600 rounded px-3 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                            />
+                            <p className="text-gray-500 text-xs mt-1">Binary search will find optimal quality to fit this size</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

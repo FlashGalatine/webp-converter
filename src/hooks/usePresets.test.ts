@@ -66,6 +66,8 @@ describe('usePresets', () => {
       expect(settings.maxHeight).toBe('')
       expect(settings.targetSize).toBe('10')
       expect(settings.webOptimize).toBe(false)
+      expect(settings.resampling).toBeNull()
+      expect(settings.lossless).toBe(false)
     })
 
     it('should return default settings for unknown preset', async () => {
@@ -81,6 +83,58 @@ describe('usePresets', () => {
       expect(settings.maxHeight).toBe('')
       expect(settings.targetSize).toBe('10')
       expect(settings.webOptimize).toBe(false)
+      expect(settings.resampling).toBeNull()
+      expect(settings.lossless).toBe(false)
+    })
+
+    it('should return resampling and lossless from preset export block', async () => {
+      const { result } = renderHook(() => usePresets())
+
+      const customPresetsJson = JSON.stringify({
+        'Lanczos Preset': {
+          'max-width': 340,
+          'max-height': 570,
+          export: {
+            resampling: 'lanczos',
+            qualityMode: 'lossless'
+          }
+        }
+      })
+
+      const file = new File([customPresetsJson], 'presets.json', { type: 'application/json' })
+
+      const originalFileReader = global.FileReader
+      class TestFileReader {
+        result: string | ArrayBuffer | null = null
+        onload: ((event: ProgressEvent<FileReader>) => void) | null = null
+
+        readAsText(_blob: Blob) {
+          setTimeout(() => {
+            this.result = customPresetsJson
+            if (this.onload) {
+              this.onload({ target: this } as unknown as ProgressEvent<FileReader>)
+            }
+          }, 0)
+        }
+      }
+      global.FileReader = TestFileReader as unknown as typeof FileReader
+
+      act(() => {
+        result.current.loadCustomPresets(file)
+      })
+
+      await waitFor(() => {
+        expect(result.current.useCustomPresets).toBe(true)
+      })
+
+      const settings = result.current.applyPresetSettings('Lanczos Preset')
+
+      expect(settings.maxWidth).toBe('340')
+      expect(settings.maxHeight).toBe('570')
+      expect(settings.resampling).toBe('lanczos')
+      expect(settings.lossless).toBe(true)
+
+      global.FileReader = originalFileReader
     })
   })
 
@@ -455,7 +509,7 @@ describe('usePresets', () => {
     })
 
     it('should show error alert for invalid JSON', async () => {
-      const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => {})
+      const alertMock = vi.spyOn(window, 'alert').mockImplementation(() => { })
       const { result } = renderHook(() => usePresets())
 
       const invalidJson = 'not valid json {'

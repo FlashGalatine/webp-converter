@@ -18,6 +18,15 @@ export interface ImageQueueItem {
   type: string;
 }
 
+/** Per-preset export settings block (optional in presets JSON) */
+export interface PresetExportConfig {
+  resampling?: 'bicubic' | 'lanczos' | 'bilinear' | 'nearest' | 'browser';
+  qualityMode?: 'quality' | 'filesize' | 'lossless';
+  quality?: number;
+  maxFilesizeKb?: number;
+  format?: string; // reserved for future use, always 'webp' for now
+}
+
 export interface CustomPresetConfig {
   'crop-ratio'?: string | number | null;
   'max-width'?: number;
@@ -25,6 +34,7 @@ export interface CustomPresetConfig {
   'max-filesize'?: number;
   'max-filesize-unit'?: 'KB' | 'MB' | 'GB';
   'default-selection'?: 'Square' | 'Landscape' | 'Portrait';
+  export?: PresetExportConfig;
 }
 
 export interface CustomPresetsRaw {
@@ -34,4 +44,8 @@ export interface CustomPresetsRaw {
 export interface CustomPresets {
   [presetName: string]: number | null;
 }
+
+// Re-export crop zone types
+export type { CropBounds, QualityMode, ExportSettings, CropZone } from './cropZone';
+export { DEFAULT_EXPORT_SETTINGS } from './cropZone';
 

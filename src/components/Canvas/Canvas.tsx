@@ -1,4 +1,5 @@
 import React from 'react';
+import type { CropZone } from '../../types';
 
 interface CanvasProps {
   canvasRef: React.RefObject<HTMLCanvasElement>;
@@ -6,8 +7,8 @@ interface CanvasProps {
   canvasHeight: number;
   cursorStyle: string;
   image: HTMLImageElement | null;
-  cropWidth: number;
-  cropHeight: number;
+  zones: CropZone[];
+  activeZoneId: string | null;
   zoomLevel: number;
   onMouseDown: (e: React.MouseEvent<HTMLCanvasElement>) => void;
   onMouseMove: (e: React.MouseEvent<HTMLCanvasElement>) => void;
@@ -22,8 +23,8 @@ export default function Canvas({
   canvasHeight,
   cursorStyle,
   image,
-  cropWidth,
-  cropHeight,
+  zones,
+  activeZoneId,
   zoomLevel,
   onMouseDown,
   onMouseMove,
@@ -43,6 +44,11 @@ export default function Canvas({
     );
   }
 
+  const activeZone = zones.find(z => z.id === activeZoneId);
+  const cropDesc = activeZone
+    ? `${Math.round(activeZone.rect.width)}x${Math.round(activeZone.rect.height)}`
+    : 'no selection';
+
   return (
     <canvas
       ref={canvasRef}
@@ -56,7 +62,7 @@ export default function Canvas({
       className="border-2 border-gray-700"
       style={{ maxWidth: '100%', maxHeight: '100%', cursor: cursorStyle }}
       role="img"
-      aria-label={`Image crop preview: ${Math.round(cropWidth)}x${Math.round(cropHeight)} pixels at ${(zoomLevel * 100).toFixed(0)}% zoom`}
+      aria-label={`Image crop preview: ${zones.length} zone(s), active: ${cropDesc}, ${(zoomLevel * 100).toFixed(0)}% zoom`}
     />
   );
 }
