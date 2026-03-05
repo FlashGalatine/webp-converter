@@ -10,8 +10,8 @@
       "maxFilesizeKb": 1024
     }
   },
-  "BSkyRight": {
-    "crop-ratio": "2/1",
+  "Square": {
+    "crop-ratio": "1",
     "max-height": 1440,
     "max-filesize": 1,
     "max-filesize-unit": "MB",
@@ -21,8 +21,8 @@
       "maxFilesizeKb": 1024
     }
   },
-  "Square": {
-    "crop-ratio": "1",
+  "BSkyRight": {
+    "crop-ratio": "2/1",
     "max-height": 1440,
     "max-filesize": 1,
     "max-filesize-unit": "MB",

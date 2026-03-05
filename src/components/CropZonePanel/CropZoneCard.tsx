@@ -157,7 +157,7 @@ export default function CropZoneCard({
                             onChange={(e) => onExportSettingsChange(zone.id, {
                                 maxWidth: e.target.value ? parseInt(e.target.value) : null,
                             })}
-                            className="flex-1 bg-gray-600 text-xs text-gray-200 rounded px-2 py-1 border border-gray-500"
+                            className="flex-1 min-w-0 bg-gray-600 text-xs text-gray-200 rounded px-2 py-1 border border-gray-500"
                         />
                         <label className="text-xs text-gray-400 w-8">Max H</label>
                         <input
@@ -168,7 +168,7 @@ export default function CropZoneCard({
                             onChange={(e) => onExportSettingsChange(zone.id, {
                                 maxHeight: e.target.value ? parseInt(e.target.value) : null,
                             })}
-                            className="flex-1 bg-gray-600 text-xs text-gray-200 rounded px-2 py-1 border border-gray-500"
+                            className="flex-1 min-w-0 bg-gray-600 text-xs text-gray-200 rounded px-2 py-1 border border-gray-500"
                         />
                     </div>
 

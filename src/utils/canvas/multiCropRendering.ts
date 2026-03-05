@@ -91,6 +91,49 @@ function drawHandles(ctx: CanvasRenderingContext2D, rect: DisplayRect) {
 }
 
 /**
+ * Draw a targeting reticle at the center of a rect.
+ */
+function drawReticle(ctx: CanvasRenderingContext2D, rect: DisplayRect, color: string, isActive: boolean) {
+    const cx = rect.x + rect.width / 2;
+    const cy = rect.y + rect.height / 2;
+    const outerRadius = 8;
+    const innerRadius = 2;
+    const gapSize = 3;
+    const armLength = 6;
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = isActive ? 1.5 : 1;
+    ctx.globalAlpha = isActive ? 0.9 : 0.6;
+
+    // Outer circle
+    ctx.beginPath();
+    ctx.arc(cx, cy, outerRadius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Inner dot
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(cx, cy, innerRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cross arms (with gap around center circle)
+    const armStart = outerRadius + gapSize;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy - armStart);
+    ctx.lineTo(cx, cy - armStart - armLength);
+    ctx.moveTo(cx, cy + armStart);
+    ctx.lineTo(cx, cy + armStart + armLength);
+    ctx.moveTo(cx - armStart, cy);
+    ctx.lineTo(cx - armStart - armLength, cy);
+    ctx.moveTo(cx + armStart, cy);
+    ctx.lineTo(cx + armStart + armLength, cy);
+    ctx.stroke();
+
+    ctx.restore();
+}
+
+/**
  * Draw rule-of-thirds grid inside a rect.
  */
 function drawRuleOfThirds(ctx: CanvasRenderingContext2D, rect: DisplayRect, color: string) {
@@ -197,6 +240,7 @@ export function renderCanvasMultiCrop(params: MultiCropRenderParams): void {
         ctx.lineWidth = ZONE_BORDER_WIDTH;
         ctx.strokeRect(rect.x, rect.y, rect.width, rect.height);
 
+        drawReticle(ctx, rect, color, false);
         drawZoneLabel(ctx, zone.label, rect, color);
     }
 
@@ -212,6 +256,9 @@ export function renderCanvasMultiCrop(params: MultiCropRenderParams): void {
 
         // Rule of thirds
         drawRuleOfThirds(ctx, rect, color);
+
+        // Reticle
+        drawReticle(ctx, rect, color, true);
 
         // Resize handles
         drawHandles(ctx, rect);
